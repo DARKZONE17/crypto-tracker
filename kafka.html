@@ -820,7 +820,7 @@ auto_offset_reset=<span class="str">'latest'</span>    <span class="cm"># → st
     <div style="display:flex;flex-direction:column;gap:0.7rem;">
       <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #5eead4;">
         <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#5eead4;margin-bottom:0.35rem;">Create Topic: </p>
-        <div class="terminal" style="margin:0;"><span class="t-cmd">docker exec -it <br> kafka-project-1-kafka-1 kafka-topics \ <br> 
+        <div class="terminal" style="margin:0;"><span class="t-cmd">docker exec -it <span class="kw">kafka-folder-name</span>-kafka-1 kafka-topics \ <br> 
         --create \ <br> 
         --topic hello-topic \ <span class="cm"># Set the Topic Name</span>  <br> 
         --bootstrap-server localhost:9092 \ <span class="cm"># Server Name</span> <br> 
@@ -829,7 +829,7 @@ auto_offset_reset=<span class="str">'latest'</span>    <span class="cm"># → st
       </div>
       <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #a855f7;">
         <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#a855f7;margin-bottom:0.35rem;">Verify Topic</p>
-        <div class="terminal" style="margin:0;"><span class="t-cmd">docker exec -it <br> kafka-project-1-kafka-1 kafka-topics \ <br> 
+        <div class="terminal" style="margin:0;"><span class="t-cmd">docker exec -it <span class="kw">kafka-folder-name</span>-kafka-1 kafka-topics \ <br> 
         --list \ <br>
         --bootstrap-server localhost:9092 <br> <br>
         <span class="cm"># Output hello-topic</span> 
