@@ -1,351 +1,991 @@
-KAFKA  
-
- 
-
- 
- 
- 
- 
- 
- 
- 
-
- 
-
-What is Kafka (in one line) 
-
-Kafka is a distributed system that moves data from one system to another in real-time. 
-
-Think of it as a high-speed data pipeline. 
-
- 
-
-Real-World Analogy (Zomato / Uber) 
-
-Let’s map Kafka to Zomato: 
-
-Kafka Concept 
-
-Zomato Analogy 
-
-Producer 
-
-Customer placing order 
-
-Topic 
-
-Restaurant order queue 
-
-Partition 
-
-Kitchen sections (pizza, drinks, desserts) 
-
-Broker 
-
-Zomato backend system 
-
-Consumer 
-
-Delivery agents 
-
-Consumer Group 
-
-Fleet of delivery boys 
-
- 
-
- 
-
-CORE CONCEPTS (Deep + Simple) 
- 
-
-BROKER 
-
-Definition :- A broker is a Kafka server that stores and serves data. 
-
-Simple :- It’s just the machine running Kafka 
-
-Analogy :- Zomato backend server handling orders 
- 
-
-TOPIC 
-
-Definition :- A topic is a logical channel where messages are stored. 
-
-producer.send("crypto-prices", value=data) 
-
-Simple :- Like a database table or queue 
-
-Analogy :- A restaurant order queue 
-
-pizza-orders  
-
-drink-orders  
- 
-
-PARTITION (MOST IMPORTANT) 
-
-Definition :- A topic is split into partitions for parallel processing. 
-
-Why partitions exist?  
-
-To scale Kafka horizontally 
- 
- 
-
-Diagram 
-
-Topic: crypto-prices 
-
-Partition 0: [msg1, msg2, msg3] 
-	Partition 1: [msg4, msg5] 
-	Partition 2: [msg6, msg7] 
- 
-
-Analogy (Zomato Kitchen) :-  
-
-Instead of ONE chef: 
-
-Kitchen Sections: 
-- Pizza section 
-- Drinks section 
-- Dessert section 
-
-Orders are distributed → faster processing 
- 
-
-Key Rule 
-
-Order is guaranteed ONLY within a partition 
- 
-
-Partitioning Logic 
-
-Case 1: With Key :-  
-
-producer.send("topic", key="BTC", value=data) 
-
-Same key → same partition 
- 
-
-Case 2: No Key :-  
-
-Round-robin distribution 
- 
-
-PRODUCER 
-
-Definition :- A producer sends data to Kafka. 
-
-Flow :-  
-
-API → Python Producer → Kafka Topic 
- 
-
-Python Example :-  
-from kafka import KafkaProducer 
-import json 
- 
-producer = KafkaProducer( 
-   bootstrap_servers='localhost:9092', 
-   value_serializer=lambda x: json.dumps(x).encode('utf-8') 
-) 
- 
-producer.send("crypto-prices", {"coin": "BTC", "price": 50000}) 
- 
- 
-
-Analogy :-  
-
-Customer placing order in Zomato 
- 
-
-Important Behavior 
-
-Async (fast)  
-
-Can batch messages  
-
-Can retry on failure  
- 
-
-CONSUMER 
-
-Definition :- A consumer reads data from Kafka. 
-
-Flow :-  
-
-Kafka → Consumer → Processing (Spark / DB) 
-
-Python Example :-  
- 
-from kafka import KafkaConsumer 
-import json 
-consumer = KafkaConsumer( 
-   "crypto-prices", 
-   bootstrap_servers='localhost:9092', 
-   value_deserializer=lambda x: json.loads(x.decode('utf-8')), 
-   auto_offset_reset='earliest' 
-) 
-for msg in consumer: 
-   print(msg.value) 
- 
-
-Analogy : - Delivery agent picking up orders 
- 
-
-CONSUMER GROUP (LOAD BALANCING MAGIC) 
-
-Definition. :- A group of consumers working together 
-
-Example :-  
-
-Topic has 3 partitions: 
-
-Partition 0 
-
-Partition 1 
-
-Partition 2 
- 
-
-Case 1: 3 Consumers 
-
-Consumer A → Partition 0 
-
-Consumer B → Partition 1 
-
-Consumer C → Partition 2 
-
-Perfect load balancing 
- 
-
-Case 2: 2 Consumers 
-
-Consumer A → Partition 0,1 
-
-Consumer B → Partition 2 
- 
-
-Analogy 
-
-3 delivery boys, 3 kitchens: 
-
-Each handles one → fast delivery 
- 
-
-Rule  
-
-One partition = one consumer at a time 
- 
-
-OFFSET (IMPORTANT BUT SIMPLE) 
-
-Definition 
-
-Offset = position of message in partition 
-
-Partition 0: 
-
-[0] msg1 
-
-[1] msg2 
-
-[2] msg3 
- 
-
-Why needed? 
-
-To track what is already read 
- 
-
-Analogy 
-
-Delivery boy remembers: 
-
-“I delivered order #15, next is #16” 
- 
-
-END-TO-END FLOW (YOUR PROJECT) 
- 
-CoinGecko API 
-     ↓ 
-Python Producer 
-     ↓ 
-Kafka Topic (crypto-prices) 
-     ↓ 
-Partitions (parallel) 
-     ↓ 
-Consumer Group (Spark) 
-     ↓ 
-Delta Lake / Snowflake 
-
-HOW EVERYTHING CONNECTS (IMPORTANT) 
-
-Step-by-step: 
-
-Producer connects using:  
-
-bootstrap_servers='localhost:9092' 
-
-Sends message to topic  
-
-Kafka:  
-
-Stores in partition  
-
-Assigns offset  
-
-Consumer:  
-
-Joins group  
-
-Gets partition assigned  
-
-Reads messages  
- 
-
-PROBLEMS YOU WILL FACE (AND WHY THESE CONCEPTS EXIST) 
-
-Problem 1: Slow processing 
-
-Solution: Partitions 
- 
-
-Problem 2: Multiple consumers 
-
-Solution: Consumer Groups 
- 
-
-Problem 3: Duplicate reads 
-
-Solution: Offsets 
- 
-
-Problem 4: Ordering issue 
-
-Solution: Keys → same partition 
- 
-
-FINAL INTUITION (REMEMBER THIS) 
-
-Kafka is: 
-
-A distributed log system 
-
-NOT: 
-
-Not a queue  
-
-Not a database  
- 
-
-Think like this: 
-
-Producer → writes log 
-
-Kafka → stores log 
-
-Consumer → reads log 
-
- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kafka Documentation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* Header */
+  .hero {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 60%);
+    border-bottom: 1px solid #2d3748;
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: #e84393;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-size: 4rem;
+    font-weight: 800;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 1rem;
+    background: linear-gradient(90deg, #e84393, #a855f7, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: #94a3b8;
+    max-width: 560px;
+    margin: 0 auto 0.5rem;
+  }
+
+  .hero-tagline {
+    font-size: 0.95rem;
+    color: #64748b;
+    font-style: italic;
+  }
+
+  /* Layout */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  /* Section headings */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #e84393;
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #a855f7;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #2d3748;
+  }
+
+  /* Analogy table */
+  .analogy-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .analogy-table thead tr {
+    background: #1e2433;
+  }
+
+  .analogy-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    border-bottom: 1px solid #2d3748;
+  }
+
+  .analogy-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #1e2433;
+    color: #cbd5e1;
+  }
+
+  .analogy-table td:first-child {
+    color: #a855f7;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+  }
+
+  .analogy-table tbody tr:hover {
+    background: #1a1f2e;
+  }
+
+  /* Concept cards */
+  .concepts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .concept-card {
+    background: #161b27;
+    border: 1px solid #2d3748;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border-left: 3px solid #a855f7;
+  }
+
+  .concept-card.important {
+    border-left-color: #e84393;
+  }
+
+  .concept-card .def-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+    align-items: flex-start;
+    font-size: 0.95rem;
+  }
+
+  .concept-card .def-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #64748b;
+    min-width: 80px;
+    padding-top: 2px;
+  }
+
+  .concept-card .def-val {
+    color: #cbd5e1;
+  }
+
+  .analogy-tag {
+    display: inline-block;
+    background: #1e2433;
+    border: 1px solid #2d3748;
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-top: 0.5rem;
+  }
+
+  /* Code block */
+  pre {
+    background: #0d111a;
+    border: 1px solid #2d3748;
+    border-radius: 8px;
+    padding: 1.25rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.82rem;
+    color: #7dd3fc;
+    overflow-x: auto;
+    margin: 1rem 0;
+    line-height: 1.6;
+  }
+
+  pre .kw { color: #c084fc; }
+  pre .str { color: #86efac; }
+  pre .comment { color: #475569; font-style: italic; }
+  pre .fn { color: #fbbf24; }
+
+  /* Flow diagram */
+  .flow-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 1.5rem 0;
+  }
+
+  .flow-step {
+    background: #1e2433;
+    border: 1px solid #2d3748;
+    border-radius: 8px;
+    padding: 0.6rem 2rem;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    min-width: 220px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+  }
+
+  .flow-step.highlight {
+    background: #2d1b4e;
+    border-color: #a855f7;
+    color: #e9d5ff;
+  }
+
+  .flow-arrow {
+    color: #475569;
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+
+  /* Partition diagram */
+  .partition-diagram {
+    background: #0d111a;
+    border: 1px solid #2d3748;
+    border-radius: 8px;
+    padding: 1.25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.83rem;
+    color: #94a3b8;
+    margin: 1rem 0;
+  }
+
+  .partition-row { margin-bottom: 4px; }
+  .partition-label { color: #60a5fa; }
+  .partition-msgs { color: #86efac; }
+
+  /* Rules / bullets */
+  .rule-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .rule-list li {
+    font-size: 0.93rem;
+    color: #94a3b8;
+    padding-left: 1.2rem;
+    position: relative;
+  }
+
+  .rule-list li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #a855f7;
+  }
+
+  /* Problem/Solution */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .problem-card {
+    background: #161b27;
+    border: 1px solid #2d3748;
+    border-radius: 10px;
+    padding: 1rem;
+  }
+
+  .problem-card .prob {
+    font-size: 0.82rem;
+    color: #f87171;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .problem-card .sol {
+    font-size: 0.95rem;
+    color: #86efac;
+    font-weight: 600;
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid #1e2433;
+    margin: 3rem 0;
+  }
+
+  /* Final intuition */
+  .intuition-box {
+    background: #0d111a;
+    border: 1px solid #2d3748;
+    border-radius: 12px;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .intuition-box h4 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .intuition-box .is { color: #86efac; }
+  .intuition-box .not { color: #f87171; }
+
+  .intuition-box ul { list-style: none; }
+  .intuition-box ul li { font-size: 0.93rem; color: #94a3b8; padding: 2px 0; }
+
+  /* Tag badges */
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-right: 4px;
+    margin-top: 8px;
+  }
+
+  .badge-green { background: #14532d; color: #86efac; }
+  .badge-purple { background: #2e1065; color: #d8b4fe; }
+  .badge-blue { background: #1e3a5f; color: #93c5fd; }
+
+  /* Consumer group visual */
+  .cg-section { margin: 1rem 0; }
+  .cg-case {
+    background: #0d111a;
+    border: 1px solid #2d3748;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.83rem;
+  }
+
+  .cg-case .case-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #64748b;
+    font-family: 'Segoe UI', sans-serif;
+    margin-bottom: 0.5rem;
+  }
+
+  .cg-case .cg-line { color: #cbd5e1; margin: 2px 0; }
+  .cg-case .cg-note { color: #86efac; margin-top: 0.4rem; font-style: italic; font-size: 0.8rem; }
+
+  /* Offset diagram */
+  .offset-block {
+    background: #0d111a;
+    border: 1px solid #2d3748;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.83rem;
+    color: #94a3b8;
+    margin: 0.75rem 0;
+  }
+
+  .offset-block .o-line { color: #fbbf24; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 2.5rem; }
+    .intuition-box { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Documentation</div>
+  <h1>Kafka</h1>
+  <p class="hero-sub">A distributed system that moves data from one system to another in real-time.</p>
+  <p class="hero-tagline">Think of it as a high-speed data pipeline.</p>
+</div>
+
+<div class="container">
+
+  <!-- ANALOGY TABLE -->
+  <div class="section-label">Real-World Analogy</div>
+  <h2>Kafka mapped to Zomato / Uber</h2>
+
+  <table class="analogy-table">
+    <thead>
+      <tr>
+        <th>Kafka Concept</th>
+        <th>Zomato Analogy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Producer</td><td>Customer placing order</td></tr>
+      <tr><td>Topic</td><td>Restaurant order queue</td></tr>
+      <tr><td>Partition</td><td>Kitchen sections (pizza, drinks, desserts)</td></tr>
+      <tr><td>Broker</td><td>Zomato backend system</td></tr>
+      <tr><td>Consumer</td><td>Delivery agents</td></tr>
+      <tr><td>Consumer Group</td><td>Fleet of delivery boys</td></tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <!-- CORE CONCEPTS -->
+  <div class="section-label">Core Concepts</div>
+  <h2>Deep + Simple</h2>
+
+  <div class="concepts-grid">
+
+    <!-- BROKER -->
+    <div class="concept-card">
+      <h3>Broker</h3>
+      <div class="def-row">
+        <span class="def-label">Definition</span>
+        <span class="def-val">A broker is a Kafka server that stores and serves data.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Simple</span>
+        <span class="def-val">It's just the machine running Kafka.</span>
+      </div>
+      <div><span class="analogy-tag">🏢 Zomato backend server handling orders</span></div>
+    </div>
+
+    <!-- TOPIC -->
+    <div class="concept-card">
+      <h3>Topic</h3>
+      <div class="def-row">
+        <span class="def-label">Definition</span>
+        <span class="def-val">A topic is a logical channel where messages are stored.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Simple</span>
+        <span class="def-val">Like a database table or queue.</span>
+      </div>
+      <pre><span class="fn">producer</span>.<span class="fn">send</span>(<span class="str">"crypto-prices"</span>, value=data)</pre>
+      <div><span class="analogy-tag">🍕 pizza-orders &nbsp;&nbsp; 🥤 drink-orders</span></div>
+    </div>
+
+    <!-- PARTITION -->
+    <div class="concept-card important">
+      <h3>Partition &nbsp;<span style="color:#e84393;font-size:10px;letter-spacing:1px;">MOST IMPORTANT</span></h3>
+      <div class="def-row">
+        <span class="def-label">Definition</span>
+        <span class="def-val">A topic is split into partitions for parallel processing.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Why?</span>
+        <span class="def-val">To scale Kafka horizontally.</span>
+      </div>
+
+      <div class="partition-diagram">
+        <div style="color:#64748b;margin-bottom:6px;">Topic: crypto-prices</div>
+        <div class="partition-row"><span class="partition-label">Partition 0: </span><span class="partition-msgs">[msg1, msg2, msg3]</span></div>
+        <div class="partition-row"><span class="partition-label">Partition 1: </span><span class="partition-msgs">[msg4, msg5]</span></div>
+        <div class="partition-row"><span class="partition-label">Partition 2: </span><span class="partition-msgs">[msg6, msg7]</span></div>
+      </div>
+
+      <div class="def-row" style="margin-top:0.75rem;">
+        <span class="def-label">Analogy</span>
+        <span class="def-val">Instead of ONE chef — Kitchen Sections: Pizza section, Drinks section, Dessert section. Orders distributed → faster processing.</span>
+      </div>
+
+      <p style="font-size:0.88rem;color:#f87171;margin-top:0.75rem;">⚠ Order is guaranteed <strong>ONLY</strong> within a partition.</p>
+
+      <div style="margin-top:1rem;">
+        <p style="font-size:0.85rem;font-weight:700;color:#64748b;letter-spacing:1px;text-transform:uppercase;margin-bottom:0.5rem;">Partitioning Logic</p>
+        <pre><span class="comment"># Case 1: With Key — same key → same partition</span>
+<span class="fn">producer</span>.<span class="fn">send</span>(<span class="str">"topic"</span>, key=<span class="str">"BTC"</span>, value=data)
+
+<span class="comment"># Case 2: No Key — Round-robin distribution</span></pre>
+      </div>
+    </div>
+
+    <!-- PRODUCER -->
+    <div class="concept-card">
+      <h3>Producer</h3>
+      <div class="def-row">
+        <span class="def-label">Definition</span>
+        <span class="def-val">A producer sends data to Kafka.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Flow</span>
+        <span class="def-val" style="font-family:monospace;font-size:0.88rem;">API → Python Producer → Kafka Topic</span>
+      </div>
+      <pre><span class="kw">from</span> kafka <span class="kw">import</span> KafkaProducer
+<span class="kw">import</span> json
+
+producer = KafkaProducer(
+   bootstrap_servers=<span class="str">'localhost:9092'</span>,
+   value_serializer=<span class="kw">lambda</span> x: json.<span class="fn">dumps</span>(x).<span class="fn">encode</span>(<span class="str">'utf-8'</span>)
+)
+
+producer.<span class="fn">send</span>(<span class="str">"crypto-prices"</span>, {<span class="str">"coin"</span>: <span class="str">"BTC"</span>, <span class="str">"price"</span>: 50000})</pre>
+      <div><span class="analogy-tag">📱 Customer placing order on Zomato</span></div>
+      <div>
+        <span class="badge badge-green">Async (fast)</span>
+        <span class="badge badge-purple">Can batch messages</span>
+        <span class="badge badge-blue">Can retry on failure</span>
+      </div>
+    </div>
+
+    <!-- CONSUMER -->
+    <div class="concept-card">
+      <h3>Consumer</h3>
+      <div class="def-row">
+        <span class="def-label">Definition</span>
+        <span class="def-val">A consumer reads data from Kafka.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Flow</span>
+        <span class="def-val" style="font-family:monospace;font-size:0.88rem;">Kafka → Consumer → Processing (Spark / DB)</span>
+      </div>
+      <pre><span class="kw">from</span> kafka <span class="kw">import</span> KafkaConsumer
+<span class="kw">import</span> json
+
+consumer = KafkaConsumer(
+   <span class="str">"crypto-prices"</span>,
+   bootstrap_servers=<span class="str">'localhost:9092'</span>,
+   value_deserializer=<span class="kw">lambda</span> x: json.<span class="fn">loads</span>(x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>)),
+   auto_offset_reset=<span class="str">'earliest'</span>
+)
+
+<span class="kw">for</span> msg <span class="kw">in</span> consumer:
+   <span class="fn">print</span>(msg.value)</pre>
+      <div><span class="analogy-tag">🛵 Delivery agent picking up orders</span></div>
+    </div>
+
+    <!-- CONSUMER GROUP -->
+    <div class="concept-card important">
+      <h3>Consumer Group &nbsp;<span style="color:#e84393;font-size:10px;letter-spacing:1px;">LOAD BALANCING MAGIC</span></h3>
+      <div class="def-row">
+        <span class="def-label">Definition</span>
+        <span class="def-val">A group of consumers working together.</span>
+      </div>
+      <p style="font-size:0.85rem;color:#64748b;margin:0.75rem 0 0.4rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Topic has 3 partitions</p>
+
+      <div class="cg-section">
+        <div class="cg-case">
+          <div class="case-label">Case 1: 3 Consumers</div>
+          <div class="cg-line">Consumer A → Partition 0</div>
+          <div class="cg-line">Consumer B → Partition 1</div>
+          <div class="cg-line">Consumer C → Partition 2</div>
+          <div class="cg-note">✓ Perfect load balancing</div>
+        </div>
+        <div class="cg-case">
+          <div class="case-label">Case 2: 2 Consumers</div>
+          <div class="cg-line">Consumer A → Partition 0, 1</div>
+          <div class="cg-line">Consumer B → Partition 2</div>
+        </div>
+      </div>
+
+      <div><span class="analogy-tag">🚴 3 delivery boys, 3 kitchens → each handles one → fast delivery</span></div>
+      <p style="font-size:0.88rem;color:#f87171;margin-top:0.75rem;">⚠ One partition = one consumer at a time.</p>
+    </div>
+
+    <!-- OFFSET -->
+    <div class="concept-card">
+      <h3>Offset &nbsp;<span style="color:#a855f7;font-size:10px;letter-spacing:1px;">IMPORTANT BUT SIMPLE</span></h3>
+      <div class="def-row">
+        <span class="def-label">Definition</span>
+        <span class="def-val">Offset = position of message in partition.</span>
+      </div>
+
+      <div class="offset-block">
+        <div style="color:#64748b;margin-bottom:4px;">Partition 0:</div>
+        <div class="o-line">[0] msg1</div>
+        <div class="o-line">[1] msg2</div>
+        <div class="o-line">[2] msg3</div>
+      </div>
+
+      <div class="def-row">
+        <span class="def-label">Why?</span>
+        <span class="def-val">To track what is already read.</span>
+      </div>
+      <div><span class="analogy-tag">📦 "I delivered order #15, next is #16"</span></div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- END TO END FLOW -->
+  <div class="section-label">End-to-End Flow</div>
+  <h2>Your Project Pipeline</h2>
+
+  <div class="flow-box">
+    <div class="flow-step">CoinGecko API</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">Python Producer</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step highlight">Kafka Topic (crypto-prices)</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step highlight">Partitions (parallel)</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">Consumer Group (Spark)</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step">Delta Lake / Snowflake</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- HOW EVERYTHING CONNECTS -->
+  <div class="section-label">How Everything Connects</div>
+  <h2>Step-by-Step</h2>
+
+  <div class="concepts-grid">
+    <div class="concept-card">
+      <h3>Step 1 — Producer Connects</h3>
+      <pre>bootstrap_servers=<span class="str">'localhost:9092'</span></pre>
+      <p style="font-size:0.93rem;color:#94a3b8;">Sends message to topic.</p>
+    </div>
+    <div class="concept-card">
+      <h3>Step 2 — Kafka Stores</h3>
+      <ul class="rule-list">
+        <li>Stores message in partition</li>
+        <li>Assigns an offset</li>
+      </ul>
+    </div>
+    <div class="concept-card">
+      <h3>Step 3 — Consumer Reads</h3>
+      <ul class="rule-list">
+        <li>Joins consumer group</li>
+        <li>Gets partition assigned</li>
+        <li>Reads messages from offset</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- PROBLEMS -->
+  <div class="section-label">Problems You Will Face</div>
+  <h2>And Why These Concepts Exist</h2>
+
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="prob">Problem 1</div>
+      <p style="font-size:0.9rem;color:#94a3b8;margin-bottom:0.5rem;">Slow processing</p>
+      <div class="sol">→ Partitions</div>
+    </div>
+    <div class="problem-card">
+      <div class="prob">Problem 2</div>
+      <p style="font-size:0.9rem;color:#94a3b8;margin-bottom:0.5rem;">Multiple consumers</p>
+      <div class="sol">→ Consumer Groups</div>
+    </div>
+    <div class="problem-card">
+      <div class="prob">Problem 3</div>
+      <p style="font-size:0.9rem;color:#94a3b8;margin-bottom:0.5rem;">Duplicate reads</p>
+      <div class="sol">→ Offsets</div>
+    </div>
+    <div class="problem-card">
+      <div class="prob">Problem 4</div>
+      <p style="font-size:0.9rem;color:#94a3b8;margin-bottom:0.5rem;">Ordering issue</p>
+      <div class="sol">→ Keys → same partition</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- FINAL INTUITION -->
+  <div class="section-label">Final Intuition</div>
+  <h2>Remember This</h2>
+
+  <div class="intuition-box">
+    <div>
+      <h4 class="is">Kafka IS</h4>
+      <ul>
+        <li>✓ A distributed log system</li>
+      </ul>
+      <div style="margin-top:1.5rem;">
+        <p style="font-size:0.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748b;margin-bottom:0.5rem;">Think like this:</p>
+        <ul style="list-style:none;">
+          <li style="font-size:0.9rem;color:#a855f7;font-family:monospace;padding:3px 0;">Producer → writes log</li>
+          <li style="font-size:0.9rem;color:#60a5fa;font-family:monospace;padding:3px 0;">Kafka &nbsp;&nbsp;&nbsp;→ stores log</li>
+          <li style="font-size:0.9rem;color:#86efac;font-family:monospace;padding:3px 0;">Consumer → reads log</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h4 class="not">Kafka is NOT</h4>
+      <ul>
+        <li style="font-size:0.93rem;color:#94a3b8;">✗ Not a queue</li>
+        <li style="font-size:0.93rem;color:#94a3b8;">✗ Not a database</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:2rem;">
+    <div class="section-label" style="margin-bottom:0;">Additional Topics</div>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#60a5fa;padding:3px 12px;">Deep Dive</span>
+  </div>
+
+  <!-- REPLICATION & FAULT TOLERANCE -->
+  <h2 style="margin-top:0.5rem;">Replication &amp; Fault Tolerance</h2>
+  <div class="concepts-grid">
+    <div class="concept-card important">
+      <h3>Replication Factor</h3>
+      <div class="def-row">
+        <span class="def-label">What</span>
+        <span class="def-val">Each partition is copied across multiple brokers. If one broker dies, another takes over — zero data loss.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Leader</span>
+        <span class="def-val">One broker is the <strong style="color:#e9d5ff;">Leader</strong> for each partition — all reads/writes go through it.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Follower</span>
+        <span class="def-val">Other brokers silently mirror the data. If the leader crashes, a follower is automatically promoted.</span>
+      </div>
+      <div class="partition-diagram" style="margin-top:1rem;">
+        <div style="color:#64748b;margin-bottom:6px;">replication-factor = 3</div>
+        <div class="partition-row"><span style="color:#e84393;">Broker 1 (Leader)</span><span style="color:#94a3b8;"> ← writes here</span></div>
+        <div class="partition-row"><span style="color:#60a5fa;">Broker 2 (Follower)</span><span style="color:#475569;"> ← mirrors Broker 1</span></div>
+        <div class="partition-row"><span style="color:#60a5fa;">Broker 3 (Follower)</span><span style="color:#475569;"> ← mirrors Broker 1</span></div>
+        <div style="margin-top:8px;color:#86efac;">→ Broker 1 crashes → Broker 2 becomes Leader automatically</div>
+      </div>
+      <div><span class="analogy-tag">🔁 Zomato keeps order records on 3 servers — if one crashes, the others still know your order</span></div>
+      <p style="font-size:0.85rem;color:#94a3b8;margin-top:0.75rem;">Rule of thumb: <span style="color:#fbbf24;">replication-factor = 3</span> in production. Never set it to 1 — that's a single point of failure.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- DELIVERY SEMANTICS -->
+  <h2>Delivery Semantics — The Big Three</h2>
+  <p style="font-size:0.93rem;color:#94a3b8;margin-bottom:1.5rem;max-width:700px;">This is one of the most asked interview topics on Kafka. It defines what guarantee Kafka gives you about whether a message is delivered.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:1rem;">
+    <div style="background:#161b27;border:1px solid #2d3748;border-radius:12px;padding:1.25rem;border-top:3px solid #f87171;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;margin-bottom:0.5rem;">At-Most-Once</p>
+      <p style="font-size:0.9rem;color:#cbd5e1;margin-bottom:0.75rem;">Message is sent once. If it fails — it's gone. No retry.</p>
+      <div style="font-family:monospace;font-size:0.8rem;color:#94a3b8;background:#0d111a;border-radius:6px;padding:0.6rem;">acks = 0</div>
+      <p style="font-size:0.82rem;color:#64748b;margin-top:0.6rem;">Use when: speed > correctness (metrics, logs)</p>
+      <p style="color:#f87171;font-size:0.82rem;margin-top:4px;">Risk: data loss possible</p>
+    </div>
+    <div style="background:#161b27;border:1px solid #2d3748;border-radius:12px;padding:1.25rem;border-top:3px solid #fbbf24;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fbbf24;margin-bottom:0.5rem;">At-Least-Once</p>
+      <p style="font-size:0.9rem;color:#cbd5e1;margin-bottom:0.75rem;">Message is retried until acknowledged. May be delivered more than once.</p>
+      <div style="font-family:monospace;font-size:0.8rem;color:#94a3b8;background:#0d111a;border-radius:6px;padding:0.6rem;">acks = 1 or all, retries &gt; 0</div>
+      <p style="font-size:0.82rem;color:#64748b;margin-top:0.6rem;">Use when: duplicates are tolerable (most cases)</p>
+      <p style="color:#fbbf24;font-size:0.82rem;margin-top:4px;">Risk: duplicates possible</p>
+    </div>
+    <div style="background:#161b27;border:1px solid #2d3748;border-radius:12px;padding:1.25rem;border-top:3px solid #86efac;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#86efac;margin-bottom:0.5rem;">Exactly-Once</p>
+      <p style="font-size:0.9rem;color:#cbd5e1;margin-bottom:0.75rem;">Message delivered exactly once. No loss. No duplicates. The gold standard.</p>
+      <div style="font-family:monospace;font-size:0.8rem;color:#94a3b8;background:#0d111a;border-radius:6px;padding:0.6rem;">enable.idempotence = True<br>transactional.id = "t1"</div>
+      <p style="font-size:0.82rem;color:#64748b;margin-top:0.6rem;">Use when: payments, financial data, orders</p>
+      <p style="color:#86efac;font-size:0.82rem;margin-top:4px;">Cost: slightly slower, more config</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ZOOKEEPER / KRAFT -->
+  <h2>ZooKeeper vs KRaft — The Brain of Kafka</h2>
+  <div class="concepts-grid">
+    <div class="concept-card">
+      <h3>ZooKeeper (Old Way)</h3>
+      <div class="def-row">
+        <span class="def-label">What</span>
+        <span class="def-val">A separate service that Kafka used to manage metadata — which broker is leader, who's alive, topic configs, etc.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Problem</span>
+        <span class="def-val">Extra complexity. You had to run and maintain TWO systems: Kafka + ZooKeeper. More things to break.</span>
+      </div>
+      <div class="partition-diagram">
+        <span style="color:#f87171;">ZooKeeper</span> + <span style="color:#60a5fa;">Kafka Brokers</span> = two systems to manage
+      </div>
+    </div>
+    <div class="concept-card">
+      <h3>KRaft (New Way — Kafka 3.x+)</h3>
+      <div class="def-row">
+        <span class="def-label">What</span>
+        <span class="def-val">Kafka now manages its own metadata internally using a built-in consensus protocol. No ZooKeeper needed.</span>
+      </div>
+      <div class="def-row">
+        <span class="def-label">Why better</span>
+        <span class="def-val">Simpler deployment, faster startup, scales to millions of partitions. This is the standard going forward.</span>
+      </div>
+      <div class="partition-diagram">
+        <span style="color:#86efac;">Kafka (KRaft mode)</span> = one system. Done.
+      </div>
+      <span class="badge badge-green">Default in Kafka 3.3+</span>
+      <span class="badge badge-blue">ZooKeeper deprecated in 3.5+</span>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- MESSAGE RETENTION -->
+  <h2>Message Retention — Kafka is Not a Queue</h2>
+  <div class="concept-card" style="border-left-color:#60a5fa;">
+    <p style="font-size:0.93rem;color:#cbd5e1;margin-bottom:1rem;">This is what makes Kafka fundamentally different from RabbitMQ or a normal queue. <strong style="color:#e9d5ff;">Messages are NOT deleted after being consumed.</strong> They stay for a configured time window.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:0.5rem;">
+      <div style="background:#0d111a;border-radius:8px;padding:1rem;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748b;margin-bottom:0.4rem;">Default Retention</p>
+        <p style="font-size:1.1rem;font-weight:700;color:#fbbf24;">7 days</p>
+        <p style="font-size:0.82rem;color:#64748b;margin-top:4px;">Messages kept for 7 days regardless of consumption</p>
+      </div>
+      <div style="background:#0d111a;border-radius:8px;padding:1rem;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748b;margin-bottom:0.4rem;">Config option</p>
+        <p style="font-family:monospace;font-size:0.82rem;color:#7dd3fc;">retention.ms = 604800000<br>retention.bytes = -1</p>
+      </div>
+      <div style="background:#0d111a;border-radius:8px;padding:1rem;">
+        <p style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748b;margin-bottom:0.4rem;">Power of this</p>
+        <p style="font-size:0.88rem;color:#86efac;">New consumers can replay ALL past messages from offset 0 — like rewinding time.</p>
+      </div>
+    </div>
+    <div style="margin-top:1rem;background:#0d111a;border-radius:8px;padding:0.75rem 1rem;font-size:0.83rem;color:#94a3b8;font-family:monospace;">
+      <span style="color:#64748b;"># Example: read from the very beginning</span><br>
+      auto_offset_reset = <span style="color:#86efac;">'earliest'</span> &nbsp;&nbsp;<span style="color:#475569;"># replays all retained messages</span><br>
+      auto_offset_reset = <span style="color:#86efac;">'latest'</span> &nbsp;&nbsp;&nbsp;<span style="color:#475569;"># only new messages from now</span>
+    </div>
+    <div style="margin-top:0.75rem;"><span class="analogy-tag">📼 Like a DVR — the show is broadcast live, but you can rewind and replay any part within the retention window</span></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- WHEN TO USE / NOT USE -->
+  <h2>When to Use Kafka — and When NOT To</h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+    <div style="background:#0f1f0f;border:1px solid #14532d;border-radius:12px;padding:1.25rem;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#86efac;margin-bottom:0.75rem;">✓ Use Kafka When</p>
+      <ul class="rule-list">
+        <li>You need real-time data pipelines (like your crypto project)</li>
+        <li>Multiple systems need the same event (fan-out)</li>
+        <li>You need event replay / time-travel</li>
+        <li>You process millions of messages/second</li>
+        <li>You need decoupling between producer and consumer</li>
+        <li>Log aggregation across microservices</li>
+      </ul>
+    </div>
+    <div style="background:#1f0f0f;border:1px solid #7f1d1d;border-radius:12px;padding:1.25rem;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;margin-bottom:0.75rem;">✗ Don't Use Kafka When</p>
+      <ul class="rule-list" style="--li-color:#f87171;">
+        <li>You need simple task queues → use Celery / RabbitMQ</li>
+        <li>Low message volume (&lt; 1000/day) → overkill</li>
+        <li>You need request-response patterns → use REST / gRPC</li>
+        <li>Your team is small and infra cost is a concern</li>
+        <li>You need complex query patterns → use a DB</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- QUICK REFERENCE CHEATSHEET -->
+  <h2>Quick Reference Cheatsheet</h2>
+
+  <table class="analogy-table" style="margin-bottom:1rem;">
+    <thead>
+      <tr>
+        <th>Config / Term</th>
+        <th>What it means</th>
+        <th>Default / Common value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>bootstrap_servers</td>
+        <td>Entry point to Kafka cluster</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">localhost:9092</td>
+      </tr>
+      <tr>
+        <td>acks</td>
+        <td>How many brokers confirm write</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">0 / 1 / all</td>
+      </tr>
+      <tr>
+        <td>auto_offset_reset</td>
+        <td>Where consumer starts reading</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">earliest / latest</td>
+      </tr>
+      <tr>
+        <td>group_id</td>
+        <td>Consumer group identifier</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">"my-group"</td>
+      </tr>
+      <tr>
+        <td>retention.ms</td>
+        <td>How long messages are kept</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">604800000 (7 days)</td>
+      </tr>
+      <tr>
+        <td>replication.factor</td>
+        <td>Number of partition copies</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">3 (production)</td>
+      </tr>
+      <tr>
+        <td>num.partitions</td>
+        <td>Partitions per topic</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">1 (default), 3–12 (real use)</td>
+      </tr>
+      <tr>
+        <td>enable.idempotence</td>
+        <td>Exactly-once producer guarantee</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">True</td>
+      </tr>
+      <tr>
+        <td>linger.ms</td>
+        <td>Wait time before sending batch</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">0 (immediate)</td>
+      </tr>
+      <tr>
+        <td>batch.size</td>
+        <td>Max bytes per batch</td>
+        <td style="font-family:monospace;font-size:0.82rem;color:#86efac;">16384 bytes</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="divider">
+
+  <!-- FINAL MENTAL MODEL -->
+  <div class="section-label">Final Intuition</div>
+  <h2>Remember This</h2>
+
+  <div class="intuition-box">
+    <div>
+      <h4 class="is">Kafka IS</h4>
+      <ul>
+        <li>✓ A distributed log system</li>
+      </ul>
+      <div style="margin-top:1.5rem;">
+        <p style="font-size:0.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748b;margin-bottom:0.5rem;">Think like this:</p>
+        <ul style="list-style:none;">
+          <li style="font-size:0.9rem;color:#a855f7;font-family:monospace;padding:3px 0;">Producer → writes log</li>
+          <li style="font-size:0.9rem;color:#60a5fa;font-family:monospace;padding:3px 0;">Kafka &nbsp;&nbsp;&nbsp;→ stores log</li>
+          <li style="font-size:0.9rem;color:#86efac;font-family:monospace;padding:3px 0;">Consumer → reads log</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <h4 class="not">Kafka is NOT</h4>
+      <ul>
+        <li style="font-size:0.93rem;color:#94a3b8;">✗ Not a queue</li>
+        <li style="font-size:0.93rem;color:#94a3b8;">✗ Not a database</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:3rem;padding:1.5rem;border-top:1px solid #1e2433;color:#475569;font-size:0.82rem;">
+    Original notes by author &nbsp;·&nbsp; Extended by Claude &nbsp;·&nbsp; Kafka 3.x
+  </div>
+
+</div>
+
+</body>
+</html>
