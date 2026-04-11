@@ -1,1 +1,351 @@
+KAFKA  
 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+What is Kafka (in one line) 
+
+Kafka is a distributed system that moves data from one system to another in real-time. 
+
+Think of it as a high-speed data pipeline. 
+
+ 
+
+Real-World Analogy (Zomato / Uber) 
+
+Let’s map Kafka to Zomato: 
+
+Kafka Concept 
+
+Zomato Analogy 
+
+Producer 
+
+Customer placing order 
+
+Topic 
+
+Restaurant order queue 
+
+Partition 
+
+Kitchen sections (pizza, drinks, desserts) 
+
+Broker 
+
+Zomato backend system 
+
+Consumer 
+
+Delivery agents 
+
+Consumer Group 
+
+Fleet of delivery boys 
+
+ 
+
+ 
+
+CORE CONCEPTS (Deep + Simple) 
+ 
+
+BROKER 
+
+Definition :- A broker is a Kafka server that stores and serves data. 
+
+Simple :- It’s just the machine running Kafka 
+
+Analogy :- Zomato backend server handling orders 
+ 
+
+TOPIC 
+
+Definition :- A topic is a logical channel where messages are stored. 
+
+producer.send("crypto-prices", value=data) 
+
+Simple :- Like a database table or queue 
+
+Analogy :- A restaurant order queue 
+
+pizza-orders  
+
+drink-orders  
+ 
+
+PARTITION (MOST IMPORTANT) 
+
+Definition :- A topic is split into partitions for parallel processing. 
+
+Why partitions exist?  
+
+To scale Kafka horizontally 
+ 
+ 
+
+Diagram 
+
+Topic: crypto-prices 
+
+Partition 0: [msg1, msg2, msg3] 
+	Partition 1: [msg4, msg5] 
+	Partition 2: [msg6, msg7] 
+ 
+
+Analogy (Zomato Kitchen) :-  
+
+Instead of ONE chef: 
+
+Kitchen Sections: 
+- Pizza section 
+- Drinks section 
+- Dessert section 
+
+Orders are distributed → faster processing 
+ 
+
+Key Rule 
+
+Order is guaranteed ONLY within a partition 
+ 
+
+Partitioning Logic 
+
+Case 1: With Key :-  
+
+producer.send("topic", key="BTC", value=data) 
+
+Same key → same partition 
+ 
+
+Case 2: No Key :-  
+
+Round-robin distribution 
+ 
+
+PRODUCER 
+
+Definition :- A producer sends data to Kafka. 
+
+Flow :-  
+
+API → Python Producer → Kafka Topic 
+ 
+
+Python Example :-  
+from kafka import KafkaProducer 
+import json 
+ 
+producer = KafkaProducer( 
+   bootstrap_servers='localhost:9092', 
+   value_serializer=lambda x: json.dumps(x).encode('utf-8') 
+) 
+ 
+producer.send("crypto-prices", {"coin": "BTC", "price": 50000}) 
+ 
+ 
+
+Analogy :-  
+
+Customer placing order in Zomato 
+ 
+
+Important Behavior 
+
+Async (fast)  
+
+Can batch messages  
+
+Can retry on failure  
+ 
+
+CONSUMER 
+
+Definition :- A consumer reads data from Kafka. 
+
+Flow :-  
+
+Kafka → Consumer → Processing (Spark / DB) 
+
+Python Example :-  
+ 
+from kafka import KafkaConsumer 
+import json 
+consumer = KafkaConsumer( 
+   "crypto-prices", 
+   bootstrap_servers='localhost:9092', 
+   value_deserializer=lambda x: json.loads(x.decode('utf-8')), 
+   auto_offset_reset='earliest' 
+) 
+for msg in consumer: 
+   print(msg.value) 
+ 
+
+Analogy : - Delivery agent picking up orders 
+ 
+
+CONSUMER GROUP (LOAD BALANCING MAGIC) 
+
+Definition. :- A group of consumers working together 
+
+Example :-  
+
+Topic has 3 partitions: 
+
+Partition 0 
+
+Partition 1 
+
+Partition 2 
+ 
+
+Case 1: 3 Consumers 
+
+Consumer A → Partition 0 
+
+Consumer B → Partition 1 
+
+Consumer C → Partition 2 
+
+Perfect load balancing 
+ 
+
+Case 2: 2 Consumers 
+
+Consumer A → Partition 0,1 
+
+Consumer B → Partition 2 
+ 
+
+Analogy 
+
+3 delivery boys, 3 kitchens: 
+
+Each handles one → fast delivery 
+ 
+
+Rule  
+
+One partition = one consumer at a time 
+ 
+
+OFFSET (IMPORTANT BUT SIMPLE) 
+
+Definition 
+
+Offset = position of message in partition 
+
+Partition 0: 
+
+[0] msg1 
+
+[1] msg2 
+
+[2] msg3 
+ 
+
+Why needed? 
+
+To track what is already read 
+ 
+
+Analogy 
+
+Delivery boy remembers: 
+
+“I delivered order #15, next is #16” 
+ 
+
+END-TO-END FLOW (YOUR PROJECT) 
+ 
+CoinGecko API 
+     ↓ 
+Python Producer 
+     ↓ 
+Kafka Topic (crypto-prices) 
+     ↓ 
+Partitions (parallel) 
+     ↓ 
+Consumer Group (Spark) 
+     ↓ 
+Delta Lake / Snowflake 
+
+HOW EVERYTHING CONNECTS (IMPORTANT) 
+
+Step-by-step: 
+
+Producer connects using:  
+
+bootstrap_servers='localhost:9092' 
+
+Sends message to topic  
+
+Kafka:  
+
+Stores in partition  
+
+Assigns offset  
+
+Consumer:  
+
+Joins group  
+
+Gets partition assigned  
+
+Reads messages  
+ 
+
+PROBLEMS YOU WILL FACE (AND WHY THESE CONCEPTS EXIST) 
+
+Problem 1: Slow processing 
+
+Solution: Partitions 
+ 
+
+Problem 2: Multiple consumers 
+
+Solution: Consumer Groups 
+ 
+
+Problem 3: Duplicate reads 
+
+Solution: Offsets 
+ 
+
+Problem 4: Ordering issue 
+
+Solution: Keys → same partition 
+ 
+
+FINAL INTUITION (REMEMBER THIS) 
+
+Kafka is: 
+
+A distributed log system 
+
+NOT: 
+
+Not a queue  
+
+Not a database  
+ 
+
+Think like this: 
+
+Producer → writes log 
+
+Kafka → stores log 
+
+Consumer → reads log 
+
+ 
