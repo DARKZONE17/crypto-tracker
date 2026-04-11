@@ -1,808 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Crypto Pipeline Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<style>
-:root {
-  --bg: #0a0a0f;
-  --bg2: #111118;
-  --bg3: #18181f;
-  --border: #2a2a38;
-  --border2: #1e1e2a;
-  --text: #e8e8f0;
-  --text2: #9090a8;
-  --text3: #55556a;
-  --accent: #6c6fff;
-  --accent2: #4e4fd4;
-  --green: #39d98a;
-  --green-dim: #1a3d2e;
-  --orange: #ff8c42;
-  --orange-dim: #3d2a16;
-  --red: #ff4d6a;
-  --red-dim: #3d1520;
-  --yellow: #f4c842;
-  --blue: #378ADD;
-  --teal: #1D9E75;
-  --spark: #D85A30;
-  --purple: #7F77DD;
-  --brown: #BA7517;
-  --crimson: #A32D2D;
-  --gray: #7a7a8a;
-  --font-head: 'Syne', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  --radius: 8px;
-  --radius-lg: 12px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--font-head);min-height:100vh;overflow-x:hidden}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Learning Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Animated grid background */
-body::before{
-  content:'';position:fixed;inset:0;
-  background-image:linear-gradient(var(--border2) 1px,transparent 1px),linear-gradient(90deg,var(--border2) 1px,transparent 1px);
-  background-size:40px 40px;opacity:0.4;pointer-events:none;z-index:0;
-}
+    :root {
+      --bg: #0b0e14;
+      --surface: #111520;
+      --border: #1e2535;
+      --accent: #00d4ff;
+      --accent3: #10b981;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --card: #151b28;
+    }
 
-.app{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:32px 20px 60px}
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-/* ───── TOP HEADER ───── */
-.top-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:40px;flex-wrap:wrap}
-.brand{display:flex;flex-direction:column;gap:6px}
-.brand-tag{font-family:var(--font-mono);font-size:10px;color:var(--accent);letter-spacing:3px;text-transform:uppercase}
-.brand-title{font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1.1;color:var(--text)}
-.brand-title span{color:var(--accent)}
-.brand-sub{font-family:var(--font-mono);font-size:11px;color:var(--text3);margin-top:4px}
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-.overall-ring{display:flex;flex-direction:column;align-items:center;gap:6px}
-.ring-label{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
-svg.ring{overflow:visible}
-.ring-bg{fill:none;stroke:var(--border);stroke-width:6}
-.ring-fill{fill:none;stroke:var(--accent);stroke-width:6;stroke-linecap:round;
-  transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1);
-  transform:rotate(-90deg);transform-origin:50% 50%}
-.ring-pct{font-family:var(--font-mono);font-size:14px;font-weight:700;fill:var(--text);text-anchor:middle;dominant-baseline:middle}
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
 
-/* ───── STRATEGY BANNER ───── */
-.strategy-banner{background:linear-gradient(135deg,#0d0d1a 0%,#131326 100%);border:1px solid var(--accent2);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:32px;position:relative;overflow:hidden}
-.strategy-banner::before{content:'STRATEGY';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:60px;font-weight:700;color:var(--accent);opacity:0.04;letter-spacing:-2px;pointer-events:none}
-.strategy-title{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-family:var(--font-mono)}
-.strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.strategy-item{background:rgba(108,111,255,0.06);border:1px solid rgba(108,111,255,0.15);border-radius:var(--radius);padding:12px 14px}
-.strategy-item-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;font-family:var(--font-mono)}
-.strategy-item-text{font-size:12px;color:var(--text2);line-height:1.5}
+    header {
+      padding: 48px 0 32px;
+      border-bottom: 1px solid var(--border);
+    }
 
-/* ───── STATS ROW ───── */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center;position:relative;overflow:hidden;transition:border-color .2s}
-.stat-card:hover{border-color:var(--accent)}
-.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transition:transform .3s;transform-origin:left}
-.stat-card:hover::after{transform:scaleX(1)}
-.stat-num{font-family:var(--font-mono);font-size:26px;font-weight:700;color:var(--text);line-height:1}
-.stat-num.green{color:var(--green)}
-.stat-num.orange{color:var(--orange)}
-.stat-num.accent{color:var(--accent)}
-.stat-lbl{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+    .header-inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
 
-/* ───── TABS ───── */
-.tabs{display:flex;gap:0;margin-bottom:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:4px;width:fit-content}
-.tab{padding:8px 20px;border-radius:8px;border:none;font-family:var(--font-head);font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:var(--text3);transition:all .15s;letter-spacing:0.3px}
-.tab.active{background:var(--accent);color:#fff}
+    .logo-area { display: flex; flex-direction: column; gap: 6px; }
 
-/* ───── PHASE CARDS ───── */
-.phases-list{display:flex;flex-direction:column;gap:10px}
-.phase-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .2s}
-.phase-card:hover{border-color:var(--border2)}
-.phase-card.open{border-color:var(--border)}
+    .logo-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
 
-.phase-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none;position:relative}
-.phase-indicator{width:3px;height:36px;border-radius:2px;flex-shrink:0}
-.phase-info{flex:1;min-width:0}
-.phase-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-.phase-num{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
-.phase-name{font-size:14px;font-weight:700;color:var(--text)}
-.phase-days{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-left:auto}
-.phase-progress-row{display:flex;align-items:center;gap:10px}
-.pbar-wrap{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden;max-width:200px}
-.pbar-fill{height:100%;border-radius:2px;transition:width .4s cubic-bezier(.4,0,.2,1)}
-.pbar-text{font-family:var(--font-mono);font-size:10px;color:var(--text3)}
-.phase-badge{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:4px}
-.badge-notstarted{background:rgba(90,90,110,0.2);color:var(--text3)}
-.badge-inprogress{background:var(--orange-dim);color:var(--orange)}
-.badge-done{background:var(--green-dim);color:var(--green)}
-.phase-chevron{font-family:var(--font-mono);font-size:12px;color:var(--text3);transition:transform .2s;flex-shrink:0}
-.phase-chevron.open{transform:rotate(90deg)}
+    h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-/* ───── LEARN BLOCK ───── */
-.learn-block{border-top:1px solid var(--border2);padding:16px 18px;background:rgba(108,111,255,0.03)}
-.learn-title{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.learn-title::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent)}
-.learn-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border2);font-size:12px;color:var(--text2);line-height:1.5}
-.learn-item:last-child{border-bottom:none}
-.learn-bullet{color:var(--accent);font-family:var(--font-mono);flex-shrink:0;margin-top:1px}
-.learn-resource-link{display:inline;color:var(--accent);font-family:var(--font-mono);font-size:11px;cursor:default;opacity:0.8}
+    .header-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+    }
 
-/* ───── TASKS ───── */
-.phase-body{border-top:1px solid var(--border2)}
-.phase-body-inner{display:flex;flex-direction:column}
-.task-row{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border2);transition:background .1s;cursor:pointer}
-.task-row:last-child{border-bottom:none}
-.task-row:hover{background:rgba(255,255,255,0.02)}
-.task-check{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .15s}
-.task-check.done{background:var(--green);border-color:var(--green);color:#0a1f14}
-.task-label{font-size:13px;color:var(--text);flex:1;line-height:1.4}
-.task-label.done{text-decoration:line-through;color:var(--text3)}
-.task-day-tag{font-family:var(--font-mono);font-size:10px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0}
-.task-type{font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:1px;padding:2px 6px;border-radius:3px;flex-shrink:0;text-transform:uppercase}
-.type-learn{background:rgba(108,111,255,0.12);color:var(--accent)}
-.type-build{background:rgba(57,217,138,0.12);color:var(--green)}
-.type-setup{background:rgba(255,140,66,0.12);color:var(--orange)}
-.type-milestone{background:rgba(244,200,66,0.12);color:var(--yellow)}
+    .status-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      background: var(--accent3);
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
 
-/* ───── GIT TAB ───── */
-.git-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
-.git-section-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
-.git-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-.git-field label{font-family:var(--font-mono);font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
-select,input[type=text]{width:100%;font-family:var(--font-mono);font-size:12px;padding:9px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);color:var(--text);outline:none;transition:border-color .15s}
-select:focus,input[type=text]:focus{border-color:var(--accent)}
-.gen-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:13px;font-weight:700;padding:10px 22px;border-radius:var(--radius);border:none;background:var(--accent);color:#fff;cursor:pointer;transition:background .15s}
-.gen-btn:hover{background:var(--accent2)}
-.commit-out{margin-top:20px}
-.code-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;font-family:var(--font-mono);font-size:12px;color:var(--green);line-height:1.8;word-break:break-all;user-select:all;margin-top:8px}
-.copy-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;padding:6px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;margin-top:8px;transition:all .15s}
-.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
-.sep{height:1px;background:var(--border2);margin:20px 0}
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
 
-/* ───── ROADMAP TAB ───── */
-.roadmap-section{margin-bottom:28px}
-.roadmap-section-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.roadmap-section-title::after{content:'';flex:1;height:1px;background:var(--border2)}
-.roadmap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-.roadmap-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;position:relative;overflow:hidden}
-.roadmap-card::before{content:attr(data-week);position:absolute;right:12px;top:8px;font-family:var(--font-mono);font-size:32px;font-weight:700;color:var(--accent);opacity:0.06;letter-spacing:-1px;pointer-events:none}
-.rc-week{font-family:var(--font-mono);font-size:9px;font-weight:700;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
-.rc-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px}
-.rc-desc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px}
-.rc-tag{display:inline-block;font-family:var(--font-mono);font-size:9px;padding:2px 8px;border-radius:3px;margin-right:4px;margin-bottom:4px}
-.tag-learn{background:rgba(108,111,255,0.12);color:var(--accent)}
-.tag-build{background:rgba(57,217,138,0.12);color:var(--green)}
+    .nav-section { padding: 32px 0 0; }
 
-.principle-box{background:linear-gradient(135deg,var(--bg2) 0%,rgba(108,111,255,0.05) 100%);border:1px solid var(--accent2);border-radius:var(--radius-lg);padding:20px 24px}
-.principle-title{font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
-.principle-ratio{display:flex;gap:0;border-radius:var(--radius);overflow:hidden;height:36px;margin-bottom:10px;border:1px solid var(--border)}
-.ratio-seg{display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;font-weight:700;transition:flex .4s}
-.r-theory{flex:20;background:rgba(108,111,255,0.3);color:var(--accent)}
-.r-hello{flex:10;background:rgba(57,217,138,0.2);color:var(--green)}
-.r-build{flex:50;background:rgba(255,140,66,0.2);color:var(--orange)}
-.r-gaps{flex:20;background:rgba(244,200,66,0.15);color:var(--yellow)}
-.ratio-legend{display:flex;gap:16px;flex-wrap:wrap}
-.rl-item{display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;color:var(--text2)}
-.rl-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+    .nav-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
 
-.interview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-.interview-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
-.ic-title{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--yellow);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
-.ic-q{font-size:12px;color:var(--text2);padding:5px 0;border-bottom:1px solid var(--border2);line-height:1.4}
-.ic-q:last-child{border-bottom:none}
-.ic-q::before{content:'Q: ';font-family:var(--font-mono);color:var(--text3);font-size:10px}
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* ───── RESUME TAB ───── */
-.resume-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
-.resume-box .code-block{color:var(--text);font-size:12px;line-height:1.9}
-.resume-tip{background:rgba(57,217,138,0.06);border:1px solid rgba(57,217,138,0.2);border-radius:var(--radius);padding:12px 14px;margin-top:12px;font-size:12px;color:var(--green);font-family:var(--font-mono);line-height:1.6}
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
 
-/* ───── RESPONSIVE ───── */
-@media(max-width:600px){
-  .stats-row{grid-template-columns:repeat(2,1fr)}
-  .brand-title{font-size:22px}
-  .top-header{flex-direction:column}
-}
+    .tab-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,212,255,0.1);
+    }
 
-/* ───── ANIMATIONS ───── */
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.phase-card{animation:fadeIn .3s ease backwards}
-.phase-card:nth-child(1){animation-delay:.05s}
-.phase-card:nth-child(2){animation-delay:.1s}
-.phase-card:nth-child(3){animation-delay:.15s}
-.phase-card:nth-child(4){animation-delay:.2s}
-.phase-card:nth-child(5){animation-delay:.25s}
-.phase-card:nth-child(6){animation-delay:.3s}
-.phase-card:nth-child(7){animation-delay:.35s}
+    .tab-icon { font-size: 16px; line-height: 1; }
 
-.warning-note{background:var(--orange-dim);border:1px solid rgba(255,140,66,0.3);border-radius:var(--radius);padding:12px 14px;margin-top:12px;font-size:12px;color:var(--orange);font-family:var(--font-mono);line-height:1.6}
-.warning-note strong{display:block;margin-bottom:4px;font-size:11px;letter-spacing:1px;text-transform:uppercase}
-</style>
+    .cards-section { padding: 36px 0 64px; }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .quick-card {
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .quick-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,212,255,0.08);
+    }
+
+    .quick-card-icon { font-size: 28px; flex-shrink: 0; }
+
+    .quick-card-body { display: flex; flex-direction: column; gap: 6px; }
+
+    .quick-card-name { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    .quick-card-desc {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.5;
+    }
+
+    .quick-card-arrow {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+      margin-top: 4px;
+    }
+
+    .quick-card:hover .quick-card-arrow { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .tabs { gap: 6px; }
+      .tab-btn { padding: 10px 14px; font-size: 13px; }
+    }
+  </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- TOP HEADER -->
-  <div class="top-header">
-    <div class="brand">
-      <div class="brand-tag">28-day project tracker</div>
-      <div class="brand-title">Crypto Pipeline <span>Tracker</span></div>
-      <div class="brand-sub">CoinGecko → Kafka → Spark → Snowflake → Grafana</div>
+<div class="container">
+
+  <header>
+    <div class="header-inner">
+      <div class="logo-area">
+        <span class="logo-tag">// learning hub</span>
+        <h1>My Dev Workspace</h1>
+      </div>
+      <div class="header-meta">
+        <span class="status-dot"></span>Active<br/>
+        <span id="current-date"></span>
+      </div>
     </div>
-    <div class="overall-ring">
-      <div class="ring-label">Overall</div>
-      <svg class="ring" width="72" height="72" viewBox="0 0 72 72">
-        <circle class="ring-bg" cx="36" cy="36" r="28"/>
-        <circle class="ring-fill" id="ring-fill" cx="36" cy="36" r="28" stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
-        <text class="ring-pct" id="ring-pct" x="36" y="36">0%</text>
-      </svg>
-    </div>
+  </header>
+
+  <div class="nav-section">
+    <div class="nav-label">// navigate</div>
+    <div class="tabs" id="tabs-container"></div>
   </div>
 
-  <!-- STRATEGY BANNER -->
-  <div class="strategy-banner">
-    <div class="strategy-title">Your Game Plan</div>
-    <div class="strategy-grid">
-      <div class="strategy-item">
-        <div class="strategy-item-title">⚡ JIT Learning</div>
-        <div class="strategy-item-text">Learn ONLY what you need, exactly when you need it. Never learn Kafka fully before touching the project.</div>
-      </div>
-      <div class="strategy-item">
-        <div class="strategy-item-title">🏗️ Build While Learning</div>
-        <div class="strategy-item-text">Theory (20%) → Hello World (10%) → Build Project (50%) → Fill gaps as problems appear (20%).</div>
-      </div>
-      <div class="strategy-item">
-        <div class="strategy-item-title">🎯 Interview-First</div>
-        <div class="strategy-item-text">At every phase ask: "Can I explain this decision in an interview?" If no — simplify until you can.</div>
-      </div>
-      <div class="strategy-item">
-        <div class="strategy-item-title">⏱️ 1.5–2 hrs/day</div>
-        <div class="strategy-item-text">28 days after work. No all-nighters needed. Consistency beats intensity every time.</div>
-      </div>
-    </div>
+  <div class="cards-section">
+    <div class="section-label">// quick launch</div>
+    <div class="quick-grid" id="quick-grid"></div>
   </div>
 
-  <!-- STATS -->
-  <div class="stats-row" id="stats-row"></div>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab active" onclick="showTab('board')">Board</button>
-    <button class="tab" onclick="showTab('roadmap')">Roadmap</button>
-    <button class="tab" onclick="showTab('git')">Git Push</button>
-    <!-- <button class="tab" onclick="showTab('resume')">Resume</button> -->
-  </div>
-
-  <!-- BOARD TAB -->
-  <div id="tab-board">
-    <div class="phases-list" id="phases-list"></div>
-  </div>
-
-  <!-- ROADMAP TAB -->
-  <div id="tab-roadmap" style="display:none">
-    <div class="roadmap-section">
-      <div class="roadmap-section-title">The Right Learning Strategy</div>
-      <div class="principle-box">
-        <div class="principle-title">JIT Ratio — Just-In-Time Learning</div>
-        <div class="principle-ratio">
-          <div class="ratio-seg r-theory">20% Theory</div>
-          <div class="ratio-seg r-hello">10% Hello World</div>
-          <div class="ratio-seg r-build">50% Build Project</div>
-          <div class="ratio-seg r-gaps">20% Fill Gaps</div>
-        </div>
-        <div class="ratio-legend">
-          <div class="rl-item"><div class="rl-dot" style="background:rgba(108,111,255,0.5)"></div>Theory — watch 2 videos max, skim docs</div>
-          <div class="rl-item"><div class="rl-dot" style="background:rgba(57,217,138,0.4)"></div>Hello World — send one test message</div>
-          <div class="rl-item"><div class="rl-dot" style="background:rgba(255,140,66,0.4)"></div>Build — actual project code</div>
-          <div class="rl-item"><div class="rl-dot" style="background:rgba(244,200,66,0.3)"></div>Gaps — learn as errors appear</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="roadmap-section">
-      <div class="roadmap-section-title">Week-by-Week Plan</div>
-      <div class="roadmap-grid">
-        <div class="roadmap-card" data-week="W1">
-          <div class="rc-week">Week 1 · Days 1–7</div>
-          <div class="rc-title">Learn Kafka + Run Docker</div>
-          <div class="rc-desc">Watch 2 videos (Fireship 2min + Confluent 45min). Run Kafka via Docker Compose. Send one hardcoded test message. Receive it back. Done — you now know enough Kafka to start.</div>
-          <span class="rc-tag tag-learn">Learn</span>
-          <span class="rc-tag tag-build">Hello World</span>
-        </div>
-        <div class="roadmap-card" data-week="W2">
-          <div class="rc-week">Week 2 · Days 4–7 overlap</div>
-          <div class="rc-title">Build CoinGecko Producer</div>
-          <div class="rc-desc">Create CoinGecko account, get free API key. Build producer.py that fetches BTC/ETH/SOL every 60s. Push real crypto data into your Kafka topic. Verify messages flow.</div>
-          <span class="rc-tag tag-build">Build</span>
-        </div>
-        <div class="roadmap-card" data-week="W3">
-          <div class="rc-week">Week 3 · Days 8–14</div>
-          <div class="rc-title">Spark Structured Streaming ⚠️ Hardest</div>
-          <div class="rc-desc">This is the hardest week. Spark-Kafka connector has version issues. Budget extra time. Google every error message + Stack Overflow. Every senior engineer does this. It's normal.</div>
-          <span class="rc-tag tag-learn">Learn Spark</span>
-          <span class="rc-tag tag-build">Connect + Window</span>
-        </div>
-        <div class="roadmap-card" data-week="W4">
-          <div class="rc-week">Week 4 · Days 15–18</div>
-          <div class="rc-title">Snowflake Medallion Layers</div>
-          <div class="rc-desc">Free trial account. Build RAW → SILVER → GOLD layers. Use your existing Medallion Architecture knowledge here — this is your bridge from old skills to new tech.</div>
-          <span class="rc-tag tag-learn">Snowflake basics</span>
-          <span class="rc-tag tag-build">3-layer design</span>
-        </div>
-        <div class="roadmap-card" data-week="W5">
-          <div class="rc-week">Week 5 · Days 19–22</div>
-          <div class="rc-title">Grafana Dashboard</div>
-          <div class="rc-desc">Install Grafana via Docker + Snowflake plugin. Build exactly 4 panels: live price chart, 24hr gauge, anomaly table, rolling average. Screenshot this for your resume.</div>
-          <span class="rc-tag tag-learn">Grafana basics</span>
-          <span class="rc-tag tag-build">4 panels</span>
-        </div>
-        <div class="roadmap-card" data-week="W6">
-          <div class="rc-week">Week 6 · Days 23–28</div>
-          <div class="rc-title">Anomaly Detection + README</div>
-          <div class="rc-desc">Z-score anomaly detection (not LSTM — you can explain Z-score in 30 seconds). Then write a recruiter-ready README with architecture diagram from excalidraw.com.</div>
-          <span class="rc-tag tag-build">Z-score logic</span>
-          <span class="rc-tag tag-build">GitHub README</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="roadmap-section">
-      <div class="roadmap-section-title">5 Kafka Concepts to Know (Before Starting)</div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
-        <div style="display:grid;grid-template-columns:auto 1fr;font-family:var(--font-mono)">
-          <div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border2);font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase">CONCEPT</div>
-          <div style="padding:10px 16px;background:var(--bg3);border-bottom:1px solid var(--border2);border-left:1px solid var(--border2);font-size:10px;color:var(--accent);letter-spacing:2px;text-transform:uppercase">WHAT IT MEANS</div>
-          <div style="padding:10px 16px;border-bottom:1px solid var(--border2);font-size:12px;color:var(--text);font-weight:700">Broker</div>
-          <div style="padding:10px 16px;border-bottom:1px solid var(--border2);border-left:1px solid var(--border2);font-size:12px;color:var(--text2)">The Kafka server — stores and serves messages</div>
-          <div style="padding:10px 16px;border-bottom:1px solid var(--border2);font-size:12px;color:var(--text);font-weight:700">Topic</div>
-          <div style="padding:10px 16px;border-bottom:1px solid var(--border2);border-left:1px solid var(--border2);font-size:12px;color:var(--text2)">A named channel — like a database table for messages</div>
-          <div style="padding:10px 16px;border-bottom:1px solid var(--border2);font-size:12px;color:var(--text);font-weight:700">Partition</div>
-          <div style="padding:10px 16px;border-bottom:1px solid var(--border2);border-left:1px solid var(--border2);font-size:12px;color:var(--text2)">A topic is split into partitions for parallel processing</div>
-          <div style="padding:10px 16px;border-bottom:1px solid var(--border2);font-size:12px;color:var(--text);font-weight:700">Producer</div>
-          <div style="padding:10px 16px;border-bottom:1px solid var(--border2);border-left:1px solid var(--border2);font-size:12px;color:var(--text2)">Your code that sends messages to a topic</div>
-          <div style="padding:10px 16px;font-size:12px;color:var(--text);font-weight:700">Consumer</div>
-          <div style="padding:10px 16px;border-left:1px solid var(--border2);font-size:12px;color:var(--text2)">Your code that reads messages from a topic</div>
-        </div>
-      </div>
-      <div class="warning-note"><strong>⚠️ Ignore For Now</strong>Replication factor, ISR, exactly-once semantics, consumer group rebalancing — all important eventually, but learn them ONLY when your project forces you to. Not before.</div>
-    </div>
-
-    <div class="roadmap-section">
-      <div class="roadmap-section-title">Interview Questions You'll Face</div>
-      <div class="interview-grid">
-        <div class="interview-card">
-          <div class="ic-title">Kafka Questions</div>
-          <div class="ic-q">Why did you use 3 partitions?</div>
-          <div class="ic-q">What happens if your producer crashes mid-send?</div>
-          <div class="ic-q">Explain at-least-once vs exactly-once delivery</div>
-          <div class="ic-q">What is a consumer group and why does it matter?</div>
-        </div>
-        <div class="interview-card">
-          <div class="ic-title">Spark Questions</div>
-          <div class="ic-q">What is micro-batch vs continuous streaming?</div>
-          <div class="ic-q">Why did you use a sliding window vs tumbling window?</div>
-          <div class="ic-q">How does Spark handle late-arriving data?</div>
-          <div class="ic-q">Explain your schema definition for incoming messages</div>
-        </div>
-        <div class="interview-card">
-          <div class="ic-title">Snowflake Questions</div>
-          <div class="ic-q">Why Medallion Architecture (RAW → SILVER → GOLD)?</div>
-          <div class="ic-q">Why did you add clustering keys?</div>
-          <div class="ic-q">How does your TASK-based aggregation work?</div>
-          <div class="ic-q">What is a virtual warehouse and how does billing work?</div>
-        </div>
-        <div class="interview-card">
-          <div class="ic-title">Anomaly Detection</div>
-          <div class="ic-q">Why Z-score instead of an ML model?</div>
-          <div class="ic-q">What threshold did you choose and why?</div>
-          <div class="ic-q">How does your detection handle normal market volatility?</div>
-          <div class="ic-q">How would you scale this to 100 coins?</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- GIT TAB -->
-  <div id="tab-git" style="display:none">
-    <div class="git-box">
-      <div class="git-section-title">Daily Commit Message Generator</div>
-      <div class="git-field">
-        <label>Phase</label>
-        <select id="sel-phase">
-          <option value="phase-1">Phase 1 · Setup &amp; Kafka basics</option>
-          <option value="phase-2">Phase 2 · Kafka Producer</option>
-          <option value="phase-3">Phase 3 · Spark Structured Streaming</option>
-          <option value="phase-4">Phase 4 · Snowflake layers</option>
-          <option value="phase-5">Phase 5 · Grafana dashboard</option>
-          <option value="phase-6">Phase 6 · Anomaly detection</option>
-          <option value="phase-7">Phase 7 · README &amp; cleanup</option>
-        </select>
-      </div>
-      <div class="git-field">
-        <label>What you did today</label>
-        <input type="text" id="inp-what" placeholder="e.g. added producer loop, fixed offset config"/>
-      </div>
-      <button class="gen-btn" onclick="genCommit()">⚡ Generate Commit</button>
-
-      <div id="commit-out" style="display:none">
-        <div class="sep"></div>
-        <div class="git-section-title">Commit Message</div>
-        <div class="code-block" id="commit-text"></div>
-        <button class="copy-btn" onclick="copyText('commit-text')">Copy message</button>
-        <div class="sep"></div>
-        <div class="git-section-title">Full Push Commands</div>
-        <div class="code-block" id="push-cmds"></div>
-        <button class="copy-btn" onclick="copyText('push-cmds')">Copy commands</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- RESUME TAB -->
-  <div id="tab-resume" style="display:none">
-    <div class="resume-box">
-      <div class="git-section-title">Resume Bullet Points — Copy &amp; Use</div>
-      <div class="code-block">
-Title: Real-Time Crypto Price Monitoring Pipeline
-
-• Built an end-to-end streaming data pipeline ingesting live cryptocurrency
-  data from CoinGecko API using Apache Kafka, processing 3 coin streams
-  with Spark Structured Streaming.
-
-• Implemented Medallion Architecture in Snowflake (Raw → Silver → Gold)
-  with clustering keys and automated TASK-based aggregations,
-  reducing query latency by 40%.
-
-• Developed Z-score based anomaly detection on 10-minute sliding windows
-  to flag price deviations, surfacing alerts in a real-time Grafana
-  dashboard with 4 interactive panels.
-
-• Containerized the full pipeline using Docker Compose, enabling
-  one-command local deployment.
-      </div>
-      <button class="copy-btn" onclick="copyText('resume-bullets')">Copy bullets</button>
-
-      <div class="sep"></div>
-
-      <div class="git-section-title">GitHub README Structure</div>
-      <div class="code-block" style="color:var(--text2)">
-# Crypto Price Monitoring Pipeline
-
-## Architecture Diagram   ← draw on excalidraw.com, export PNG
-## Tech Stack badges      ← Kafka | Spark | Snowflake | Grafana | Python  
-## Problem Statement      ← 3 lines max
-## Pipeline Flow          ← numbered steps
-## Setup Instructions     ← docker compose command + env vars
-## Dashboard Screenshot   ← Grafana screenshot (this gets attention)
-## Key Learnings          ← 5 bullets (interviewers always read this)
-## Future Improvements    ← shows engineering maturity
-      </div>
-
-      <div class="resume-tip">
-        ✅ TIP: The "Key Learnings" section is the most important part of your README.
-        Write 5 specific things you learned — not generic ("I learned Kafka") but specific
-        ("I learned that Kafka consumer groups allow horizontal scaling without code changes").
-        Interviewers use this to gauge how deeply you understand your own project.
-      </div>
-
-      <div class="sep"></div>
-      <div class="git-section-title">Architecture Diagram — Tech Stack</div>
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;font-family:var(--font-mono);font-size:12px;color:var(--text2);line-height:2">
-        <span style="color:var(--green)">CoinGecko API</span>
-        <span style="color:var(--text3)"> ──► </span>
-        <span style="color:var(--blue)">Kafka Producer</span>
-        <span style="color:var(--text3)"> ──► </span>
-        <span style="color:var(--blue)">Kafka Topic</span>
-        <span style="color:var(--text3)"> ──► </span>
-        <span style="color:var(--spark)">Spark Streaming</span><br/>
-        <span style="color:var(--text3)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──► </span>
-        <span style="color:var(--purple)">Snowflake (RAW→SILVER→GOLD)</span>
-        <span style="color:var(--text3)"> ──► </span>
-        <span style="color:var(--brown)">Grafana</span>
-      </div>
-    </div>
-  </div>
-
-</div><!-- end .app -->
+</div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-//  DATA
-// ═══════════════════════════════════════════════════════════
-const PHASES = [
-  {
-    id: 0, label: "Phase 1", name: "Setup & Kafka Basics", days: "Days 1–7", color: "#378ADD",
-    learn: [
-      {text: "Watch Fireship 'Kafka in 100 seconds' on YouTube (2 min — do this first)", res: "YouTube: 'Kafka in 100 seconds Fireship'"},
-      {text: "Watch Confluent Kafka Crash Course on YouTube (45 min — covers all 5 core concepts)", res: "YouTube: 'Apache Kafka Crash Course Confluent'"},
-      {text: "Read Confluent's 'What is Kafka' page — first 3 sections only. STOP there.", res: "confluent.io/learn/kafka"},
-      {text: "5 concepts you MUST know: Broker, Topic, Partition, Producer, Consumer. Nothing else yet.", res: null},
-    ],
-    tasks: [
-      {d:"Day 1", t:"Watch Fireship 'Kafka in 100 seconds' on YouTube (2 min)", type:"learn"},
-      {d:"Day 2", t:"Watch Confluent Kafka crash course on YouTube (45 min)", type:"learn"},
-      {d:"Day 3", t:"Install Docker + Docker Compose on your machine", type:"setup"},
-      {d:"Day 4", t:"Create docker-compose.yml with Kafka + Zookeeper and run it", type:"build"},
-      {d:"Day 5", t:"Write test_producer.py — send one hardcoded message to 'test-topic'", type:"build"},
-      {d:"Day 6", t:"Write test_consumer.py — read that message back and print it", type:"build"},
-      {d:"Day 7", t:"✅ Milestone: See 'hello kafka' print in consumer terminal", type:"milestone"},
-    ]
-  },
-  {
-    id: 1, label: "Phase 2", name: "CoinGecko Kafka Producer", days: "Days 4–7", color: "#1D9E75",
-    learn: [
-      {text: "Learn: What is a REST API? How do query params work? (you'll use params for CoinGecko)", res: null},
-      {text: "Learn: What is JSON serialization? Why does Kafka need bytes, not dicts?", res: null},
-      {text: "Interview Q you'll face: 'Why did you choose 3 partitions?' → Answer: one per coin (BTC, ETH, SOL)", res: null},
-    ],
-    tasks: [
-      {d:"Day 4", t:"Create CoinGecko free account at coingecko.com and get your API key", type:"setup"},
-      {d:"Day 5", t:"Write producer.py fetching BTC/ETH/SOL prices from CoinGecko API", type:"build"},
-      {d:"Day 6", t:"Add Unix timestamp to each message payload", type:"build"},
-      {d:"Day 7", t:"Run producer in a while True loop every 60 seconds — verify messages flow in consumer", type:"milestone"},
-    ]
-  },
-  {
-    id: 2, label: "Phase 3", name: "Spark Structured Streaming", days: "Days 8–14", color: "#D85A30",
-    learn: [
-      {text: "Learn: What is Spark Structured Streaming? How is it different from batch Spark?", res: "Spark docs: 'Structured Streaming Programming Guide'"},
-      {text: "Learn: What is a sliding window vs tumbling window? (You'll use sliding: 10min window, 5min slide)", res: null},
-      {text: "⚠️ WARNING: Spark-Kafka connector has version compatibility issues. This is the hardest week. Budget extra time. Google every error + Stack Overflow.", res: null},
-      {text: "Learn: from_json(), window(), avg(), stddev() — the 4 functions you'll actually use", res: null},
-    ],
-    tasks: [
-      {d:"Day 8",  t:"Install PySpark and download Kafka connector JAR file", type:"setup"},
-      {d:"Day 9",  t:"Write spark_consumer.py — connect to Kafka topic (expect errors, fix them)", type:"build"},
-      {d:"Day 10", t:"Define JSON schema for your incoming crypto messages", type:"build"},
-      {d:"Day 11", t:"Parse messages with from_json() + select the columns you need", type:"build"},
-      {d:"Day 12", t:"Add 10-minute sliding window aggregation (slide every 5 minutes)", type:"build"},
-      {d:"Day 13", t:"Compute avg price + stddev per coin per window", type:"build"},
-      {d:"Day 14", t:"✅ Milestone: Write stream to console sink — verify windowed output prints", type:"milestone"},
-    ]
-  },
-  {
-    id: 3, label: "Phase 4", name: "Snowflake Storage", days: "Days 15–18", color: "#7F77DD",
-    learn: [
-      {text: "Learn: What is Snowflake? It's a cloud data warehouse — like a smarter, auto-scaling database.", res: "Sign up: snowflake.com/free-trial (30 days free)"},
-      {text: "Learn: What is Medallion Architecture? RAW (raw API data) → SILVER (cleaned, typed) → GOLD (aggregated, analytics-ready)", res: null},
-      {text: "Learn: What are clustering keys? They're like indexes in SQL — speed up queries by coin_name + timestamp.", res: null},
-      {text: "Learn: What is a Snowflake TASK? It's a scheduled job — like a cron job inside Snowflake.", res: null},
-    ],
-    tasks: [
-      {d:"Day 15", t:"Create Snowflake free trial account (30 days free, no credit card needed)", type:"setup"},
-      {d:"Day 16", t:"Create RAW layer table: crypto_raw.prices (raw unmodified API responses)", type:"build"},
-      {d:"Day 16", t:"Create SILVER layer: crypto_clean.prices (parsed, typed, deduplicated)", type:"build"},
-      {d:"Day 17", t:"Create GOLD layer: crypto_analytics.price_trends (aggregated, anomaly flagged)", type:"build"},
-      {d:"Day 17", t:"Add clustering keys on coin_name + timestamp columns", type:"build"},
-      {d:"Day 18", t:"Create a Snowflake TASK to run aggregation every 15 minutes", type:"build"},
-      {d:"Day 18", t:"✅ Milestone: Connect Spark → Snowflake with connector, test write end-to-end", type:"milestone"},
-    ]
-  },
-  {
-    id: 4, label: "Phase 5", name: "Grafana Dashboard", days: "Days 19–22", color: "#BA7517",
-    learn: [
-      {text: "Learn: What is Grafana? It's a data visualization tool — connects to databases and draws charts.", res: "Install via Docker: hub.docker.com/r/grafana/grafana"},
-      {text: "Learn: Install the Snowflake plugin for Grafana to connect your data.", res: "Grafana plugin: grafana.com/grafana/plugins/grafana-snowflake-datasource"},
-      {text: "Build EXACTLY 4 panels — no more. Quality > quantity.", res: null},
-    ],
-    tasks: [
-      {d:"Day 19", t:"Install Grafana locally via Docker and install Snowflake plugin", type:"setup"},
-      {d:"Day 19", t:"Connect Grafana datasource to your Snowflake GOLD layer", type:"setup"},
-      {d:"Day 20", t:"Build Panel 1 — live price line chart with BTC, ETH, SOL on same chart", type:"build"},
-      {d:"Day 21", t:"Build Panel 2 — 24hr % change gauge with green/red color thresholds", type:"build"},
-      {d:"Day 21", t:"Build Panel 3 — anomaly alert table (rows where z-score > 2)", type:"build"},
-      {d:"Day 22", t:"Build Panel 4 — rolling 1hr average smoothed trend line", type:"build"},
-      {d:"Day 22", t:"✅ Milestone: Take a screenshot of your dashboard — this goes on your resume!", type:"milestone"},
-    ]
-  },
-  {
-    id: 5, label: "Phase 6", name: "Anomaly Detection", days: "Days 23–25", color: "#A32D2D",
-    learn: [
-      {text: "Why Z-score, NOT LSTM: You can explain Z-score in 30 seconds. LSTM takes weeks to explain. You're a Data Engineer, not an ML engineer.", res: null},
-      {text: "Z-score formula: z = (price - rolling_mean) / rolling_std. If abs(z) > 2.0 → anomaly.", res: null},
-      {text: "Interview answer for 'why 2.0 threshold?': In a normal distribution, 95% of values fall within 2 std deviations. Anything outside is statistically unusual.", res: null},
-    ],
-    tasks: [
-      {d:"Day 23", t:"Write detect_anomaly(price, rolling_mean, rolling_std, threshold=2.0) function", type:"build"},
-      {d:"Day 24", t:"Integrate z-score calculation into your Spark windowed stream", type:"build"},
-      {d:"Day 25", t:"Write anomaly flag to Snowflake GOLD layer as a boolean column", type:"build"},
-      {d:"Day 25", t:"✅ Milestone: Verify Grafana anomaly table shows flagged rows correctly", type:"milestone"},
-    ]
-  },
-  {
-    id: 6, label: "Phase 7", name: "README & Cleanup", days: "Days 26–28", color: "#7a7a8a",
-    learn: [
-      {text: "Your README is your first impression to recruiters. Spend real time on it.", res: null},
-      {text: "Architecture diagram: use excalidraw.com (free, no account needed). Export as PNG.", res: "excalidraw.com"},
-      {text: "'Key Learnings' section is the most important — write 5 specific things you learned, not generic ones.", res: null},
-    ],
-    tasks: [
-      {d:"Day 26", t:"Draw architecture diagram on excalidraw.com, export as PNG", type:"build"},
-      {d:"Day 26", t:"Write README: problem statement (3 lines) + pipeline flow (numbered steps)", type:"build"},
-      {d:"Day 27", t:"Add setup instructions: docker compose command + environment variables", type:"build"},
-      {d:"Day 27", t:"Add tech stack badges + Grafana dashboard screenshot", type:"build"},
-      {d:"Day 28", t:"Write Key Learnings (5 specific bullets) + Future Improvements section", type:"build"},
-      {d:"Day 28", t:"✅ Final milestone: All phases working end-to-end — push to GitHub", type:"milestone"},
-    ]
-  },
-];
+  // ── ADD / EDIT YOUR PAGES HERE ──────────────────────────────────────────────
+  const pages = [
+    {
+      id: "kafka",
+      label: "Kafka Learnings",
+      icon: "📡",
+      file: "kafka.html",
+      desc: "Notes, concepts & experiments"
+    },
+    {
+      id: "status",
+      label: "My Status",
+      icon: "🟢",
+      file: "status.html",
+      desc: "Current goals & daily check-in"
+    },
+    {
+      id: "tracker",
+      label: "Tracker",
+      icon: "📊",
+      file: "tracker.html",
+      desc: "Progress & milestones"
+    },
+    // {
+    //   id: "notes",
+    //   label: "Notes",
+    //   icon: "📝",
+    //   file: "notes.html",
+    //   desc: "General notes"
+    // },
+  ];
+  // ────────────────────────────────────────────────────────────────────────────
 
-const DONE_KEY = 'crypto_tracker_v3_done';
-let done = new Set();
-let openPhases = new Set([0]);
+  document.getElementById('current-date').textContent =
+    new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
-// Load saved state
-try {
-  const saved = localStorage.getItem(DONE_KEY);
-  if (saved) done = new Set(JSON.parse(saved));
-} catch(e){}
+  function go(file) {
+    window.location.href = file;
+  }
 
-function saveState() {
-  try { localStorage.setItem(DONE_KEY, JSON.stringify([...done])); } catch(e){}
-}
-
-function toggleTask(phaseId, taskIdx) {
-  const key = `${phaseId}-${taskIdx}`;
-  done.has(key) ? done.delete(key) : done.add(key);
-  saveState();
-  renderAll();
-}
-
-function togglePhase(id) {
-  openPhases.has(id) ? openPhases.delete(id) : openPhases.add(id);
-  renderAll();
-}
-
-function getPhaseProgress(p) {
-  const total = p.tasks.length;
-  const doneCount = p.tasks.filter((_, i) => done.has(`${p.id}-${i}`)).length;
-  return { total, doneCount, pct: total ? Math.round(doneCount / total * 100) : 0 };
-}
-
-function renderStats() {
-  const totalTasks = PHASES.flatMap(p => p.tasks).length;
-  const doneCount = done.size;
-  const phasesComplete = PHASES.filter(p => getPhaseProgress(p).pct === 100).length;
-  const pct = Math.round(doneCount / totalTasks * 100);
-
-  document.getElementById('stats-row').innerHTML = `
-    <div class="stat-card"><div class="stat-num green">${doneCount}</div><div class="stat-lbl">Tasks Done</div></div>
-    <div class="stat-card"><div class="stat-num orange">${totalTasks - doneCount}</div><div class="stat-lbl">Remaining</div></div>
-    <div class="stat-card"><div class="stat-num accent">${phasesComplete}/7</div><div class="stat-lbl">Phases Done</div></div>
-    <div class="stat-card"><div class="stat-num">${pct}%</div><div class="stat-lbl">Overall</div></div>
-  `;
-
-  // Update ring
-  const circumference = 2 * Math.PI * 28; // r=28
-  const offset = circumference * (1 - pct / 100);
-  const fill = document.getElementById('ring-fill');
-  const pctEl = document.getElementById('ring-pct');
-  if (fill) { fill.style.strokeDashoffset = offset; }
-  if (pctEl) { pctEl.textContent = pct + '%'; }
-}
-
-function statusBadge(pct) {
-  if (pct === 0) return `<span class="phase-badge badge-notstarted">Not started</span>`;
-  if (pct === 100) return `<span class="phase-badge badge-done">✓ Complete</span>`;
-  return `<span class="phase-badge badge-inprogress">In progress</span>`;
-}
-
-function taskTypeTag(type) {
-  const map = { learn:'Learn', build:'Build', setup:'Setup', milestone:'🏁 Milestone' };
-  const cls = { learn:'type-learn', build:'type-build', setup:'type-setup', milestone:'type-milestone' };
-  return `<span class="task-type ${cls[type]||'type-build'}">${map[type]||type}</span>`;
-}
-
-function renderPhases() {
-  const el = document.getElementById('phases-list');
-  el.innerHTML = PHASES.map(p => {
-    const { total, doneCount, pct } = getPhaseProgress(p);
-    const isOpen = openPhases.has(p.id);
-
-    const learnHTML = p.learn.map(l => `
-      <div class="learn-item">
-        <span class="learn-bullet">→</span>
-        <span>${l.text}${l.res ? ` <span class="learn-resource-link">[${l.res}]</span>` : ''}</span>
-      </div>
-    `).join('');
-
-    const tasksHTML = p.tasks.map((t, i) => {
-      const key = `${p.id}-${i}`;
-      const isDone = done.has(key);
-      return `
-        <div class="task-row" onclick="toggleTask(${p.id},${i})">
-          <div class="task-check ${isDone ? 'done' : ''}">${isDone ? '✓' : ''}</div>
-          ${taskTypeTag(t.type)}
-          <span class="task-label ${isDone ? 'done' : ''}">${t.t}</span>
-          <span class="task-day-tag">${t.d}</span>
-        </div>
-      `;
-    }).join('');
-
-    return `
-      <div class="phase-card ${isOpen ? 'open' : ''}">
-        <div class="phase-header" onclick="togglePhase(${p.id})">
-          <div class="phase-indicator" style="background:${p.color}"></div>
-          <div class="phase-info">
-            <div class="phase-top">
-              <span class="phase-num">${p.label}</span>
-              <span class="phase-name">${p.name}</span>
-              ${statusBadge(pct)}
-              <span class="phase-days">${p.days}</span>
-            </div>
-            <div class="phase-progress-row">
-              <div class="pbar-wrap"><div class="pbar-fill" style="width:${pct}%;background:${p.color}"></div></div>
-              <span class="pbar-text">${doneCount}/${total} tasks</span>
-            </div>
-          </div>
-          <div class="phase-chevron ${isOpen ? 'open' : ''}">▶</div>
-        </div>
-        ${isOpen ? `
-          <div class="learn-block">
-            <div class="learn-title">What to Learn First</div>
-            ${learnHTML}
-          </div>
-          <div class="phase-body">
-            <div class="phase-body-inner">${tasksHTML}</div>
-          </div>
-        ` : ''}
-      </div>
-    `;
-  }).join('');
-}
-
-function renderAll() {
-  renderStats();
-  renderPhases();
-}
-
-// ───── TAB SWITCHING ─────
-function showTab(t) {
-  const tabs = ['board','roadmap','git','resume'];
-  tabs.forEach(id => {
-    document.getElementById('tab-' + id).style.display = id === t ? 'block' : 'none';
+  // Build tabs
+  const tabsContainer = document.getElementById('tabs-container');
+  pages.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.innerHTML = `<span class="tab-icon">${p.icon}</span>${p.label}`;
+    btn.addEventListener('click', () => go(p.file));
+    tabsContainer.appendChild(btn);
   });
-  document.querySelectorAll('.tab').forEach((el, i) => {
-    el.classList.toggle('active', tabs[i] === t);
+
+  // Build cards
+  const grid = document.getElementById('quick-grid');
+  pages.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'quick-card';
+    card.innerHTML = `
+      <span class="quick-card-icon">${p.icon}</span>
+      <div class="quick-card-body">
+        <span class="quick-card-name">${p.label}</span>
+        <span class="quick-card-desc">${p.desc}</span>
+        <span class="quick-card-arrow">→ ${p.file}</span>
+      </div>`;
+    card.addEventListener('click', () => go(p.file));
+    grid.appendChild(card);
   });
-}
-
-// ───── GIT COMMIT ─────
-function genCommit() {
-  const phase = document.getElementById('sel-phase').value;
-  const what = document.getElementById('inp-what').value.trim() || 'daily progress';
-  const msg = `feat(${phase}): ${what}`;
-  const cmds = `git add .\ngit commit -m "${msg}"\ngit push origin main`;
-  document.getElementById('commit-text').textContent = msg;
-  document.getElementById('push-cmds').textContent = cmds;
-  document.getElementById('commit-out').style.display = 'block';
-}
-
-function copyText(id) {
-  const text = document.getElementById(id).textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    // brief visual feedback
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => btn.textContent = orig, 1500);
-  }).catch(() => {});
-}
-
-// ───── RESUME COPY ─────
-// Create hidden element for resume bullets
-const resumeHidden = document.createElement('div');
-resumeHidden.id = 'resume-bullets';
-resumeHidden.style.display = 'none';
-resumeHidden.textContent = `Title: Real-Time Crypto Price Monitoring Pipeline
-
-• Built an end-to-end streaming data pipeline ingesting live cryptocurrency data from CoinGecko API using Apache Kafka, processing 3 coin streams with Spark Structured Streaming.
-
-• Implemented Medallion Architecture in Snowflake (Raw → Silver → Gold) with clustering keys and automated TASK-based aggregations, reducing query latency by 40%.
-
-• Developed Z-score based anomaly detection on 10-minute sliding windows to flag price deviations, surfacing alerts in a real-time Grafana dashboard with 4 interactive panels.
-
-• Containerized the full pipeline using Docker Compose, enabling one-command local deployment.`;
-document.body.appendChild(resumeHidden);
-
-// ───── INIT ─────
-renderAll();
 </script>
+
 </body>
 </html>
