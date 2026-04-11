@@ -131,10 +131,10 @@ pre { background: #0d111a; border: 1px solid #2d3748; border-radius: 8px; paddin
 /* ── TERMINAL BLOCK ── */
 .terminal { background: #070a0f; border: 1px solid #1e2433; border-radius: 8px; padding: 0.9rem 1.1rem; font-family: 'Courier New', monospace; font-size: 0.79rem; margin: 0.7rem 0; line-height: 1.8; }
 .term-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-.t-cmd  { color: #86efac; }
-.t-out  { color: #4b5563; }
-.t-err  { color: #f87171; }
-.t-info { color: #60a5fa; }
+.t-cmd  { color: #86efac; display: block; }
+.t-out  { color: #4b5563; display: block; }
+.t-err  { color: #f87171; display: block; }
+.t-info { color: #60a5fa; display: block; }
 
 /* ── ADDED BANNER ── */
 .added-banner { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
@@ -645,7 +645,7 @@ auto_offset_reset=<span class="str">'latest'</span>    <span class="cm"># → st
 
   <!-- docker-compose.yml -->
   <div class="card c-teal">
-    <h3>docker-compose.yml — Your Kafka Config</h3>
+    <h3>Step 1 · Create docker-compose.yml</h3>
     <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.7rem;">Create this file in your project folder. It defines two containers: ZooKeeper (metadata coordinator) and Kafka (the broker).</p>
     <pre><span class="yaml-k">services:</span>
 
@@ -667,28 +667,36 @@ auto_offset_reset=<span class="str">'latest'</span>    <span class="cm"># → st
       <span class="yaml-k">KAFKA_LISTENERS:</span> <span class="yaml-v">PLAINTEXT://0.0.0.0:9092</span>
       <span class="yaml-k">KAFKA_ADVERTISED_LISTENERS:</span> <span class="yaml-v">PLAINTEXT://localhost:9092</span>
       <span class="yaml-k">KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:</span> <span class="yaml-v">1</span>   <span class="cm"># 1 because we have 1 broker</span></pre>
+  </div>
 
-    <p style="font-size:0.88rem;font-weight:700;color:#5eead4;margin:0.85rem 0 0.4rem;">Start Kafka:</p>
+  <!-- Start / Stop -->
+  <div class="card c-teal">
+    <h3>Step 2 · Start and Stop Kafka</h3>
     <div class="terminal">
-      <div class="term-label" style="color:#5eead4;">Terminal — run once</div>
+      <div class="term-label" style="color:#5eead4;">Terminal — start Kafka (run once, keep running)</div>
       <span class="t-cmd">docker-compose up -d</span>
       <span class="t-out"># -d = detached, runs in background so it doesn't block your terminal</span>
-
-      <span class="t-cmd">docker ps</span>
-      <span class="t-out"># Verify both containers are running:
-# CONTAINER ID   IMAGE                          STATUS
-# abc123         confluentinc/cp-kafka:7.4.0    Up 2 minutes
-# def456         confluentinc/cp-zookeeper:7.4.0  Up 2 minutes</span>
     </div>
-    <div class="tip">Kafka is now running at <strong>localhost:9092</strong>. That's the address your Python scripts will use to connect. Keep this terminal open (or it stays running in background with -d).</div>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Verify both containers are up</div>
+      <span class="t-cmd">docker ps</span>
+      <span class="t-out"># CONTAINER ID   IMAGE                              STATUS
+# abc123         confluentinc/cp-kafka:7.4.0        Up 2 minutes
+# def456         confluentinc/cp-zookeeper:7.4.0    Up 2 minutes</span>
+    </div>
+    <div class="terminal">
+      <div class="term-label" style="color:#f87171;">Stop Kafka when done</div>
+      <span class="t-cmd">docker-compose down</span>
+    </div>
+    <div class="tip">Kafka is now running at <strong>localhost:9092</strong>. That's the address your Python scripts will use to connect.</div>
   </div>
 
   <!-- Topic creation via CLI -->
   <div class="card c-teal">
-    <h3>Create a Topic via CLI (inside Docker)</h3>
-    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.7rem;">You can create topics using the Kafka CLI tools inside the Docker container. Run this command in a new terminal:</p>
+    <h3>Step 3 · Create a Topic via CLI</h3>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.7rem;">Use the Kafka CLI tools inside the Docker container to create and verify topics:</p>
     <div class="terminal">
-      <div class="term-label" style="color:#5eead4;">Terminal — create topic</div>
+      <div class="term-label" style="color:#5eead4;">Create a topic</div>
       <span class="t-cmd">docker exec -it kafka-project-1-kafka-1 kafka-topics \
   --create \
   --topic hello-topic \
@@ -697,8 +705,8 @@ auto_offset_reset=<span class="str">'latest'</span>    <span class="cm"># → st
   --replication-factor 1</span>
       <span class="t-out"># Created topic hello-topic.</span>
     </div>
-    <p style="font-size:0.88rem;font-weight:700;color:#5eead4;margin:0.85rem 0 0.4rem;">Verify the topic exists:</p>
     <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Verify the topic exists</div>
       <span class="t-cmd">docker exec -it kafka-project-1-kafka-1 kafka-topics \
   --list \
   --bootstrap-server localhost:9092</span>
@@ -782,66 +790,40 @@ auto_offset_reset=<span class="str">'latest'</span>    <span class="cm"># → st
     <pre>pip install kafka-python</pre>
     <div class="explain">
       <strong>Kafka = server. kafka-python = client.</strong> Kafka itself is a Java application running in Docker. <code style="color:#fbbf24;">kafka-python</code> is just the library that lets your Python code connect to it over the network. Like how you install <code style="color:#fbbf24;">requests</code> to call a REST API — you need <code style="color:#fbbf24;">kafka-python</code> to call Kafka.
-      </div>
+    </div>
     <div class="tip">If you have multiple Python versions installed, use the explicit path to make sure pip and python point to the same environment — this is a real error you may hit (see Common Errors section).</div>
-    
-    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;"> <br> Create a docker-compose.yml inside the folder, and paste this info into the .yml file</p>
-    <pre>services:
-    zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-
-  kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-</pre>
-<p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;"> <br> Use the below code to start/end the docker:</p>
-    <pre>docker-compose up -d <span class="cm"># Start the Docker</span> <br>docker compose down <span class="cm"># Down the Docker</span> </pre>
-    <div class="explain">
-        <strong>This command will spin the cluster and will start/end the zookeper and kafka to be used.</strong>
-    </div>
-<p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;"> <br>Command to check that both zookeeper and kafka is running:</p>
-<pre>docker ps</pre>
   </div>
 
-<!-- Set the Topic for the Kafka -->
-  <div class="card c-indigo">
-    <div class="step-hd"><span class="step-n indigo">4</span><span class="step-t">Setup Kafka Architecture</span></div>
-    <div style="display:flex;flex-direction:column;gap:0.7rem;">
-      <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #5eead4;">
-        <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#5eead4;margin-bottom:0.35rem;">Create Topic: </p>
-        <div class="terminal" style="margin:0;"><span class="t-cmd">docker exec -it <span class="kw">kafka-folder-name</span>-kafka-1 kafka-topics \ <br> 
-        --create \ <br> 
-        --topic hello-topic \ <span class="cm"># Set the Topic Name</span>  <br> 
-        --bootstrap-server localhost:9092 \ <span class="cm"># Server Name</span> <br> 
-        --partitions 1 \ <span class="cm"># Number of Partition</span> <br> 
-        --replication-factor 1 <span class="cm"># Number of Kafka Server</span> </span></div>
-      </div>
-      <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #a855f7;">
-        <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#a855f7;margin-bottom:0.35rem;">Verify Topic</p>
-        <div class="terminal" style="margin:0;"><span class="t-cmd">docker exec -it <span class="kw">kafka-folder-name</span>-kafka-1 kafka-topics \ <br> 
-        --list \ <br>
-        --bootstrap-server localhost:9092 <br> <br>
-        <span class="cm"># Output hello-topic</span> 
-        </span></div>
-      </div>
+  <!-- Step 2: Setup Docker -->
+  <div class="card c-teal">
+    <div class="step-hd"><span class="step-n" style="background:#5eead4;color:#0f1117;">2</span><span class="step-t">Setup Docker — Start Kafka &amp; Create Topic</span></div>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">Make sure Docker is running, then spin up Kafka and create your topic. Full setup instructions are in the <a href="#docker-setup" style="color:#5eead4;">Docker Setup section</a> — here's the quick version:</p>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Start Kafka (keep this running in the background)</div>
+      <span class="t-cmd">docker-compose up -d</span>
+      <span class="t-out"># Starts ZooKeeper + Kafka broker at localhost:9092</span>
     </div>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Create the hello-topic (run once)</div>
+      <span class="t-cmd">docker exec -it kafka-project-1-kafka-1 kafka-topics \
+  --create \
+  --topic hello-topic \
+  --bootstrap-server localhost:9092 \
+  --partitions 1 \
+  --replication-factor 1</span>
+      <span class="t-out"># Created topic hello-topic.</span>
+    </div>
+    <div class="tip">Check your container name first with <code>docker ps</code> — it may differ from <code>kafka-project-1-kafka-1</code> depending on your folder name.</div>
   </div>
 
-  <!-- Step 2: producer.py -->
+  <!-- Step 3: producer.py -->
   <div class="card c-amber">
-    <div class="step-hd"><span class="step-n amber">2</span><span class="step-t">producer.py — Send "Hello World" to Kafka</span></div>
-    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">This script sends a new message every 2 seconds forever. Each message has a number so you can track which ones arrived:</p>
+    <div class="step-hd"><span class="step-n amber">3</span><span class="step-t">producer.py — Send "Hello World" to Kafka</span></div>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">Create the file, then add this code. It sends a new message every 2 seconds forever:</p>
+    <div class="terminal">
+      <div class="term-label" style="color:#fbbf24;">Create the file</div>
+      <span class="t-cmd">touch producer.py</span>
+    </div>
     <pre><span class="cm"># producer.py</span>
 <span class="kw">from</span> kafka <span class="kw">import</span> KafkaProducer
 <span class="kw">import</span> json
@@ -875,8 +857,8 @@ i = 1
       <span style="color:#a855f7;">Python dict</span> → <span style="color:#fbbf24;">JSON string</span> → <span style="color:#86efac;">Bytes</span> → <span style="color:#5eead4;">Kafka Topic "hello-topic"</span>
     </div>
 
-    <p style="font-size:0.88rem;font-weight:700;color:#fcd34d;margin:0.7rem 0 0.3rem;">Run it:</p>
     <div class="terminal">
+      <div class="term-label" style="color:#fbbf24;">Run it</div>
       <span class="t-cmd">python producer.py</span>
       <span class="t-out"># Starting Producer...
 # Sent: {'message': 'Hello World 1', 'number': 1}
@@ -886,10 +868,14 @@ i = 1
     </div>
   </div>
 
-  <!-- Step 3: consumer.py -->
+  <!-- Step 4: consumer.py -->
   <div class="card c-purple">
-    <div class="step-hd"><span class="step-n" style="background:#a855f7;">3</span><span class="step-t">consumer.py — Read messages from Kafka</span></div>
-    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">This script connects to Kafka and waits. Whenever a new message arrives, it prints it. Runs forever in a loop:</p>
+    <div class="step-hd"><span class="step-n" style="background:#a855f7;">4</span><span class="step-t">consumer.py — Read messages from Kafka</span></div>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">Create the file, then add this code. It connects to Kafka and waits. Whenever a new message arrives, it prints it:</p>
+    <div class="terminal">
+      <div class="term-label" style="color:#a855f7;">Create the file</div>
+      <span class="t-cmd">touch consumer.py</span>
+    </div>
     <pre><span class="cm"># consumer.py</span>
 <span class="kw">from</span> kafka <span class="kw">import</span> KafkaConsumer
 <span class="kw">import</span> json
@@ -913,8 +899,8 @@ consumer = KafkaConsumer(
       <span style="color:#5eead4;">Kafka Topic</span> → <span style="color:#86efac;">Bytes</span> → <span style="color:#fbbf24;">JSON string</span> → <span style="color:#a855f7;">Python dict</span> → <span style="color:#e2e8f0;">print()</span>
     </div>
 
-    <p style="font-size:0.88rem;font-weight:700;color:#c4b5fd;margin:0.7rem 0 0.3rem;">Run it (in a separate terminal, while producer is running):</p>
     <div class="terminal">
+      <div class="term-label" style="color:#a855f7;">Run it (in a separate terminal, while producer is running)</div>
       <span class="t-cmd">python consumer.py</span>
       <span class="t-out"># Waiting for messages...
 #
@@ -924,9 +910,9 @@ consumer = KafkaConsumer(
     </div>
   </div>
 
-  <!-- Step 4: Run order -->
+  <!-- Step 5: Run order -->
   <div class="card c-green">
-    <div class="step-hd"><span class="step-n green">4</span><span class="step-t">Run order — 3 terminals, in this sequence</span></div>
+    <div class="step-hd"><span class="step-n green">5</span><span class="step-t">Run order — 4 terminals, in this sequence</span></div>
     <div style="display:flex;flex-direction:column;gap:0.7rem;">
       <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #5eead4;">
         <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#5eead4;margin-bottom:0.35rem;">Terminal 1 — Start Kafka (keep running)</p>
