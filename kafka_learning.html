@@ -727,7 +727,7 @@ consumer = KafkaConsumer(
 
   <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:2rem;">
     <div class="section-label" style="margin-bottom:0;">Additional Topics</div>
-    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#60a5fa;padding:3px 12px;">Deep Dive</span>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#60a5fa;padding:3px 12px;">Deep dive</span>
   </div>
 
   <!-- REPLICATION & FAULT TOLERANCE -->
@@ -792,7 +792,6 @@ consumer = KafkaConsumer(
   <hr class="divider">
 
   <!-- ZOOKEEPER / KRAFT -->
- <div class="section-label" style="margin-bottom:0;">Advance Topics</div>
   <h2>ZooKeeper vs KRaft — The Brain of Kafka</h2>
   <div class="concepts-grid">
     <div class="concept-card">
@@ -982,8 +981,360 @@ consumer = KafkaConsumer(
     </div>
   </div>
 
+  <hr class="divider">
+
+  <!-- ========== PYTHON IMPLEMENTATION ========== -->
+  <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:2rem;">
+    <div class="section-label" style="margin-bottom:0;">Python Implementation</div>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#86efac;padding:3px 12px;">Full Code Guide</span>
+  </div>
+  <h2 style="margin-top:0.5rem;">From JSON data → Consumer has it</h2>
+
+  <!-- ARCHITECTURE DIAGRAM -->
+  <div style="background:#161b27;border:1px solid #2d3748;border-radius:16px;padding:2rem 1.5rem;margin-bottom:2rem;">
+    <p style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#64748b;text-align:center;margin-bottom:1.5rem;">Architecture — messages flow left to right</p>
+
+    <div style="display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:0.5rem;">
+
+      <!-- JSON source -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;min-width:110px;">
+        <div style="background:#2d3748;border:1px solid #475569;border-radius:10px;padding:0.9rem 1rem;text-align:center;width:100%;">
+          <p style="font-size:0.88rem;font-weight:700;color:#e2e8f0;">JSON data</p>
+          <p style="font-size:0.75rem;color:#64748b;margin-top:2px;">At any intervals</p>
+        </div>
+        <p style="font-size:11px;color:#475569;font-weight:600;letter-spacing:0.5px;">Your script</p>
+      </div>
+
+      <!-- arrow -->
+      <div style="display:flex;align-items:center;padding:0 0.5rem;padding-bottom:1.6rem;">
+        <svg width="32" height="14" viewBox="0 0 32 14"><line x1="0" y1="7" x2="26" y2="7" stroke="#475569" stroke-width="1.5"/><polygon points="26,3 32,7 26,11" fill="#475569"/></svg>
+      </div>
+
+      <!-- Producer -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;min-width:150px;">
+        <div style="background:#3d2600;border:1px solid #92400e;border-radius:10px;padding:0.9rem 1rem;text-align:center;width:100%;">
+          <p style="font-size:0.88rem;font-weight:700;color:#fbbf24;">KafkaProducer</p>
+          <p style="font-size:0.72rem;color:#d97706;margin-top:4px;line-height:1.6;">bootstrap_servers<br>value_serializer<br>key_serializer<br>acks, retries</p>
+        </div>
+        <p style="font-size:11px;color:#475569;font-weight:600;letter-spacing:0.5px;">producer.py</p>
+      </div>
+
+      <!-- arrow -->
+      <div style="display:flex;align-items:center;padding:0 0.5rem;padding-bottom:1.6rem;">
+        <svg width="32" height="14" viewBox="0 0 32 14"><line x1="0" y1="7" x2="26" y2="7" stroke="#475569" stroke-width="1.5"/><polygon points="26,3 32,7 26,11" fill="#475569"/></svg>
+      </div>
+
+      <!-- Broker -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;min-width:200px;">
+        <div style="background:#0d1f1a;border:1px solid #134e4a;border-radius:10px;padding:0.9rem 1rem;text-align:center;width:100%;">
+          <p style="font-size:0.82rem;font-weight:700;color:#5eead4;margin-bottom:8px;">Broker</p>
+          <div style="background:#0f766e;border-radius:6px;padding:4px 8px;margin-bottom:8px;">
+            <p style="font-size:0.75rem;color:#ccfbf1;">topic: "crypto-prices"</p>
+          </div>
+          <div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px;">
+            <div style="background:#115e59;border-radius:6px;padding:5px 10px;text-align:center;">
+              <p style="font-size:10px;font-weight:700;color:#5eead4;">P 0</p>
+              <p style="font-size:10px;color:#99f6e4;">BTC</p>
+            </div>
+            <div style="background:#115e59;border-radius:6px;padding:5px 10px;text-align:center;">
+              <p style="font-size:10px;font-weight:700;color:#5eead4;">P 1</p>
+              <p style="font-size:10px;color:#99f6e4;">ETH</p>
+            </div>
+            <div style="background:#115e59;border-radius:6px;padding:5px 10px;text-align:center;">
+              <p style="font-size:10px;font-weight:700;color:#5eead4;">P 2</p>
+              <p style="font-size:10px;color:#99f6e4;">SOL</p>
+            </div>
+          </div>
+          <p style="font-size:0.72rem;color:#475569;">stored on disk, 7 day retention</p>
+        </div>
+        <p style="font-size:11px;color:#475569;font-weight:600;letter-spacing:0.5px;">docker kafka</p>
+      </div>
+
+      <!-- arrow -->
+      <div style="display:flex;align-items:center;padding:0 0.5rem;padding-bottom:1.6rem;">
+        <svg width="32" height="14" viewBox="0 0 32 14"><line x1="0" y1="7" x2="26" y2="7" stroke="#475569" stroke-width="1.5"/><polygon points="26,3 32,7 26,11" fill="#475569"/></svg>
+      </div>
+
+      <!-- Consumer -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;min-width:150px;">
+        <div style="background:#3b0f0f;border:1px solid #7f1d1d;border-radius:10px;padding:0.9rem 1rem;text-align:center;width:100%;">
+          <p style="font-size:0.88rem;font-weight:700;color:#fca5a5;">KafkaConsumer</p>
+          <p style="font-size:0.72rem;color:#f87171;margin-top:4px;line-height:1.6;">group_id<br>auto_offset<br>deserializer<br>poll / loop</p>
+        </div>
+        <p style="font-size:11px;color:#475569;font-weight:600;letter-spacing:0.5px;">consumer.py</p>
+      </div>
+
+    </div>
+
+    <p style="text-align:center;font-size:0.8rem;color:#475569;margin-top:1.25rem;font-style:italic;">consumers can replay from any offset within the retention window</p>
+  </div>
+
+  <!-- STEP NAV -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:2rem;">
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;color:#94a3b8;padding:4px 14px;">Step 1 · Install</span>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;color:#94a3b8;padding:4px 14px;">Step 2 · Producer params</span>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;color:#94a3b8;padding:4px 14px;">Step 3 · producer.py</span>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;color:#94a3b8;padding:4px 14px;">Step 4 · Consumer params</span>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;color:#94a3b8;padding:4px 14px;">Step 5 · consumer.py</span>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;color:#94a3b8;padding:4px 14px;">Step 6 · Topic setup</span>
+    <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;color:#94a3b8;padding:4px 14px;">Step 7 · Run order</span>
+    <span style="background:#2e1f0e;border:1px solid #92400e;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:1px;color:#fbbf24;padding:4px 14px;">Step 8 · Common mistakes</span>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="concept-card" style="margin-bottom:1.5rem;border-left-color:#60a5fa;">
+    <h3 style="color:#60a5fa;">Step 1 — Install and start Kafka</h3>
+    <pre>pip install kafka-python</pre>
+    <p style="font-size:0.9rem;color:#94a3b8;margin-bottom:0.75rem;">Your docker-compose is already correct from your roadmap. Run it once:</p>
+    <pre>docker-compose up -d
+<span class="comment"># verify kafka is up:</span>
+docker ps   <span class="comment"># should show zookeeper + kafka containers running</span></pre>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="concept-card" style="margin-bottom:1.5rem;border-left-color:#fbbf24;">
+    <h3 style="color:#fbbf24;">Step 2 — The Producer, fully explained</h3>
+    <p style="font-size:0.9rem;color:#94a3b8;margin-bottom:0.75rem;">Every parameter you'll actually use — with the <em>why</em> for each:</p>
+    <pre><span class="kw">from</span> kafka <span class="kw">import</span> KafkaProducer
+<span class="kw">import</span> json
+
+producer = KafkaProducer(
+    <span class="comment"># WHERE to connect — address of your broker</span>
+    <span class="comment"># for local docker: 'localhost:9092'</span>
+    <span class="comment"># for multiple brokers: ['host1:9092', 'host2:9092']</span>
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,
+
+    <span class="comment"># HOW to encode your message VALUE before sending</span>
+    <span class="comment"># Kafka only stores bytes — you must convert dict → bytes</span>
+    <span class="comment"># json.dumps(x) converts dict to JSON string</span>
+    <span class="comment"># .encode('utf-8') converts string to bytes</span>
+    value_serializer=<span class="kw">lambda</span> x: json.<span class="fn">dumps</span>(x).<span class="fn">encode</span>(<span class="str">'utf-8'</span>),
+
+    <span class="comment"># HOW to encode your message KEY before sending</span>
+    <span class="comment"># Key is used for partition routing — same key = same partition</span>
+    key_serializer=<span class="kw">lambda</span> x: x.<span class="fn">encode</span>(<span class="str">'utf-8'</span>),
+
+    <span class="comment"># RELIABILITY: how many brokers must confirm before success</span>
+    <span class="comment"># acks=0    → fire and forget, fastest, can lose messages</span>
+    <span class="comment"># acks=1    → leader broker confirms (default, good for your project)</span>
+    <span class="comment"># acks='all'→ all replicas confirm, slowest, never loses</span>
+    acks=1,
+
+    retries=3,                  <span class="comment"># how many times to retry if send fails</span>
+    request_timeout_ms=30000,   <span class="comment"># max wait for broker response (ms)</span>
+)</pre>
+    <p style="font-size:0.88rem;color:#94a3b8;margin:0.75rem 0 0.5rem;">Sending a message — minimal vs full:</p>
+    <pre><span class="comment"># Minimal send — no key, goes to random partition</span>
+producer.<span class="fn">send</span>(<span class="str">'crypto-prices'</span>, value={<span class="str">"coin"</span>: <span class="str">"BTC"</span>, <span class="str">"price"</span>: 67000})
+
+<span class="comment"># With key — BTC always → same partition (RECOMMENDED)</span>
+producer.<span class="fn">send</span>(
+    topic=<span class="str">'crypto-prices'</span>,
+    key=<span class="str">'BTC'</span>,
+    value={<span class="str">"coin"</span>: <span class="str">"BTC"</span>, <span class="str">"price"</span>: 67000, <span class="str">"timestamp"</span>: <span class="str">"2024-01-01T10:00:00"</span>}
+)
+
+<span class="comment"># IMPORTANT: flush() waits until all buffered messages are actually sent</span>
+<span class="comment"># Without flush(), your script may exit before messages leave the buffer</span>
+producer.<span class="fn">flush</span>()
+producer.<span class="fn">close</span>()</pre>
+    <div style="background:#0d111a;border:1px solid #2d3748;border-radius:8px;padding:0.75rem 1rem;margin-top:0.75rem;">
+      <p style="font-size:0.83rem;color:#94a3b8;">💡 <span style="color:#fbbf24;">send()</span> is async — it doesn't block. The message sits in an internal buffer and gets sent in batches. <span style="color:#fbbf24;">flush()</span> forces everything out immediately.</p>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="concept-card" style="margin-bottom:1.5rem;border-left-color:#a855f7;">
+    <h3 style="color:#a855f7;">Step 3 — producer.py (your actual crypto script)</h3>
+    <pre><span class="comment"># producer.py</span>
+<span class="kw">from</span> kafka <span class="kw">import</span> KafkaProducer
+<span class="kw">import</span> json, time, requests
+
+producer = KafkaProducer(
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,
+    value_serializer=<span class="kw">lambda</span> x: json.<span class="fn">dumps</span>(x).<span class="fn">encode</span>(<span class="str">'utf-8'</span>),
+    key_serializer=<span class="kw">lambda</span> x: x.<span class="fn">encode</span>(<span class="str">'utf-8'</span>),
+    acks=1,
+    retries=3,
+)
+
+<span class="kw">def</span> <span class="fn">fetch_crypto_prices</span>():
+    <span class="str">"""Fetch BTC, ETH, SOL prices from CoinGecko (free, no API key)"""</span>
+    url = <span class="str">"https://api.coingecko.com/api/v3/simple/price"</span>
+    params = {<span class="str">"ids"</span>: <span class="str">"bitcoin,ethereum,solana"</span>, <span class="str">"vs_currencies"</span>: <span class="str">"usd"</span>}
+    <span class="kw">return</span> requests.<span class="fn">get</span>(url, params=params).<span class="fn">json</span>()
+    <span class="comment"># returns: {"bitcoin": {"usd": 67000}, "ethereum": {"usd": 3400}, ...}</span>
+
+<span class="kw">def</span> <span class="fn">send_prices</span>():
+    data = <span class="fn">fetch_crypto_prices</span>()
+    coin_map = {<span class="str">"bitcoin"</span>: <span class="str">"BTC"</span>, <span class="str">"ethereum"</span>: <span class="str">"ETH"</span>, <span class="str">"solana"</span>: <span class="str">"SOL"</span>}
+
+    <span class="kw">for</span> coin_id, symbol <span class="kw">in</span> coin_map.<span class="fn">items</span>():
+        message = {
+            <span class="str">"symbol"</span>: symbol,
+            <span class="str">"price_usd"</span>: data[coin_id][<span class="str">"usd"</span>],
+            <span class="str">"timestamp"</span>: time.<span class="fn">strftime</span>(<span class="str">"%Y-%m-%dT%H:%M:%S"</span>)
+        }
+
+        <span class="comment"># BTC → Partition 0, ETH → P1, SOL → P2  (key ensures ordering)</span>
+        future = producer.<span class="fn">send</span>(topic=<span class="str">'crypto-prices'</span>, key=symbol, value=message)
+
+        <span class="comment"># Wait for confirmation and print result</span>
+        meta = future.<span class="fn">get</span>(timeout=10)
+        <span class="fn">print</span>(<span class="fn">f</span><span class="str">"Sent {symbol}: partition={meta.partition}, offset={meta.offset}"</span>)
+
+    producer.<span class="fn">flush</span>()
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    <span class="fn">send_prices</span>()
+    time.<span class="fn">sleep</span>(60)</pre>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="concept-card" style="margin-bottom:1.5rem;border-left-color:#fbbf24;">
+    <h3 style="color:#fbbf24;">Step 4 — The Consumer, fully explained</h3>
+    <pre><span class="kw">from</span> kafka <span class="kw">import</span> KafkaConsumer
+<span class="kw">import</span> json
+
+consumer = KafkaConsumer(
+    <span class="comment"># WHICH TOPIC(S) to read from (can pass multiple)</span>
+    <span class="str">'crypto-prices'</span>,
+
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,
+
+    <span class="comment"># YOUR GROUP NAME — Kafka uses this to track your saved offset</span>
+    <span class="comment"># Same group_id = consumers share the work (load balance)</span>
+    <span class="comment"># Different group_id = independent reader, sees ALL messages</span>
+    group_id=<span class="str">'spark-pipeline'</span>,
+
+    <span class="comment"># WHAT TO DO if this group has never read before (no saved offset)</span>
+    <span class="comment"># 'earliest' → start from message 0, read everything in retention</span>
+    <span class="comment"># 'latest'   → start from NOW, only new messages going forward</span>
+    auto_offset_reset=<span class="str">'earliest'</span>,
+
+    <span class="comment"># HOW TO DECODE bytes → Python object (reverse of producer)</span>
+    value_deserializer=<span class="kw">lambda</span> x: json.<span class="fn">loads</span>(x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>)),
+    key_deserializer=<span class="kw">lambda</span> x: x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>) <span class="kw">if</span> x <span class="kw">else</span> <span class="kw">None</span>,
+
+    <span class="comment"># AUTO-SAVE offset to Kafka after reading</span>
+    <span class="comment"># True = Kafka remembers where you left off on restart</span>
+    enable_auto_commit=<span class="kw">True</span>,
+    auto_commit_interval_ms=1000,   <span class="comment"># save offset every 1 second</span>
+
+    max_poll_records=500,           <span class="comment"># max messages per poll() per partition</span>
+)</pre>
+    <p style="font-size:0.88rem;color:#94a3b8;margin:0.75rem 0 0.5rem;">Every field on the message object you receive:</p>
+    <pre><span class="kw">for</span> message <span class="kw">in</span> consumer:
+    <span class="fn">print</span>(message.value)      <span class="comment"># {"symbol": "BTC", "price_usd": 67000, ...}</span>
+    <span class="fn">print</span>(message.key)        <span class="comment"># "BTC"</span>
+    <span class="fn">print</span>(message.topic)      <span class="comment"># "crypto-prices"</span>
+    <span class="fn">print</span>(message.partition)  <span class="comment"># 0  (which partition this came from)</span>
+    <span class="fn">print</span>(message.offset)     <span class="comment"># 47 (position in that partition)</span>
+    <span class="fn">print</span>(message.timestamp)  <span class="comment"># unix timestamp in milliseconds</span></pre>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="concept-card" style="margin-bottom:1.5rem;border-left-color:#a855f7;">
+    <h3 style="color:#a855f7;">Step 5 — consumer.py (your actual script)</h3>
+    <pre><span class="comment"># consumer.py</span>
+<span class="kw">from</span> kafka <span class="kw">import</span> KafkaConsumer
+<span class="kw">import</span> json
+
+consumer = KafkaConsumer(
+    <span class="str">'crypto-prices'</span>,
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,
+    group_id=<span class="str">'spark-pipeline'</span>,
+    auto_offset_reset=<span class="str">'earliest'</span>,
+    value_deserializer=<span class="kw">lambda</span> x: json.<span class="fn">loads</span>(x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>)),
+    key_deserializer=<span class="kw">lambda</span> x: x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>) <span class="kw">if</span> x <span class="kw">else</span> <span class="kw">None</span>,
+    enable_auto_commit=<span class="kw">True</span>,
+)
+
+<span class="fn">print</span>(<span class="str">"Consumer started. Waiting for messages..."</span>)
+
+<span class="kw">for</span> message <span class="kw">in</span> consumer:
+    data = message.value
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"[Partition {message.partition} | Offset {message.offset}]"</span>)
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"  Coin:  {data['symbol']}"</span>)
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"  Price: ${data['price_usd']:,}"</span>)
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"  Time:  {data['timestamp']}"</span>)
+    <span class="fn">print</span>()
+    <span class="comment"># This is where you'd hand off to Spark:</span>
+    <span class="comment"># spark_stream.process(data)</span></pre>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="concept-card" style="margin-bottom:1.5rem;border-left-color:#60a5fa;">
+    <h3 style="color:#60a5fa;">Step 6 — Create the topic (run this ONCE first)</h3>
+    <p style="font-size:0.9rem;color:#94a3b8;margin-bottom:0.75rem;">By default Kafka auto-creates topics with 1 partition. For your project you want 3 — one per coin:</p>
+    <pre><span class="comment"># create_topic.py — run this ONCE before anything else</span>
+<span class="kw">from</span> kafka.admin <span class="kw">import</span> KafkaAdminClient, NewTopic
+
+admin = KafkaAdminClient(bootstrap_servers=<span class="str">'localhost:9092'</span>)
+
+topic = NewTopic(
+    name=<span class="str">'crypto-prices'</span>,
+    num_partitions=3,       <span class="comment"># one per coin: BTC, ETH, SOL</span>
+    replication_factor=1    <span class="comment"># 1 because you only have 1 broker locally</span>
+)
+
+admin.<span class="fn">create_topics</span>([topic])
+<span class="fn">print</span>(<span class="str">"Topic created!"</span>)
+admin.<span class="fn">close</span>()</pre>
+  </div>
+
+  <!-- STEP 7: RUN ORDER -->
+  <div class="concept-card" style="margin-bottom:1.5rem;border-left-color:#86efac;">
+    <h3 style="color:#86efac;">Step 7 — Run order and what to expect</h3>
+    <p style="font-size:0.88rem;color:#f87171;margin-bottom:0.75rem;">⚠ Run in exactly this order, each in a separate terminal:</p>
+    <pre><span class="comment"># Terminal 1 — Kafka (already running from docker)</span>
+docker-compose up -d
+
+<span class="comment"># Terminal 2 — Create topic ONCE</span>
+python create_topic.py
+<span class="comment"># output: Topic created!</span>
+
+<span class="comment"># Terminal 3 — Start consumer FIRST (so it's ready and waiting)</span>
+python consumer.py
+<span class="comment"># output: Consumer started. Waiting for messages...</span>
+
+<span class="comment"># Terminal 4 — Start producer</span>
+python producer.py
+<span class="comment"># output: Sent BTC: partition=0, offset=0</span>
+<span class="comment">#         Sent ETH: partition=1, offset=0</span>
+<span class="comment">#         Sent SOL: partition=2, offset=0</span>
+<span class="comment"># ... repeats every 60 seconds</span>
+
+<span class="comment"># Back in Terminal 3 — consumer prints:</span>
+<span class="comment"># [Partition 0 | Offset 0]</span>
+<span class="comment">#   Coin:  BTC</span>
+<span class="comment">#   Price: $67,000</span>
+<span class="comment">#   Time:  2024-01-01T10:00:00</span></pre>
+  </div>
+
+  <!-- STEP 8: COMMON MISTAKES -->
+  <div style="background:#1a0e00;border:1px solid #92400e;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;">
+    <h3 style="color:#fbbf24;border-color:#92400e;">Step 8 — The 3 things that trip everyone up</h3>
+    <p style="font-size:0.85rem;color:#d97706;margin-bottom:1.25rem;">Know these before you hit them.</p>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div style="background:#0d111a;border-radius:8px;padding:1rem 1.25rem;border-left:3px solid #f87171;">
+        <p style="font-size:0.88rem;font-weight:700;color:#f87171;margin-bottom:0.4rem;">❌ "My consumer reads everything from scratch every restart"</p>
+        <p style="font-size:0.88rem;color:#94a3b8;">You forgot <span style="color:#fbbf24;font-family:monospace;">group_id</span>. Without it, kafka-python generates a random group ID every run — no saved offset. Add <span style="color:#86efac;font-family:monospace;">group_id='spark-pipeline'</span> and Kafka remembers exactly where you left off.</p>
+      </div>
+      <div style="background:#0d111a;border-radius:8px;padding:1rem 1.25rem;border-left:3px solid #f87171;">
+        <p style="font-size:0.88rem;font-weight:700;color:#f87171;margin-bottom:0.4rem;">❌ "message.value is bytes, not dict"</p>
+        <p style="font-size:0.88rem;color:#94a3b8;">You forgot <span style="color:#fbbf24;font-family:monospace;">value_deserializer</span> on the consumer. The serializer on the producer converts dict→bytes; the deserializer on the consumer converts bytes→dict. They must mirror each other exactly.</p>
+      </div>
+      <div style="background:#0d111a;border-radius:8px;padding:1rem 1.25rem;border-left:3px solid #f87171;">
+        <p style="font-size:0.88rem;font-weight:700;color:#f87171;margin-bottom:0.4rem;">❌ "Producer script ended but consumer got nothing"</p>
+        <p style="font-size:0.88rem;color:#94a3b8;">You forgot <span style="color:#fbbf24;font-family:monospace;">producer.flush()</span>. The producer buffers messages and sends in batches. If your script exits before flushing, the buffer is discarded. Always call <span style="color:#86efac;font-family:monospace;">flush()</span> before your script ends.</p>
+      </div>
+    </div>
+  </div>
+
   <div style="text-align:center;margin-top:3rem;padding:1.5rem;border-top:1px solid #1e2433;color:#475569;font-size:0.82rem;">
-    Original notes by author &nbsp;·&nbsp; Extended by Claude &nbsp;·&nbsp; Kafka 3.x
+    Original notes by Nilay Singh &nbsp;·&nbsp; Kafka 3.x
   </div>
 
 </div>
