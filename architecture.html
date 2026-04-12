@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Crypto Pipeline — Architecture Deep Dive</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#07080d;
+  --bg2:#0d0f18;
+  --bg3:#12141f;
+  --bg4:#181a27;
+  --border:#1e2035;
+  --border2:#252840;
+  --text:#dde1f5;
+  --text2:#8890bb;
+  --text3:#454870;
+  --ws:#00e5c3;
+  --ws-dim:rgba(0,229,195,0.08);
+  --kafka:#ff6b35;
+  --kafka-dim:rgba(255,107,53,0.08);
+  --spark:#a78bfa;
+  --spark-dim:rgba(167,139,250,0.08);
+  --delta:#38bdf8;
+  --delta-dim:rgba(56,189,248,0.08);
+  --grafana:#f97316;
+  --grafana-dim:rgba(249,115,22,0.08);
+  --green:#22d3a5;
+  --red:#f43f5e;
+  --yellow:#fbbf24;
+  --font-head:'Cabinet Grotesk',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --r:10px;
+  --r2:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-head);line-height:1.6;overflow-x:hidden}
+
+/* ── NOISE TEXTURE ── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");opacity:0.4;pointer-events:none;z-index:0}
+
+/* ── SCAN LINE ── */
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.01) 2px,rgba(255,255,255,0.01) 4px);pointer-events:none;z-index:0}
+
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:60px 24px 120px}
+
+/* ── HERO ── */
+.hero{text-align:center;margin-bottom:80px;padding:60px 0 0}
+.hero-eyebrow{font-family:var(--font-mono);font-size:11px;color:var(--ws);letter-spacing:4px;text-transform:uppercase;margin-bottom:20px;opacity:0;animation:fadeUp .6s .1s forwards}
+.hero-title{font-size:clamp(36px,6vw,68px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;opacity:0;animation:fadeUp .6s .2s forwards}
+.hero-title .line2{color:var(--ws)}
+.hero-sub{font-size:16px;color:var(--text2);max-width:560px;margin:0 auto 40px;line-height:1.7;opacity:0;animation:fadeUp .6s .3s forwards}
+
+/* ── PIPELINE FLOW SVG ── */
+.pipeline-wrap{margin-bottom:80px;opacity:0;animation:fadeUp .7s .4s forwards}
+.pipeline-title{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:24px}
+.pipeline-svg-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:32px 20px;overflow-x:auto}
+
+/* ── NAV DOTS ── */
+.nav-dots{display:flex;justify-content:center;gap:8px;margin-bottom:60px}
+.nav-dot{width:8px;height:8px;border-radius:50%;border:none;cursor:pointer;transition:all .2s;background:var(--border2)}
+.nav-dot.active{background:var(--ws);transform:scale(1.3)}
+
+/* ── SECTION ── */
+.section{margin-bottom:80px;opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s}
+.section.visible{opacity:1;transform:translateY(0)}
+
+.section-number{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-size:clamp(22px,3vw,32px);font-weight:900;letter-spacing:-0.5px;margin-bottom:6px}
+.section-sub{font-size:14px;color:var(--text2);margin-bottom:32px;max-width:600px}
+
+/* ── COMPONENT CARD ── */
+.comp-card{border-radius:var(--r2);border:1px solid var(--border);overflow:hidden;margin-bottom:16px}
+.comp-header{display:flex;align-items:center;gap:14px;padding:20px 24px;cursor:pointer;user-select:none;transition:background .15s}
+.comp-header:hover{background:rgba(255,255,255,0.02)}
+.comp-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.comp-header-text{flex:1}
+.comp-header-title{font-size:15px;font-weight:700;margin-bottom:2px}
+.comp-header-sub{font-size:12px;color:var(--text2);font-family:var(--font-mono)}
+.comp-badge{font-family:var(--font-mono);font-size:9px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.comp-chevron{font-size:12px;color:var(--text3);transition:transform .2s;flex-shrink:0}
+.comp-chevron.open{transform:rotate(90deg)}
+.comp-body{border-top:1px solid var(--border);padding:0}
+
+/* ── EXPLAIN GRID ── */
+.explain-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.explain-col{padding:24px}
+.explain-col:first-child{border-right:1px solid var(--border)}
+.explain-col-title{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.explain-item{display:flex;gap:10px;margin-bottom:12px;font-size:13px;color:var(--text2);line-height:1.6}
+.explain-item-bullet{width:5px;height:5px;border-radius:50%;margin-top:8px;flex-shrink:0}
+.explain-item strong{color:var(--text);font-weight:600}
+
+/* ── CODE BLOCK ── */
+.code-wrap{padding:0 24px 20px}
+.code-label{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;margin-top:20px}
+pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;font-family:var(--font-mono);font-size:12px;line-height:1.8;overflow-x:auto;color:#a8b4d8}
+.k{color:#a78bfa}
+.s{color:#86efac}
+.c{color:#475569;font-style:italic}
+.n{color:#38bdf8}
+.v{color:#fb923c}
+.fn{color:#f0abfc}
+
+/* ── FLOW DIAGRAM ── */
+.flow-diagram{padding:24px;border-top:1px solid var(--border)}
+.flow-step{display:flex;gap:14px;margin-bottom:0;position:relative}
+.flow-step:not(:last-child)::after{content:'';position:absolute;left:17px;top:36px;width:2px;height:calc(100% - 12px);background:var(--border2)}
+.flow-dot{width:34px;height:34px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;font-weight:700;flex-shrink:0;background:var(--bg)}
+.flow-content{padding:6px 0 20px;flex:1}
+.flow-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.flow-desc{font-size:12px;color:var(--text2);line-height:1.6}
+.flow-code{font-family:var(--font-mono);font-size:11px;color:var(--text3);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px 8px;display:inline-block;margin-top:4px}
+
+/* ── DATA SHAPE ── */
+.data-shape{padding:20px 24px;border-top:1px solid var(--border);background:rgba(0,0,0,0.2)}
+.data-title{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.data-json{font-family:var(--font-mono);font-size:12px;line-height:1.9;color:var(--text2)}
+.jk{color:#94a3b8}
+.jv-s{color:#86efac}
+.jv-n{color:#fb923c}
+.jv-b{color:#a78bfa}
+.annotation{display:inline-block;font-size:10px;color:var(--text3);margin-left:8px}
+
+/* ── ALERT BOX ── */
+.alert{border-radius:var(--r);padding:14px 16px;margin:16px 24px;font-size:13px;line-height:1.6;display:flex;gap:10px}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.alert-warn{background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);color:#fcd34d}
+.alert-tip{background:rgba(34,211,165,0.07);border:1px solid rgba(34,211,165,0.2);color:#6ee7b7}
+.alert-info{background:rgba(56,189,248,0.07);border:1px solid rgba(56,189,248,0.2);color:#7dd3fc}
+
+/* ── COMPARISON TABLE ── */
+.comp-table{width:100%;border-collapse:collapse;font-size:13px;margin:0 0 4px}
+.comp-table th{font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text3);letter-spacing:2px;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border);text-align:left}
+.comp-table td{padding:10px 14px;border-bottom:1px solid var(--border2);color:var(--text2);vertical-align:top}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table td:first-child{color:var(--text);font-weight:600}
+.td-good{color:var(--green) !important}
+.td-bad{color:var(--red) !important}
+
+/* ── TAGS ── */
+.tag{display:inline-block;font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:4px;margin-right:4px;font-weight:600}
+
+/* ── BIG PIPELINE OVERVIEW ── */
+.overview-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:60px}
+.ov-cell{padding:20px 16px;text-align:center;border-right:1px solid var(--border);position:relative;cursor:pointer;transition:background .15s}
+.ov-cell:last-child{border-right:none}
+.ov-cell:hover{background:rgba(255,255,255,0.025)}
+.ov-cell.active{background:rgba(255,255,255,0.03)}
+.ov-num{font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px;margin-bottom:8px}
+.ov-icon-wrap{width:48px;height:48px;border-radius:12px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.ov-name{font-size:13px;font-weight:700;margin-bottom:4px}
+.ov-tech{font-family:var(--font-mono);font-size:10px;color:var(--text3)}
+.ov-arrow{position:absolute;right:-13px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--border2);z-index:2;pointer-events:none}
+
+/* ── LAYER DIAGRAM ── */
+.layers{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.layer{display:flex;align-items:stretch;border-bottom:1px solid var(--border)}
+.layer:last-child{border-bottom:none}
+.layer-badge{width:110px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 12px;text-align:center;gap:6px}
+.layer-badge-name{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.layer-badge-sub{font-family:var(--font-mono);font-size:9px;opacity:0.6}
+.layer-body{flex:1;padding:20px 24px;border-left:1px solid var(--border)}
+.layer-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.layer-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+.layer-schema{font-family:var(--font-mono);font-size:11px;color:var(--text3);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;line-height:1.8}
+
+/* ── RECONNECT DIAGRAM ── */
+.reconnect-diagram{display:flex;gap:0;overflow-x:auto;padding:20px 24px;border-top:1px solid var(--border)}
+.rc-step{display:flex;flex-direction:column;align-items:center;min-width:80px}
+.rc-step:not(:last-child)::after{content:'→';position:relative;font-size:18px;color:var(--border2);margin-top:-28px;margin-left:80px;pointer-events:none}
+.rc-box{width:64px;height:64px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;font-weight:700;text-align:center;margin-bottom:8px;line-height:1.3}
+.rc-label{font-family:var(--font-mono);font-size:10px;color:var(--text3);text-align:center}
+.rc-arrow{font-size:20px;color:var(--border2);display:flex;align-items:center;margin:0 4px;margin-top:-32px}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes flowPulse{0%,100%{opacity:0.4}50%{opacity:1}}
+@keyframes dataFlow{0%{stroke-dashoffset:100}100%{stroke-dashoffset:0}}
+.flow-animate{animation:dataFlow 2s linear infinite}
+
+/* ── SCROLL PROGRESS ── */
+.scroll-progress{position:fixed;top:0;left:0;height:2px;background:var(--ws);z-index:100;transition:width .1s}
+
+/* ── STICKY NAV ── */
+.sticky-nav{position:fixed;top:16px;right:20px;display:flex;flex-direction:column;gap:6px;z-index:99}
+.sn-item{font-family:var(--font-mono);font-size:10px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--bg2);color:var(--text3);cursor:pointer;transition:all .15s;white-space:nowrap}
+.sn-item:hover,.sn-item.active{border-color:var(--ws);color:var(--ws);background:var(--ws-dim)}
+
+@media(max-width:700px){
+  .explain-grid{grid-template-columns:1fr}
+  .explain-col:first-child{border-right:none;border-bottom:1px solid var(--border)}
+  .overview-grid{grid-template-columns:1fr 1fr}
+  .ov-arrow{display:none}
+  .sticky-nav{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scroll-progress"></div>
+
+<nav class="sticky-nav">
+  <div class="sn-item active" onclick="scrollTo('overview')">Overview</div>
+  <div class="sn-item" onclick="scrollTo('ws')">① WebSocket</div>
+  <div class="sn-item" onclick="scrollTo('kafka')">② Kafka</div>
+  <div class="sn-item" onclick="scrollTo('spark')">③ Spark</div>
+  <div class="sn-item" onclick="scrollTo('delta')">④ Delta Lake</div>
+  <div class="sn-item" onclick="scrollTo('grafana')">⑤ Grafana</div>
+  <div class="sn-item" onclick="scrollTo('flow')">Full Flow</div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Architecture Deep Dive · Every Detail Explained</div>
+    <h1 class="hero-title">How Your Crypto<br><span class="line2">Pipeline Works</span></h1>
+    <p class="hero-sub">From a price changing on Binance to a dashboard update in Grafana — every step, every component, every decision explained.</p>
+  </div>
+
+  <!-- OVERVIEW GRID -->
+  <div id="overview" class="section visible" style="margin-bottom:32px">
+    <div class="section-number">The Big Picture</div>
+    <h2 class="section-title">5 Components, 1 Pipeline</h2>
+    <p class="section-sub">Data flows left to right. Each component does exactly one job.</p>
+  </div>
+
+  <div class="overview-grid" style="margin-bottom:60px">
+    <div class="ov-cell">
+      <div class="ov-num">01</div>
+      <div class="ov-icon-wrap" style="background:var(--ws-dim)">🔌</div>
+      <div class="ov-name" style="color:var(--ws)">WebSocket</div>
+      <div class="ov-tech">Binance wss://</div>
+      <div class="ov-arrow">▶</div>
+    </div>
+    <div class="ov-cell">
+      <div class="ov-num">02</div>
+      <div class="ov-icon-wrap" style="background:var(--kafka-dim)">📨</div>
+      <div class="ov-name" style="color:var(--kafka)">Kafka</div>
+      <div class="ov-tech">confluent-kafka</div>
+      <div class="ov-arrow">▶</div>
+    </div>
+    <div class="ov-cell">
+      <div class="ov-num">03</div>
+      <div class="ov-icon-wrap" style="background:var(--spark-dim)">⚡</div>
+      <div class="ov-name" style="color:var(--spark)">Spark</div>
+      <div class="ov-tech">Databricks Streaming</div>
+      <div class="ov-arrow">▶</div>
+    </div>
+    <div class="ov-cell">
+      <div class="ov-num">04</div>
+      <div class="ov-icon-wrap" style="background:var(--delta-dim)">🗄</div>
+      <div class="ov-name" style="color:var(--delta)">Delta Lake</div>
+      <div class="ov-tech">Bronze→Silver→Gold</div>
+      <div class="ov-arrow">▶</div>
+    </div>
+    <div class="ov-cell">
+      <div class="ov-num">05</div>
+      <div class="ov-icon-wrap" style="background:var(--grafana-dim)">📊</div>
+      <div class="ov-name" style="color:var(--grafana)">Grafana</div>
+      <div class="ov-tech">Live Dashboard</div>
+    </div>
+  </div>
+
+  <!-- THE REAL-WORLD STORY -->
+  <div class="section visible" style="margin-bottom:48px">
+    <div class="section-number">Before We Start</div>
+    <h2 class="section-title">The Story in Plain English</h2>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:28px 28px 20px;margin-bottom:80px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">❌ Without your pipeline</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">
+          A trader wants to know if BTC just spiked abnormally.<br>
+          They open CoinGecko, refresh it manually every few seconds, squint at numbers, try to remember what the price was 10 minutes ago, write it in a spreadsheet, and maybe notice the spike 5 minutes after it happened. By then, it's over.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px">✅ With your pipeline</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">
+          The moment any BTC trade happens on Binance, your system captures it in &lt;100ms. Spark calculates if it's statistically unusual. Delta Lake stores the history. Grafana shows a red alert on the dashboard — automatically, before any human noticed.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ COMPONENT 1: WEBSOCKET ════════ -->
+  <div id="ws" class="section">
+    <div class="section-number">Component 01</div>
+    <h2 class="section-title" style="color:var(--ws)">Binance WebSocket</h2>
+    <p class="section-sub">Your data source. This is where real-world crypto trades enter your system.</p>
+  </div>
+
+  <div class="comp-card" style="border-color:rgba(0,229,195,0.2);background:var(--bg2)">
+    <div class="comp-header" onclick="toggle('ws-body')">
+      <div class="comp-icon" style="background:var(--ws-dim)">🔌</div>
+      <div class="comp-header-text">
+        <div class="comp-header-title" style="color:var(--ws)">What WebSocket actually is</div>
+        <div class="comp-header-sub">wss://stream.binance.com:9443/ws/btcusdt@trade</div>
+      </div>
+      <span class="comp-badge" style="background:var(--ws-dim);color:var(--ws)">Real-Time Source</span>
+      <span class="comp-chevron open" id="ws-chev">▶</span>
+    </div>
+    <div id="ws-body" class="comp-body">
+
+      <div class="explain-grid">
+        <div class="explain-col">
+          <div class="explain-col-title" style="color:var(--ws)">What it does</div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--ws)"></div>
+            <div>Binance keeps a <strong>persistent open connection</strong> to your Python script. Like a phone call that never hangs up.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--ws)"></div>
+            <div>Every time <strong>any trade happens</strong> on BTCUSDT, Binance instantly pushes a JSON message to you. You don't ask — it just arrives.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--ws)"></div>
+            <div><strong>No API key needed</strong> for public trade streams. Free, unlimited events, no rate limiting.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--ws)"></div>
+            <div>Latency is <strong>&lt;100ms</strong>. By the time your script sees the message, the trade just happened on Binance's servers.</div>
+          </div>
+        </div>
+        <div class="explain-col">
+          <div class="explain-col-title" style="color:var(--red)">Why NOT REST API (your old way)</div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--red)"></div>
+            <div>With REST you <strong>poll every N seconds</strong> — "hey, what happened?" You were limited to 10–20 events/min.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--red)"></div>
+            <div>Between your polls, <strong>hundreds of trades happen</strong> and you miss them. You had to batch them — not real-time.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--red)"></div>
+            <div>Every poll = <strong>new HTTP connection</strong> overhead (TCP handshake, headers, response). Wasteful.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--red)"></div>
+            <div>WebSocket = <strong>one connection, infinite events</strong>. Server pushes to you. Zero polling.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- What the message looks like -->
+      <div class="data-shape">
+        <div class="data-title">What a Binance trade message looks like (raw JSON)</div>
+        <div class="data-json">
+{<br>
+&nbsp;&nbsp;<span class="jk">"e"</span>: <span class="jv-s">"trade"</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">← event type</span><br>
+&nbsp;&nbsp;<span class="jk">"E"</span>: <span class="jv-n">1718000000000</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">← event time (when Binance sent it)</span><br>
+&nbsp;&nbsp;<span class="jk">"s"</span>: <span class="jv-s">"BTCUSDT"</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">← trading pair / symbol</span><br>
+&nbsp;&nbsp;<span class="jk">"t"</span>: <span class="jv-n">3456789</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">← trade ID — unique per trade ⭐</span><br>
+&nbsp;&nbsp;<span class="jk">"p"</span>: <span class="jv-s">"67432.50"</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">← price in USDT</span><br>
+&nbsp;&nbsp;<span class="jk">"q"</span>: <span class="jv-s">"0.00142"</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">← quantity of BTC traded</span><br>
+&nbsp;&nbsp;<span class="jk">"T"</span>: <span class="jv-n">1718000000001</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">← trade time ⭐ USE THIS as event_time</span><br>
+&nbsp;&nbsp;<span class="jk">"m"</span>: <span class="jv-b">false</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="annotation">← was buyer the market maker?</span><br>
+}
+        </div>
+      </div>
+
+      <div class="alert alert-tip" style="margin-top:0">
+        <span class="alert-icon">💡</span>
+        <span><strong>Critical:</strong> Always use field <code>"T"</code> (trade time) as your event_time — NOT <code>time.time()</code> on your machine. If your server is slow or restarts, <code>time.time()</code> would be wrong. <code>"T"</code> is when the trade actually happened on Binance.</span>
+      </div>
+
+      <!-- Reconnect flow -->
+      <div class="flow-diagram">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">Reconnect + Backoff Logic (what your code must do)</div>
+
+        <div class="flow-step">
+          <div class="flow-dot" style="border-color:var(--ws);color:var(--ws)">1</div>
+          <div class="flow-content">
+            <div class="flow-title">Connect to Binance WS</div>
+            <div class="flow-desc">Open <code>wss://stream.binance.com:9443/ws/btcusdt@trade</code>. If it connects → start receiving messages. Move to step 2.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot" style="border-color:var(--green);color:var(--green)">2</div>
+          <div class="flow-content">
+            <div class="flow-title">Receive messages in async loop</div>
+            <div class="flow-desc"><code>async for message in websocket:</code> — each message is one trade. Parse it, extract fields, push to Kafka.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot" style="border-color:var(--red);color:var(--red)">3</div>
+          <div class="flow-content">
+            <div class="flow-title">Connection drops (it will happen)</div>
+            <div class="flow-desc">Network hiccup, Binance restarts, your server sleeps. The loop throws a <code>ConnectionClosedError</code>.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot" style="border-color:var(--yellow);color:var(--yellow)">4</div>
+          <div class="flow-content">
+            <div class="flow-title">Exponential backoff — wait, then retry</div>
+            <div class="flow-desc">Attempt 1: wait <strong>1s</strong>. Attempt 2: wait <strong>2s</strong>. Attempt 3: wait <strong>4s</strong>. Attempt 4: wait <strong>8s</strong>. Attempt 5: wait <strong>16s</strong>. Why? If Binance is having issues, hammering it immediately makes things worse for everyone.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot" style="border-color:var(--text3);color:var(--text3)">5</div>
+          <div class="flow-content">
+            <div class="flow-title">After N failures → DLQ + alert</div>
+            <div class="flow-desc">If you've retried 10 times and still can't connect, write an error event to a Dead Letter Queue topic in Kafka and fire an alert. Don't loop forever silently.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">Your ws_producer.py — skeleton</div>
+        <pre><span class="k">import</span> asyncio, json, websockets
+<span class="k">from</span> confluent_kafka <span class="k">import</span> Producer
+
+producer = Producer({
+    <span class="s">'bootstrap.servers'</span>: <span class="s">'localhost:9092'</span>,
+    <span class="s">'enable.idempotence'</span>: <span class="s">'true'</span>,   <span class="c"># prevents duplicate writes on retry</span>
+    <span class="s">'acks'</span>: <span class="s">'all'</span>,
+    <span class="s">'compression.type'</span>: <span class="s">'snappy'</span>,
+})
+
+<span class="k">async def</span> <span class="fn">connect_and_stream</span>():
+    backoff = <span class="v">1</span>
+    attempts = <span class="v">0</span>
+    <span class="k">while</span> attempts &lt; <span class="v">10</span>:
+        <span class="k">try</span>:
+            <span class="k">async with</span> websockets.connect(
+                <span class="s">"wss://stream.binance.com:9443/ws/btcusdt@trade"</span>
+            ) <span class="k">as</span> ws:
+                backoff = <span class="v">1</span>          <span class="c"># reset on successful connect</span>
+                attempts = <span class="v">0</span>
+                <span class="k">async for</span> raw <span class="k">in</span> ws:
+                    msg = json.loads(raw)
+                    payload = {
+                        <span class="s">"coin"</span>:       msg[<span class="s">"s"</span>],
+                        <span class="s">"price"</span>:      <span class="fn">float</span>(msg[<span class="s">"p"</span>]),
+                        <span class="s">"quantity"</span>:   <span class="fn">float</span>(msg[<span class="s">"q"</span>]),
+                        <span class="s">"trade_id"</span>:   msg[<span class="s">"t"</span>],
+                        <span class="s">"event_time"</span>: msg[<span class="s">"T"</span>],  <span class="c"># ⭐ NOT time.time()</span>
+                    }
+                    producer.produce(
+                        topic=<span class="s">"crypto-trades"</span>,
+                        key=payload[<span class="s">"coin"</span>],         <span class="c"># partition key</span>
+                        value=json.dumps(payload).encode(),
+                    )
+                    producer.poll(<span class="v">0</span>)                 <span class="c"># ⭐ don't forget this</span>
+        <span class="k">except</span> Exception <span class="k">as</span> e:
+            attempts += <span class="v">1</span>
+            <span class="fn">print</span>(<span class="s">f"Attempt {attempts} failed: {e}. Retry in {backoff}s"</span>)
+            <span class="k">await</span> asyncio.sleep(backoff)
+            backoff = <span class="fn">min</span>(backoff * <span class="v">2</span>, <span class="v">16</span>)     <span class="c"># cap at 16s</span>
+    producer.flush()                                  <span class="c"># ⭐ flush on exit</span></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════ COMPONENT 2: KAFKA ════════ -->
+  <div id="kafka" class="section" style="margin-top:64px">
+    <div class="section-number">Component 02</div>
+    <h2 class="section-title" style="color:var(--kafka)">Apache Kafka</h2>
+    <p class="section-sub">Your shock absorber. Kafka sits between your WS producer and Spark, so if Spark is slow or restarts, no messages are lost.</p>
+  </div>
+
+  <div class="comp-card" style="border-color:rgba(255,107,53,0.2);background:var(--bg2)">
+    <div class="comp-header" onclick="toggle('kafka-body')">
+      <div class="comp-icon" style="background:var(--kafka-dim)">📨</div>
+      <div class="comp-header-text">
+        <div class="comp-header-title" style="color:var(--kafka)">Kafka — the distributed commit log</div>
+        <div class="comp-header-sub">topic: crypto-trades · 6 partitions · replication: 2</div>
+      </div>
+      <span class="comp-badge" style="background:var(--kafka-dim);color:var(--kafka)">Message Bus</span>
+      <span class="comp-chevron open" id="kafka-chev">▶</span>
+    </div>
+    <div id="kafka-body" class="comp-body">
+
+      <div class="explain-grid">
+        <div class="explain-col">
+          <div class="explain-col-title" style="color:var(--kafka)">The real-world analogy</div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--kafka)"></div>
+            <div>Kafka is like a <strong>conveyor belt in a factory</strong>. Your WS producer puts items on the belt. Spark picks them up. The belt keeps moving even if Spark pauses temporarily.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--kafka)"></div>
+            <div>Messages are stored on disk for 7 days. If Spark crashes at 3am, when it restarts it <strong>replays from where it left off</strong> — no data lost.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--kafka)"></div>
+            <div>Multiple consumers can read the same topic independently. Later you can add an <strong>alerts service</strong> alongside Spark — no code change to producer.</div>
+          </div>
+        </div>
+        <div class="explain-col">
+          <div class="explain-col-title" style="color:var(--kafka)">Core concepts you must know</div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--kafka)"></div>
+            <div><strong>Topic</strong> = named channel. Your topic is <code>crypto-trades</code>. Think of it like a database table for messages.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--kafka)"></div>
+            <div><strong>Partition</strong> = a topic is split into 6 buckets. All BTC messages go to one bucket, ETH to another (because key = coin name). This enables parallel processing.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--kafka)"></div>
+            <div><strong>Offset</strong> = position number of a message within a partition. Spark tracks its offset so it knows where to resume after a restart.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--kafka)"></div>
+            <div><strong>Consumer group</strong> = Spark reads as a group. Each partition is assigned to one Spark executor — parallel processing without duplicate reads.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partition visual -->
+      <div style="padding:24px;border-top:1px solid var(--border)">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">How partitioning works for your 3 coins</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--ws);margin-bottom:8px;letter-spacing:1px">BTCUSDT → Partition 0</div>
+            <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);line-height:1.8">
+              offset 0: {price: 67432}<br>
+              offset 1: {price: 67435}<br>
+              offset 2: {price: 67431}<br>
+              <span style="color:var(--border2)">offset 3: ← next</span>
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--kafka);margin-bottom:8px;letter-spacing:1px">ETHUSDT → Partition 1</div>
+            <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);line-height:1.8">
+              offset 0: {price: 3521}<br>
+              offset 1: {price: 3519}<br>
+              <span style="color:var(--border2)">offset 2: ← next</span>
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--spark);margin-bottom:8px;letter-spacing:1px">SOLUSDT → Partition 2</div>
+            <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);line-height:1.8">
+              offset 0: {price: 142}<br>
+              offset 1: {price: 143}<br>
+              offset 2: {price: 141}<br>
+              <span style="color:var(--border2)">offset 3: ← next</span>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-top:10px;font-family:var(--font-mono)">All BTC messages always go to the same partition → ordering guaranteed per coin</div>
+      </div>
+
+      <div class="alert alert-warn">
+        <span class="alert-icon">⚠️</span>
+        <span><strong>The #1 gotcha with confluent-kafka:</strong> You MUST call <code>producer.poll(0)</code> in your message loop AND <code>producer.flush()</code> on shutdown. Without <code>poll(0)</code>, messages sit in an internal buffer and Kafka never sees them. This silently loses data. Every senior engineer forgets this once.</span>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">Your Kafka topic config (docker-compose or admin client)</div>
+        <pre>topic:              <span class="s">crypto-trades</span>
+num.partitions:     <span class="v">6</span>          <span class="c"># 6 = room to grow to 6 coins</span>
+replication.factor: <span class="v">2</span>          <span class="c"># 2 copies of every message</span>
+retention.ms:       <span class="v">604800000</span>  <span class="c"># 7 days = 604800 seconds</span>
+
+Producer settings:
+  acks:               <span class="s">all</span>        <span class="c"># wait for ALL replicas to confirm write</span>
+  enable.idempotence: <span class="s">true</span>       <span class="c"># no duplicate writes if producer retries</span>
+  compression.type:   <span class="s">snappy</span>     <span class="c"># ~50% smaller messages, faster transfer</span>
+  linger.ms:          <span class="v">5</span>          <span class="c"># wait 5ms to batch messages together</span>
+  batch.size:         <span class="v">16384</span>      <span class="c"># max 16KB per batch</span></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════ COMPONENT 3: SPARK ════════ -->
+  <div id="spark" class="section" style="margin-top:64px">
+    <div class="section-number">Component 03</div>
+    <h2 class="section-title" style="color:var(--spark)">Databricks Structured Streaming</h2>
+    <p class="section-sub">Your processing engine. Reads from Kafka, cleans data, computes rolling windows, detects anomalies — continuously, every 5 seconds.</p>
+  </div>
+
+  <div class="comp-card" style="border-color:rgba(167,139,250,0.2);background:var(--bg2)">
+    <div class="comp-header" onclick="toggle('spark-body')">
+      <div class="comp-icon" style="background:var(--spark-dim)">⚡</div>
+      <div class="comp-header-text">
+        <div class="comp-header-title" style="color:var(--spark)">Spark Structured Streaming</div>
+        <div class="comp-header-sub">micro-batch · 5s trigger · watermark: 10min · checkpoint: /mnt/checkpoints/crypto</div>
+      </div>
+      <span class="comp-badge" style="background:var(--spark-dim);color:var(--spark)">Processing Engine</span>
+      <span class="comp-chevron open" id="spark-chev">▶</span>
+    </div>
+    <div id="spark-body" class="comp-body">
+
+      <div class="explain-grid">
+        <div class="explain-col">
+          <div class="explain-col-title" style="color:var(--spark)">What Spark does here</div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--spark)"></div>
+            <div>Reads messages from Kafka every <strong>5 seconds</strong> (micro-batch). Treats the stream like an <strong>infinite table</strong> that keeps growing.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--spark)"></div>
+            <div>Parses the JSON, applies your schema, computes <strong>10-minute rolling windows</strong> — avg price, stddev, count of trades.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--spark)"></div>
+            <div>Flags anomalies with <strong>Z-score logic</strong>, then writes results to Delta Lake.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--spark)"></div>
+            <div>If it crashes, it <strong>resumes from checkpoint</strong> — knows exactly which Kafka offset it last processed.</div>
+          </div>
+        </div>
+        <div class="explain-col">
+          <div class="explain-col-title" style="color:var(--spark)">3 critical concepts for interviews</div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--spark)"></div>
+            <div><strong>Watermark (10 min)</strong> = "I'll wait up to 10 minutes for late data, then discard it." Without this, Spark holds state forever and runs out of memory.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--spark)"></div>
+            <div><strong>Checkpoint</strong> = Spark saves its progress (offsets + window state) to disk every batch. Delete it and Spark replays everything from the start.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--spark)"></div>
+            <div><strong>maxOffsetsPerTrigger</strong> = limits how many Kafka messages Spark reads per batch. Prevents Spark from being overwhelmed if Kafka has a backlog.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Late data visual -->
+      <div style="padding:24px;border-top:1px solid var(--border)">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">Late data — why watermark is needed</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;font-size:13px;color:var(--text2);line-height:1.9">
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--green);margin-bottom:6px">NORMAL: arrives on time</div>
+              Trade at 10:00:00 → arrives at Spark at 10:00:01 ✅<br>
+              Goes into 10:00–10:10 window. Fine.
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--yellow);margin-bottom:6px">LATE: network delay</div>
+              Trade at 10:00:00 → arrives at Spark at 10:07:00 ⚠️<br>
+              7 min late — still within 10min watermark. <strong>Included.</strong>
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--red);margin-bottom:6px">TOO LATE: dropped</div>
+              Trade at 10:00:00 → arrives at Spark at 10:15:00 ❌<br>
+              15 min late — exceeds watermark. <strong>Discarded.</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">Your spark_stream.py — key parts</div>
+        <pre><span class="k">from</span> pyspark.sql <span class="k">import</span> SparkSession
+<span class="k">from</span> pyspark.sql.functions <span class="k">import</span> from_json, col, window, avg, stddev
+<span class="k">from</span> pyspark.sql.types <span class="k">import</span> StructType, StringType, DoubleType, LongType
+
+spark = SparkSession.builder.appName(<span class="s">"CryptoStream"</span>).getOrCreate()
+
+<span class="c"># ① Always define schema explicitly — NEVER infer</span>
+schema = StructType() \
+  .add(<span class="s">"coin"</span>,       StringType()) \
+  .add(<span class="s">"price"</span>,      DoubleType()) \
+  .add(<span class="s">"quantity"</span>,   DoubleType()) \
+  .add(<span class="s">"trade_id"</span>,   LongType()) \
+  .add(<span class="s">"event_time"</span>, LongType())
+
+<span class="c"># ② Read from Kafka</span>
+raw = spark.readStream.format(<span class="s">"kafka"</span>) \
+  .option(<span class="s">"kafka.bootstrap.servers"</span>, <span class="s">"localhost:9092"</span>) \
+  .option(<span class="s">"subscribe"</span>, <span class="s">"crypto-trades"</span>) \
+  .option(<span class="s">"startingOffsets"</span>, <span class="s">"latest"</span>) \
+  .option(<span class="s">"maxOffsetsPerTrigger"</span>, <span class="v">10000</span>) \
+  .load()
+
+<span class="c"># ③ Parse JSON + cast event_time to timestamp</span>
+parsed = raw.select(from_json(col(<span class="s">"value"</span>).cast(<span class="s">"string"</span>), schema).alias(<span class="s">"d"</span>)) \
+  .select(<span class="s">"d.*"</span>) \
+  .withColumn(<span class="s">"event_time"</span>, (col(<span class="s">"event_time"</span>) / <span class="v">1000</span>).cast(<span class="s">"timestamp"</span>))
+
+<span class="c"># ④ Watermark + dedup</span>
+clean = parsed \
+  .withWatermark(<span class="s">"event_time"</span>, <span class="s">"10 minutes"</span>) \
+  .dropDuplicates([<span class="s">"trade_id"</span>])
+
+<span class="c"># ⑤ 10-min sliding window (slide every 5 min)</span>
+windowed = clean.groupBy(
+  window(col(<span class="s">"event_time"</span>), <span class="s">"10 minutes"</span>, <span class="s">"5 minutes"</span>),
+  col(<span class="s">"coin"</span>)
+).agg(
+  avg(<span class="s">"price"</span>).alias(<span class="s">"avg_price"</span>),
+  stddev(<span class="s">"price"</span>).alias(<span class="s">"stddev_price"</span>),
+)
+
+<span class="c"># ⑥ Write to Delta with checkpoint</span>
+windowed.writeStream \
+  .format(<span class="s">"delta"</span>) \
+  .outputMode(<span class="s">"append"</span>) \
+  .option(<span class="s">"checkpointLocation"</span>, <span class="s">"/mnt/checkpoints/crypto"</span>) \
+  .trigger(processingTime=<span class="s">"5 seconds"</span>) \
+  .start(<span class="s">"/mnt/delta/silver"</span>)</pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════ COMPONENT 4: DELTA LAKE ════════ -->
+  <div id="delta" class="section" style="margin-top:64px">
+    <div class="section-number">Component 04</div>
+    <h2 class="section-title" style="color:var(--delta)">Delta Lake — Bronze → Silver → Gold</h2>
+    <p class="section-sub">Your storage layer. Three tiers of data quality — raw, cleaned, and business-ready. Each layer has a clear purpose.</p>
+  </div>
+
+  <div class="comp-card" style="border-color:rgba(56,189,248,0.2);background:var(--bg2)">
+    <div class="comp-header" onclick="toggle('delta-body')">
+      <div class="comp-icon" style="background:var(--delta-dim)">🗄</div>
+      <div class="comp-header-text">
+        <div class="comp-header-title" style="color:var(--delta)">Medallion Architecture</div>
+        <div class="comp-header-sub">Bronze (raw) → Silver (clean) → Gold (aggregated + anomalies)</div>
+      </div>
+      <span class="comp-badge" style="background:var(--delta-dim);color:var(--delta)">Storage Layer</span>
+      <span class="comp-chevron open" id="delta-chev">▶</span>
+    </div>
+    <div id="delta-body" class="comp-body">
+
+      <div style="padding:24px 24px 0">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">Why Delta over plain Parquet files?</div>
+        <table class="comp-table">
+          <tr><th>Feature</th><th>Plain Parquet</th><th>Delta Lake</th></tr>
+          <tr><td>ACID transactions</td><td class="td-bad">❌ No — partial writes corrupt data</td><td class="td-good">✅ Yes — atomic commits</td></tr>
+          <tr><td>Time travel</td><td class="td-bad">❌ Overwrite = gone forever</td><td class="td-good">✅ VERSION AS OF 1 — go back</td></tr>
+          <tr><td>Schema enforcement</td><td class="td-bad">❌ Wrong column? File is corrupt</td><td class="td-good">✅ Rejects bad schema automatically</td></tr>
+          <tr><td>Upserts (MERGE)</td><td class="td-bad">❌ Read all, rewrite all</td><td class="td-good">✅ MERGE INTO — update specific rows</td></tr>
+          <tr><td>Concurrent reads+writes</td><td class="td-bad">❌ Unsafe</td><td class="td-good">✅ Optimistic concurrency control</td></tr>
+        </table>
+      </div>
+
+      <!-- Layers -->
+      <div style="padding:24px">
+        <div class="layers">
+
+          <div class="layer">
+            <div class="layer-badge" style="background:rgba(161,97,34,0.15)">
+              <div style="font-size:24px">🥉</div>
+              <div class="layer-badge-name" style="color:#cd7f32">Bronze</div>
+              <div class="layer-badge-sub">raw layer</div>
+            </div>
+            <div class="layer-body">
+              <div class="layer-title">Raw — exact copy of Kafka messages</div>
+              <div class="layer-desc">Never transform here. Store exactly what came from Kafka, including Kafka metadata (offset, partition, topic). This is your audit log — if something goes wrong downstream, you can always replay from Bronze.</div>
+              <div class="layer-schema">coin STRING, price STRING, quantity STRING, trade_id BIGINT,<br>event_time BIGINT, kafka_offset BIGINT, kafka_partition INT</div>
+            </div>
+          </div>
+
+          <div class="layer">
+            <div class="layer-badge" style="background:rgba(150,150,150,0.1)">
+              <div style="font-size:24px">🥈</div>
+              <div class="layer-badge-name" style="color:#c0c0c0">Silver</div>
+              <div class="layer-badge-sub">clean layer</div>
+            </div>
+            <div class="layer-body">
+              <div class="layer-title">Cleaned — typed, deduped, validated</div>
+              <div class="layer-desc">Parse strings to proper types, cast event_time to timestamp, drop duplicates on trade_id, filter out nulls and invalid prices. This is the "trusted" dataset that analytics queries should use.</div>
+              <div class="layer-schema">coin STRING, price DOUBLE, quantity DOUBLE, trade_id BIGINT,<br>event_time TIMESTAMP, date DATE</div>
+            </div>
+          </div>
+
+          <div class="layer">
+            <div class="layer-badge" style="background:rgba(255,200,0,0.08)">
+              <div style="font-size:24px">🥇</div>
+              <div class="layer-badge-name" style="color:#ffd700">Gold</div>
+              <div class="layer-badge-sub">business layer</div>
+            </div>
+            <div class="layer-body">
+              <div class="layer-title">Aggregated — windowed metrics + anomaly flag</div>
+              <div class="layer-desc">10-minute rolling average and stddev per coin, z-score calculation, is_anomaly boolean flag. This is what Grafana queries. Partitioned by coin + date for fast lookups.</div>
+              <div class="layer-schema">window_start TIMESTAMP, window_end TIMESTAMP, coin STRING,<br>avg_price DOUBLE, stddev_price DOUBLE, z_score DOUBLE,<br>is_anomaly BOOLEAN, trade_count BIGINT</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="alert alert-info" style="margin-top:0">
+        <span class="alert-icon">🔵</span>
+        <span><strong>MERGE explained simply:</strong> When Spark writes a new 10-min window result, it doesn't append a duplicate — it says "if a row with this window + coin already exists, UPDATE it; otherwise INSERT it." This is how you get clean aggregation results without duplicates.</span>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">Time travel — your secret interview weapon</div>
+        <pre><span class="c">-- What was the avg BTC price at version 1 of this table?</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> crypto_gold <span class="k">VERSION AS OF</span> <span class="v">1</span>
+
+<span class="c">-- What was the data 2 hours ago?</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> crypto_gold <span class="k">TIMESTAMP AS OF</span> <span class="s">'2024-06-10 10:00:00'</span>
+
+<span class="c">-- Oops, bad data was written — roll back!</span>
+<span class="k">RESTORE TABLE</span> crypto_gold <span class="k">TO VERSION AS OF</span> <span class="v">5</span>
+
+<span class="c">-- Optimize + Z-order for fast queries by coin + timestamp</span>
+<span class="k">OPTIMIZE</span> crypto_gold <span class="k">ZORDER BY</span> (coin, window_start)
+
+<span class="c">-- Clean old file versions (keep 7 days)</span>
+<span class="k">VACUUM</span> crypto_gold <span class="k">RETAIN</span> <span class="v">168</span> <span class="k">HOURS</span></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════ COMPONENT 5: GRAFANA ════════ -->
+  <div id="grafana" class="section" style="margin-top:64px">
+    <div class="section-number">Component 05</div>
+    <h2 class="section-title" style="color:var(--grafana)">Grafana Dashboard</h2>
+    <p class="section-sub">Your eyes. Queries the Gold Delta table and renders 4 panels. This screenshot is what goes on your resume and LinkedIn.</p>
+  </div>
+
+  <div class="comp-card" style="border-color:rgba(249,115,22,0.2);background:var(--bg2)">
+    <div class="comp-header" onclick="toggle('grafana-body')">
+      <div class="comp-icon" style="background:var(--grafana-dim)">📊</div>
+      <div class="comp-header-text">
+        <div class="comp-header-title" style="color:var(--grafana)">Grafana + 4 Panels</div>
+        <div class="comp-header-sub">connects to Delta Lake via Databricks SQL · auto-refreshes every 5s</div>
+      </div>
+      <span class="comp-badge" style="background:var(--grafana-dim);color:var(--grafana)">Visualization</span>
+      <span class="comp-chevron open" id="grafana-chev">▶</span>
+    </div>
+    <div id="grafana-body" class="comp-body">
+
+      <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--grafana);letter-spacing:1px;margin-bottom:8px">PANEL 1 — Live Price Chart</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">Time-series line chart. BTC, ETH, SOL as 3 separate lines. X-axis = window_start. Y-axis = avg_price. Set refresh to 5s. This is the main "wow" panel.</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:8px">SELECT window_start, coin, avg_price FROM crypto_gold ORDER BY window_start DESC LIMIT 500</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--grafana);letter-spacing:1px;margin-bottom:8px">PANEL 2 — 24hr % Change Gauge</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">Gauge chart per coin. Green if positive, red if negative. Set thresholds: green ≥ 0, red &lt; 0. Shows how much the price moved in last 24 hours.</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:8px">Compare latest avg_price vs avg_price from 24h ago per coin</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:1px;margin-bottom:8px">PANEL 3 — Anomaly Alert Table</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">Table panel. Shows rows where is_anomaly = true. Columns: time, coin, price, z_score. Sorted newest first. Red-highlighted rows. This is the most impressive panel to show interviewers.</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:8px">WHERE is_anomaly = true ORDER BY window_start DESC</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--grafana);letter-spacing:1px;margin-bottom:8px">PANEL 4 — Rolling 1hr Average</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">Smoothed trend line. Reduces noise from individual 10-min windows. Shows the broader price direction over the last hour. Use a different line style (dashed) to distinguish from Panel 1.</div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:8px">AVG(avg_price) over last 6 windows (6 × 10min = 1hr)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════ Z-SCORE ANOMALY ════════ -->
+  <div class="section" style="margin-top:64px">
+    <div class="section-number">The Logic Inside Gold Layer</div>
+    <h2 class="section-title">Z-Score Anomaly Detection</h2>
+    <p class="section-sub">Why you chose Z-score over ML, and how to explain it in 30 seconds.</p>
+  </div>
+
+  <div class="comp-card" style="border-color:rgba(244,63,94,0.2);background:var(--bg2)">
+    <div class="comp-header" onclick="toggle('anomaly-body')">
+      <div class="comp-icon" style="background:rgba(244,63,94,0.08)">🎯</div>
+      <div class="comp-header-text">
+        <div class="comp-header-title" style="color:var(--red)">Z-Score = (price − mean) / stddev</div>
+        <div class="comp-header-sub">threshold: abs(z) > 2.0 → is_anomaly = true</div>
+      </div>
+      <span class="comp-badge" style="background:rgba(244,63,94,0.08);color:var(--red)">Anomaly Detection</span>
+      <span class="comp-chevron open" id="anomaly-chev">▶</span>
+    </div>
+    <div id="anomaly-body" class="comp-body">
+
+      <div class="explain-grid">
+        <div class="explain-col">
+          <div class="explain-col-title" style="color:var(--red)">What Z-score means</div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--red)"></div>
+            <div>Z-score measures <strong>how many standard deviations away</strong> a price is from the rolling average. Z=0 means exactly average. Z=3 means 3 stddevs away from average — very unusual.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--red)"></div>
+            <div>In a <strong>normal distribution</strong>, 95.4% of values fall within ±2 stddevs. If Z > 2.0, only 4.6% of normal trades would look like this. Flag it.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--red)"></div>
+            <div>Example: rolling avg = $67,000, stddev = $200. A price of <strong>$67,500</strong> has Z = (67500 − 67000) / 200 = <strong>2.5 → anomaly</strong>.</div>
+          </div>
+        </div>
+        <div class="explain-col">
+          <div class="explain-col-title" style="color:var(--red)">Why NOT LSTM / ML models</div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--text3)"></div>
+            <div>You're a <strong>Data Engineer, not an ML engineer</strong>. Your job is the pipeline, not the model. Z-score is the right tool for the right role.</div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--text3)"></div>
+            <div>LSTM needs weeks of training data, GPU resources, retraining pipelines, model versioning. <strong>Overkill for this use case.</strong></div>
+          </div>
+          <div class="explain-item">
+            <div class="explain-item-bullet" style="background:var(--text3)"></div>
+            <div>Z-score runs <strong>inside a Spark UDF</strong> — zero extra infrastructure, explainable in 30 seconds, fully deterministic. Perfect for a DE portfolio project.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">Z-score as a Spark UDF</div>
+        <pre><span class="k">from</span> pyspark.sql.functions <span class="k">import</span> udf
+<span class="k">from</span> pyspark.sql.types <span class="k">import</span> DoubleType
+
+<span class="fn">@udf</span>(returnType=DoubleType())
+<span class="k">def</span> <span class="fn">z_score</span>(price, mean, stddev):
+    <span class="k">if</span> stddev <span class="k">is None</span> <span class="k">or</span> stddev == <span class="v">0</span>:
+        <span class="k">return</span> <span class="v">0.0</span>
+    <span class="k">return</span> <span class="fn">abs</span>((price - mean) / stddev)
+
+gold = windowed.withColumn(
+    <span class="s">"z_score"</span>, z_score(col(<span class="s">"avg_price"</span>), col(<span class="s">"rolling_mean"</span>), col(<span class="s">"stddev_price"</span>))
+).withColumn(
+    <span class="s">"is_anomaly"</span>, col(<span class="s">"z_score"</span>) > <span class="v">2.0</span>
+)</pre>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════ FULL END-TO-END FLOW ════════ -->
+  <div id="flow" class="section" style="margin-top:64px">
+    <div class="section-number">Putting It All Together</div>
+    <h2 class="section-title">End-to-End Data Journey</h2>
+    <p class="section-sub">One BTC trade happens. Here is exactly what your system does — step by step, millisecond by millisecond.</p>
+  </div>
+
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:40px">
+    <div style="padding:28px">
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--ws);color:var(--ws)">1</div>
+        <div class="flow-content">
+          <div class="flow-title" style="color:var(--ws)">T+0ms — Trade happens on Binance</div>
+          <div class="flow-desc">Someone buys 0.001 BTC at $67,432.50. Binance records this trade. Your WebSocket connection receives the JSON message within ~50ms.</div>
+          <div class="flow-code">{"s":"BTCUSDT","p":"67432.50","q":"0.001","t":3456789,"T":1718000000001}</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--ws);color:var(--ws)">2</div>
+        <div class="flow-content">
+          <div class="flow-title" style="color:var(--ws)">T+50ms — ws_producer.py receives + parses</div>
+          <div class="flow-desc">Your Python script wakes up (it's waiting in <code>async for message in ws</code>). It parses the JSON, extracts the fields, stamps with field <code>"T"</code> as event_time.</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--kafka);color:var(--kafka)">3</div>
+        <div class="flow-content">
+          <div class="flow-title" style="color:var(--kafka)">T+55ms — Pushed to Kafka partition 0</div>
+          <div class="flow-desc">confluent-kafka producer sends the message to Kafka with key="BTCUSDT". Kafka routes it to partition 0 (all BTC goes here). <code>acks=all</code> means Kafka waits for both replicas to confirm. Kafka sends back a delivery confirmation.</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--kafka);color:var(--kafka)">4</div>
+        <div class="flow-content">
+          <div class="flow-title" style="color:var(--kafka)">T+55ms to T+5s — Kafka holds the message</div>
+          <div class="flow-desc">The message sits in Kafka partition 0 at offset N. It will stay there for 7 days. Spark reads every 5 seconds (trigger interval), so it'll pick this up in the next batch — up to 5 seconds from now.</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--spark);color:var(--spark)">5</div>
+        <div class="flow-content">
+          <div class="flow-title" style="color:var(--spark)">T+5s — Spark micro-batch fires</div>
+          <div class="flow-desc">Spark wakes up, reads all new messages from Kafka since its last checkpoint offset. Parses JSON using your StructType schema. Applies watermark. Drops duplicates on trade_id. Computes 10-minute rolling window — avg price and stddev for BTCUSDT.</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--spark);color:var(--spark)">6</div>
+        <div class="flow-content">
+          <div class="flow-title" style="color:var(--spark)">T+5s — Anomaly check runs</div>
+          <div class="flow-desc">Z-score UDF fires: z = (67432.50 − rolling_avg) / rolling_stddev. If this price is unusual for the last 10 minutes, is_anomaly = true.</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--delta);color:var(--delta)">7</div>
+        <div class="flow-content">
+          <div class="flow-title" style="color:var(--delta)">T+5s — Written to Delta Lake Gold</div>
+          <div class="flow-desc">Spark writes the windowed result to Delta Lake Gold via MERGE. If the 10-min window for BTCUSDT already exists, it updates the row. If not, it inserts. Delta ACID ensures no partial writes. Checkpoint updated — this Kafka offset is now "done."</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--grafana);color:var(--grafana)">8</div>
+        <div class="flow-content" style="padding-bottom:0">
+          <div class="flow-title" style="color:var(--grafana)">T+10s — Grafana refreshes dashboard</div>
+          <div class="flow-desc">Grafana auto-queries Delta Lake Gold every 5 seconds. Panel 1 updates with new price point. If is_anomaly = true, Panel 3 alert table shows a new red row. Total end-to-end latency: <strong>~10 seconds from trade to dashboard update.</strong></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INTERVIEW CHEAT SHEET -->
+  <div class="section" style="margin-top:64px">
+    <div class="section-number">Interview Prep</div>
+    <h2 class="section-title">The 5 Questions You'll Be Asked</h2>
+    <p class="section-sub">Know these cold. Say exactly this.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:80px">
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--yellow);margin-bottom:8px;letter-spacing:1px">Q: Why WebSocket instead of REST?</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">"My original design used CoinGecko REST polling, which hit a rate limit of 10–20 events per minute and required batching — not real-time. WebSocket gives me a persistent TCP connection where Binance pushes every trade event as it happens, under 100ms latency, with no rate limit. The tradeoff is I need to manage reconnection logic, but that's handled with exponential backoff."</div>
+    </div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--yellow);margin-bottom:8px;letter-spacing:1px">Q: What happens if Spark crashes at 3am?</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">"Nothing is lost. Kafka retains messages for 7 days with replication factor 2. Spark saves its last-processed Kafka offset to the checkpoint directory after every batch. When it restarts, it reads the checkpoint, sees offset N was the last processed, and resumes from offset N+1. The gap in processing time means slightly delayed data, but zero data loss."</div>
+    </div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--yellow);margin-bottom:8px;letter-spacing:1px">Q: What is watermarking and why do you need it?</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">"Watermarking tells Spark how long to wait for late-arriving data before closing a time window. I set 10 minutes — meaning if a trade with event_time 10:00 arrives at 10:09, it's still included in the 10:00–10:10 window. Without watermarking, Spark keeps every window open forever waiting for late data, which grows state unboundedly and eventually causes out-of-memory errors. It also bounds the deduplication state."</div>
+    </div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--yellow);margin-bottom:8px;letter-spacing:1px">Q: Why Bronze-Silver-Gold and not just one table?</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">"Separation of concerns. Bronze is my audit log — raw, untouched, append-only. If I introduce a bug in Silver transformation, I can replay from Bronze without re-fetching from Binance. Silver is the clean, trusted dataset that any analyst can query. Gold is purpose-built for my specific dashboard queries — pre-aggregated, anomaly-flagged, partitioned for performance. Each layer serves a different consumer."</div>
+    </div>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--yellow);margin-bottom:8px;letter-spacing:1px">Q: How does your pipeline scale to 100 coins?</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">"The WebSocket producer subscribes to a combined stream — Binance supports multi-stream URLs like <code>/stream?streams=btcusdt@trade/ethusdt@trade/...</code> or you can open parallel connections. Kafka already has 6–12 partitions so more coins just distribute across them — coin-as-key ensures ordering is preserved per coin. Spark partitions work is already parallelized across executors. The only change needed is adding more partitions to the Kafka topic and potentially increasing executor count in Databricks."</div>
+    </div>
+
+  </div>
+
+</div><!-- end .page -->
+
+<script>
+// ── TOGGLE COMPONENTS ──
+function toggle(id) {
+  const el = document.getElementById(id);
+  const chevId = id.replace('-body','-chev');
+  const chev = document.getElementById(chevId);
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  if(chev) chev.classList.toggle('open', !isOpen);
+}
+
+// ── SCROLL PROGRESS ──
+window.addEventListener('scroll', () => {
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  document.getElementById('scroll-progress').style.width = Math.min(pct,100) + '%';
+  updateNav();
+});
+
+// ── STICKY NAV ACTIVE STATE ──
+const sections = ['overview','ws','kafka','spark','delta','grafana','flow'];
+function updateNav() {
+  let active = 'overview';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if(el && el.getBoundingClientRect().top < 160) active = id;
+  });
+  document.querySelectorAll('.sn-item').forEach((el,i) => {
+    el.classList.toggle('active', sections[i] === active);
+  });
+}
+
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ── SCROLL REVEAL ──>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.section').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
