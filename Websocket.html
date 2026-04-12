@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binance WebSocket — Real-Time Trade Stream</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:       #080c0f;
+  --bg2:      #0d1318;
+  --bg3:      #111820;
+  --border:   #1a2530;
+  --border2:  #243040;
+  --text:     #c8d8e8;
+  --muted:    #5a7a8a;
+  --dim:      #2a3a4a;
+
+  --green:    #00e5a0;
+  --green2:   #00b87a;
+  --green-bg: #001a12;
+  --green-bd: #003825;
+
+  --gold:     #f0b429;
+  --gold-bg:  #1a1000;
+  --gold-bd:  #3a2800;
+
+  --blue:     #38bdf8;
+  --blue-bg:  #001822;
+  --blue-bd:  #003850;
+
+  --red:      #ff6b6b;
+  --red-bg:   #1a0808;
+  --red-bd:   #3a1010;
+
+  --purple:   #c084fc;
+  --purple-bg:#12082a;
+  --purple-bd:#2a1050;
+
+  --orange:   #fb923c;
+  --orange-bg:#1a0a00;
+  --orange-bd:#3a1a00;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Syne', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+/* ── ANIMATED BG ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(0,229,160,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 20% 80%, rgba(56,189,248,0.03) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── NAV ── */
+.toc {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,12,15,0.96);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+  overflow-x: auto; white-space: nowrap;
+  scrollbar-width: none;
+  backdrop-filter: blur(12px);
+}
+.toc::-webkit-scrollbar { display: none; }
+.toc-inner { display: inline-flex; min-width: max-content; }
+.toc a {
+  display: inline-block; padding: 0.7rem 0.9rem;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.toc a:hover { color: var(--green); border-bottom-color: var(--green); }
+.toc a.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,160,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,160,0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--green-bg); border: 1px solid var(--green-bd);
+  border-radius: 30px; padding: 5px 16px;
+  font-size: 10px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--green);
+  margin-bottom: 1.5rem;
+}
+.hero-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 3.5rem; font-weight: 800;
+  letter-spacing: -1px; margin-bottom: 0.5rem;
+  line-height: 1.1;
+}
+.hero h1 .line1 { color: var(--text); display: block; }
+.hero h1 .line2 {
+  background: linear-gradient(90deg, var(--green), var(--blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; display: block;
+}
+.hero-sub {
+  font-size: 1rem; color: var(--muted);
+  max-width: 560px; margin: 0.5rem auto 0.3rem;
+}
+.hero-tags {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
+  margin-top: 1.5rem;
+}
+.hero-tag {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 4px 12px; border-radius: 20px;
+}
+
+/* ── LAYOUT ── */
+.wrap { max-width: 940px; margin: 0 auto; padding: 3rem 2rem; position: relative; z-index: 1; }
+.sl { font-size: 9px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--green); margin-bottom: 0.3rem; }
+h2 { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; color: #f0f8ff; margin-bottom: 0.4rem; }
+.intro { font-size: 0.93rem; color: var(--muted); margin-bottom: 1.5rem; max-width: 720px; line-height: 1.9; }
+h3 { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 0.7rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+.divider { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.5rem; margin-bottom: 1.1rem;
+  transition: border-color .2s;
+}
+.card:hover { border-color: var(--border2); }
+.c-green  { border-left: 3px solid var(--green); }
+.c-gold   { border-left: 3px solid var(--gold); }
+.c-blue   { border-left: 3px solid var(--blue); }
+.c-red    { border-left: 3px solid var(--red); }
+.c-purple { border-left: 3px solid var(--purple); }
+.c-orange { border-left: 3px solid var(--orange); }
+
+/* ── CALLOUTS ── */
+.explain {
+  background: var(--blue-bg); border-left: 3px solid var(--blue);
+  border-radius: 0 10px 10px 0; padding: 0.85rem 1.1rem;
+  margin: 0.8rem 0; font-size: 0.9rem; color: #93c5fd; line-height: 1.85;
+}
+.explain strong { color: #bfdbfe; }
+.tip {
+  background: var(--green-bg); border: 1px solid var(--green-bd);
+  border-radius: 10px; padding: 0.8rem 1rem;
+  margin: 0.7rem 0; font-size: 0.86rem; color: var(--green); line-height: 1.85;
+}
+.warn {
+  background: var(--gold-bg); border: 1px solid var(--gold-bd);
+  border-radius: 10px; padding: 0.8rem 1rem;
+  margin: 0.7rem 0; font-size: 0.86rem; color: var(--gold); line-height: 1.85;
+}
+.note {
+  background: var(--purple-bg); border: 1px solid var(--purple-bd);
+  border-radius: 10px; padding: 0.8rem 1rem;
+  margin: 0.7rem 0; font-size: 0.86rem; color: var(--purple); line-height: 1.85;
+}
+
+/* ── CODE ── */
+pre {
+  font-family: 'JetBrains Mono', monospace;
+  background: #040810; border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem 1.3rem;
+  font-size: 0.78rem; color: #7dd3fc; overflow-x: auto;
+  margin: 0.7rem 0; line-height: 1.9;
+}
+.kw  { color: #c084fc; }
+.str { color: var(--green); }
+.cm  { color: #334455; font-style: italic; }
+.fn  { color: var(--gold); }
+.cls { color: #38bdf8; }
+.num { color: var(--orange); }
+.dec { color: var(--green); }
+
+/* ── TERMINAL ── */
+.terminal {
+  background: #020507; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; margin: 0.7rem 0;
+}
+.term-header {
+  background: #0a1018; border-bottom: 1px solid var(--border);
+  padding: 0.5rem 1rem; display: flex; align-items: center; gap: 8px;
+}
+.term-dot { width: 10px; height: 10px; border-radius: 50%; }
+.term-body {
+  padding: 0.9rem 1.1rem; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem; line-height: 1.9;
+}
+.t-cmd  { color: var(--green); display: block; }
+.t-out  { color: #334455; display: block; }
+.t-data { color: var(--gold); display: block; }
+.t-err  { color: var(--red); display: block; }
+
+/* ── TABLES ── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin: 0.8rem 0; }
+.tbl th {
+  padding: 0.6rem 1rem; text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); border-bottom: 1px solid var(--border2);
+  background: var(--bg3);
+}
+.tbl td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+.tbl td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--green); font-weight: 600; }
+.tbl tbody tr:hover { background: var(--bg3); }
+.tbl .field-key { color: var(--gold); }
+.tbl .field-desc { color: var(--muted); }
+.tbl .field-ex { color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+
+/* Comparison table */
+.cmp-tbl { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin: 0.8rem 0; }
+.cmp-tbl th { padding: 0.65rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; border-bottom: 2px solid var(--border2); }
+.cmp-tbl th:nth-child(1) { color: var(--muted); background: var(--bg3); }
+.cmp-tbl th:nth-child(2) { color: var(--gold); background: var(--gold-bg); border-left: 2px solid var(--gold-bd); }
+.cmp-tbl th:nth-child(3) { color: var(--blue); background: var(--blue-bg); border-left: 2px solid var(--blue-bd); }
+.cmp-tbl td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.cmp-tbl td:nth-child(1) { color: var(--text); font-weight: 600; font-size: 0.84rem; background: var(--bg2); }
+.cmp-tbl td:nth-child(2) { color: #fcd34d; background: #100a00; border-left: 2px solid var(--gold-bd); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.cmp-tbl td:nth-child(3) { color: #93c5fd; background: #000f1a; border-left: 2px solid var(--blue-bd); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+.cmp-tbl tbody tr:hover td { filter: brightness(1.1); }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-block; font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+  margin: 2px 3px 0 0;
+}
+.b-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+.b-gold   { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold-bd); }
+.b-blue   { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-bd); }
+.b-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-bd); }
+.b-purple { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-bd); }
+
+/* ── STEP HEADERS ── */
+.step-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 0.8rem; }
+.step-n {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+  flex-shrink: 0; color: #000;
+}
+.sn-green { background: var(--green); }
+.sn-gold  { background: var(--gold); }
+.sn-blue  { background: var(--blue); }
+.sn-orange { background: var(--orange); }
+.step-t { font-size: 1rem; font-weight: 700; color: #f0f8ff; }
+
+/* ── DIAGRAM CONTAINERS ── */
+.diagram-wrap {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.5rem; margin: 0.8rem 0; overflow-x: auto;
+}
+.diagram-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+/* ── 2-COL ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0.8rem 0; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.9rem; margin: 0.8rem 0; }
+
+/* ── HANDLER CARDS ── */
+.handler-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 0.9rem; margin: 0.8rem 0; }
+.handler-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1rem; position: relative; overflow: hidden;
+}
+.handler-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+}
+.hc-green::before { background: var(--green); }
+.hc-gold::before  { background: var(--gold); }
+.hc-red::before   { background: var(--red); }
+.hc-blue::before  { background: var(--blue); }
+.handler-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+.handler-name { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+.handler-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.75; }
+
+/* ── FLOW STEPS ── */
+.flow-v { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 1rem 0; }
+.flow-step {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 0.6rem 2.5rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+  color: var(--text); min-width: 280px; text-align: center;
+}
+.flow-step.hl { background: #001a0f; border-color: var(--green); color: var(--green); }
+.flow-step.hl2 { background: #00101a; border-color: var(--blue); color: var(--blue); }
+.flow-step.hl3 { background: #1a1000; border-color: var(--gold); color: var(--gold); }
+.flow-arr { color: var(--dim); font-size: 0.8rem; line-height: 1.5; text-align: center; }
+
+/* ── URL BREAKDOWN ── */
+.url-break {
+  background: #020507; border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.2rem; margin: 0.7rem 0;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+}
+.url-full { color: var(--text); margin-bottom: 0.5rem; letter-spacing: 0.5px; }
+.url-parts { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+.url-part { border-radius: 6px; padding: 3px 10px; font-size: 0.75rem; font-weight: 700; }
+
+/* ── KAFKA FLOW ── */
+.kafka-flow {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.5rem; overflow-x: auto;
+}
+
+/* ── ASYNC EXPLAINER ── */
+.async-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0.8rem 0; }
+.async-card { border-radius: 12px; padding: 1.1rem; }
+.async-blocking { background: var(--red-bg); border: 1px solid var(--red-bd); }
+.async-nonblocking { background: var(--green-bg); border: 1px solid var(--green-bd); }
+
+@media (max-width: 640px) {
+  .hero h1 { font-size: 2.2rem; }
+  .two-col, .three-col, .async-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav class="toc" id="toc">
+  <div class="toc-inner">
+    <a href="#what">What is WebSocket</a>
+    <a href="#ws-vs-rest">WS vs REST</a>
+    <a href="#url">Stream URL</a>
+    <a href="#option1">Option 1 — Callbacks</a>
+    <a href="#option2">Option 2 — Async</a>
+    <a href="#async-explained">Async Explained</a>
+    <a href="#comparison">Comparison</a>
+    <a href="#message">Message Format</a>
+    <a href="#execution">Execution Flow</a>
+    <a href="#to-kafka">WebSocket → Kafka</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div style="position:relative;z-index:1;">
+    <div class="hero-badge"><div class="hero-dot"></div> Live Stream Active</div>
+    <h1>
+      <span class="line1">Binance WebSocket</span>
+      <span class="line2">Trade Stream</span>
+    </h1>
+    <p class="hero-sub">Real-time BTC/USDT trade data — streamed, not polled. Two approaches, one pipeline.</p>
+    <div class="hero-tags">
+      <span class="hero-tag b-green">WebSocket</span>
+      <span class="hero-tag b-gold">BTC/USDT</span>
+      <span class="hero-tag b-blue">Async</span>
+      <span class="hero-tag b-orange">Event-Driven</span>
+      <span class="hero-tag b-purple">→ Kafka</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ══════════════════════════════════════
+     WHAT IS WEBSOCKET
+══════════════════════════════════════ -->
+<section id="what">
+  <div class="sl">Foundation</div>
+  <h2>What is a WebSocket?</h2>
+  <p class="intro">Before you read any code, understand the protocol. WebSocket is a two-way communication channel between your script and a server — established once, kept open forever.</p>
+
+  <!-- WS vs HTTP visual -->
+  <div class="diagram-wrap">
+    <div class="diagram-label">HTTP request/response vs WebSocket persistent connection</div>
+
+    <svg viewBox="0 0 820 280" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:820px;display:block;margin:0 auto;">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#5a7a8a"/>
+        </marker>
+        <marker id="arr-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#00e5a0"/>
+        </marker>
+        <marker id="arr-gold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#f0b429"/>
+        </marker>
+      </defs>
+
+      <!-- HTTP side label -->
+      <text x="200" y="22" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="10" font-weight="700" letter-spacing="2">HTTP POLLING</text>
+      <text x="200" y="38" text-anchor="middle" fill="#5a7a8a" font-family="JetBrains Mono" font-size="9">"Ask repeatedly"</text>
+
+      <!-- HTTP boxes -->
+      <rect x="20" y="52" width="100" height="38" rx="8" fill="#0d1318" stroke="#1a2530" stroke-width="1.5"/>
+      <text x="70" y="73" text-anchor="middle" fill="#c8d8e8" font-family="JetBrains Mono" font-size="10" font-weight="700">YOUR</text>
+      <text x="70" y="85" text-anchor="middle" fill="#c8d8e8" font-family="JetBrains Mono" font-size="10" font-weight="700">SCRIPT</text>
+
+      <rect x="280" y="52" width="100" height="38" rx="8" fill="#0d1318" stroke="#1a2530" stroke-width="1.5"/>
+      <text x="330" y="73" text-anchor="middle" fill="#c8d8e8" font-family="JetBrains Mono" font-size="10" font-weight="700">BINANCE</text>
+      <text x="330" y="85" text-anchor="middle" fill="#c8d8e8" font-family="JetBrains Mono" font-size="10" font-weight="700">API</text>
+
+      <!-- HTTP arrows -->
+      <line x1="120" y1="65" x2="278" y2="65" stroke="#5a7a8a" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <text x="200" y="61" text-anchor="middle" fill="#5a7a8a" font-family="JetBrains Mono" font-size="8">GET /price?</text>
+
+      <line x1="278" y1="78" x2="120" y2="78" stroke="#5a7a8a" stroke-width="1.5" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+      <text x="200" y="94" text-anchor="middle" fill="#5a7a8a" font-family="JetBrains Mono" font-size="8">response</text>
+
+      <!-- Repeat -->
+      <text x="200" y="112" text-anchor="middle" fill="#3a5060" font-family="JetBrains Mono" font-size="8">⟳ repeat every N seconds</text>
+      <rect x="60" y="118" width="280" height="22" rx="4" fill="#1a0808" stroke="#3a1010" stroke-width="1"/>
+      <text x="200" y="133" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="9">❌ Wastes bandwidth · Latency · Server load</text>
+
+      <!-- Divider -->
+      <line x1="400" y1="20" x2="400" y2="260" stroke="#1a2530" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+      <!-- WS side label -->
+      <text x="620" y="22" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="10" font-weight="700" letter-spacing="2">WEBSOCKET</text>
+      <text x="620" y="38" text-anchor="middle" fill="#5a7a8a" font-family="JetBrains Mono" font-size="9">"Stay connected, data pushed"</text>
+
+      <!-- WS boxes -->
+      <rect x="430" y="52" width="100" height="38" rx="8" fill="#001a12" stroke="#003825" stroke-width="1.5"/>
+      <text x="480" y="73" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="10" font-weight="700">YOUR</text>
+      <text x="480" y="85" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="10" font-weight="700">SCRIPT</text>
+
+      <rect x="700" y="52" width="100" height="38" rx="8" fill="#001a12" stroke="#003825" stroke-width="1.5"/>
+      <text x="750" y="73" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="10" font-weight="700">BINANCE</text>
+      <text x="750" y="85" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="10" font-weight="700">STREAM</text>
+
+      <!-- WS connect line (thick persistent) -->
+      <line x1="530" y1="71" x2="698" y2="71" stroke="#00e5a0" stroke-width="2.5" opacity="0.6"/>
+      <text x="614" y="66" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">HANDSHAKE once</text>
+
+      <!-- pushed data arrows -->
+      <line x1="700" y1="100" x2="532" y2="118" stroke="#00e5a0" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <line x1="700" y1="116" x2="532" y2="134" stroke="#00e5a0" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <line x1="700" y1="132" x2="532" y2="150" stroke="#00e5a0" stroke-width="1.5" marker-end="url(#arr-green)"/>
+      <line x1="700" y1="148" x2="532" y2="166" stroke="#f0b429" stroke-width="1.5" marker-end="url(#arr-gold)"/>
+      <line x1="700" y1="164" x2="532" y2="182" stroke="#00e5a0" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+      <text x="620" y="110" text-anchor="middle" fill="#334455" font-family="JetBrains Mono" font-size="8">trade event</text>
+      <text x="620" y="126" text-anchor="middle" fill="#334455" font-family="JetBrains Mono" font-size="8">trade event</text>
+      <text x="620" y="142" text-anchor="middle" fill="#334455" font-family="JetBrains Mono" font-size="8">trade event</text>
+      <text x="620" y="158" text-anchor="middle" fill="#f0b429" font-family="JetBrains Mono" font-size="8" font-weight="700">BIG TRADE ← pushed instantly</text>
+      <text x="620" y="174" text-anchor="middle" fill="#334455" font-family="JetBrains Mono" font-size="8">trade event</text>
+
+      <rect x="450" y="193" width="340" height="22" rx="4" fill="#001a12" stroke="#003825" stroke-width="1"/>
+      <text x="620" y="208" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="9">✓ Zero polling · Sub-ms latency · Efficient</text>
+
+      <!-- Labels -->
+      <text x="200" y="250" text-anchor="middle" fill="#5a7a8a" font-family="Syne" font-size="11">Ask every minute = 60× requests/hour</text>
+      <text x="620" y="250" text-anchor="middle" fill="#00b87a" font-family="Syne" font-size="11">One connection = infinite real-time events</text>
+    </svg>
+  </div>
+
+  <div class="explain">
+    <strong>The key insight:</strong> With HTTP you keep knocking on the door asking "any new trades?" With WebSocket, Binance calls you the instant a trade happens. You don't poll — you listen.
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ══ WS vs REST ══ -->
+<section id="ws-vs-rest">
+  <div class="sl">Concepts</div>
+  <h2>WebSocket vs REST — When to Use Which</h2>
+
+  <table class="tbl">
+    <thead><tr><th>Dimension</th><th>REST / HTTP</th><th>WebSocket</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Connection style</td>
+        <td style="color:#5a7a8a;">One request → one response → closed</td>
+        <td style="color:var(--green);">One connection → stays open → infinite messages</td>
+      </tr>
+      <tr>
+        <td>Who initiates data</td>
+        <td style="color:#5a7a8a;">You ask → server answers</td>
+        <td style="color:var(--green);">Server pushes data whenever it has something</td>
+      </tr>
+      <tr>
+        <td>Latency</td>
+        <td style="color:#5a7a8a;">~100ms per request (TCP handshake overhead)</td>
+        <td style="color:var(--green);">~1–5ms (connection already open)</td>
+      </tr>
+      <tr>
+        <td>Network usage</td>
+        <td style="color:#5a7a8a;">Headers sent every request (400–1000 bytes)</td>
+        <td style="color:var(--green);">Framing overhead ~2–10 bytes per message</td>
+      </tr>
+      <tr>
+        <td>Best for</td>
+        <td style="color:#5a7a8a;">CRUD operations, static data, infrequent reads</td>
+        <td style="color:var(--green);">Live prices, order books, chat, gaming, IoT</td>
+      </tr>
+      <tr>
+        <td>Binance use case</td>
+        <td style="color:#5a7a8a;">Fetch historical candles, account info (one-time)</td>
+        <td style="color:var(--green);">Live trade stream, order book updates (continuous)</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="divider">
+
+<!-- ══ URL BREAKDOWN ══ -->
+<section id="url">
+  <div class="sl">Configuration</div>
+  <h2>The Stream URL — Dissected</h2>
+  <p class="intro">Every part of the WebSocket URL tells Binance exactly what data you want.</p>
+
+  <div class="url-break">
+    <div class="url-full">wss://stream.binance.com:9443/ws/btcusdt@trade</div>
+    <div class="url-parts">
+      <span class="url-part b-blue">wss://</span>
+      <span class="url-part b-green">stream.binance.com</span>
+      <span class="url-part b-orange">:9443</span>
+      <span class="url-part" style="background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-bd);">/ws/</span>
+      <span class="url-part b-gold">btcusdt</span>
+      <span class="url-part" style="background:#0a0a1a;color:#818cf8;border:1px solid #1e1b4b;">@trade</span>
+    </div>
+  </div>
+
+  <table class="tbl" style="margin-top:0.5rem;">
+    <thead><tr><th>URL Part</th><th>Meaning</th><th>Alternatives</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="color:var(--blue);">wss://</td>
+        <td>Secure WebSocket (TLS encrypted, like HTTPS for WS)</td>
+        <td style="color:#5a7a8a;">ws:// = unencrypted (don't use in production)</td>
+      </tr>
+      <tr>
+        <td style="color:var(--green);">stream.binance.com</td>
+        <td>Binance's dedicated streaming server (not the REST API domain)</td>
+        <td style="color:#5a7a8a;">testnet.binance.vision for sandbox</td>
+      </tr>
+      <tr>
+        <td style="color:var(--orange);">:9443</td>
+        <td>WebSocket port (Binance also supports 443)</td>
+        <td style="color:#5a7a8a;">443 works through most firewalls</td>
+      </tr>
+      <tr>
+        <td style="color:var(--purple);">/ws/</td>
+        <td>WebSocket endpoint prefix on Binance's server</td>
+        <td style="color:#5a7a8a;">/stream? for combined streams</td>
+      </tr>
+      <tr>
+        <td style="color:var(--gold);">btcusdt</td>
+        <td>Trading pair — always lowercase on Binance streams</td>
+        <td style="color:#5a7a8a;">ethusdt, solusdt, bnbusdt, etc.</td>
+      </tr>
+      <tr>
+        <td style="color:#818cf8;">@trade</td>
+        <td>Stream type — every individual trade executed</td>
+        <td style="color:#5a7a8a;">@kline_1m, @depth, @ticker, @bookTicker</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tip">To stream multiple pairs: use <code style="color:var(--gold);">wss://stream.binance.com:9443/stream?streams=btcusdt@trade/ethusdt@trade</code></div>
+</section>
+
+<hr class="divider">
+
+<!-- ══ OPTION 1 - CALLBACKS ══ -->
+<section id="option1">
+  <div class="sl">Implementation · Option 1</div>
+  <h2>Callback-Based — Event-Driven Style</h2>
+  <p class="intro">You define functions for each event. The library calls them automatically when that event occurs. You are reacting, not controlling.</p>
+
+  <div class="card c-gold">
+    <h3>The doorbell mental model</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:0.7rem 0;">
+      <div style="background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:10px;padding:1rem;">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;">Real doorbell system</p>
+        <p style="font-size:0.85rem;color:var(--muted);">Someone presses bell 🔔<br>→ Ring triggers automatically<br>→ You didn't check manually<br>→ The event called your handler</p>
+      </div>
+      <div style="background:var(--gold-bg);border:1px solid var(--gold-bd);border-radius:10px;padding:1rem;">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:0.5rem;">Kafka callback style</p>
+        <p style="font-size:0.85rem;color:var(--muted);">Trade arrives 📦<br>→ on_message() fires automatically<br>→ You didn't poll Binance<br>→ The event called your handler</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card c-gold">
+    <h3>Install dependency</h3>
+    <pre>pip install websocket-client</pre>
+  </div>
+
+  <div class="card c-gold">
+    <h3>Full code — Option 1</h3>
+    <pre><span class="kw">import</span> websocket
+<span class="kw">import</span> json
+
+<span class="cm"># ── Handler 1: Called when a message arrives ──────────────────────────</span>
+<span class="kw">def</span> <span class="fn">on_message</span>(ws, message):
+    data = json.<span class="fn">loads</span>(message)   <span class="cm"># raw JSON string → Python dict</span>
+    <span class="fn">print</span>(<span class="str">"Received:"</span>, data)
+
+<span class="cm"># ── Handler 2: Called when an error occurs ────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">on_error</span>(ws, error):
+    <span class="fn">print</span>(<span class="str">"Error:"</span>, error)
+
+<span class="cm"># ── Handler 3: Called when connection closes ──────────────────────────</span>
+<span class="kw">def</span> <span class="fn">on_close</span>(ws, close_status_code, close_msg):
+    <span class="fn">print</span>(<span class="str">"Closed connection"</span>)
+
+<span class="cm"># ── Handler 4: Called once connection opens ───────────────────────────</span>
+<span class="kw">def</span> <span class="fn">on_open</span>(ws):
+    <span class="fn">print</span>(<span class="str">"Connection opened"</span>)
+
+<span class="cm"># Binance trade stream URL</span>
+socket = <span class="str">"wss://stream.binance.com:9443/ws/btcusdt@trade"</span>
+
+<span class="cm"># Create the WebSocket client, bind the handlers</span>
+ws = websocket.<span class="cls">WebSocketApp</span>(
+    socket,
+    on_message=on_message,   <span class="cm"># message arrives → call this</span>
+    on_error=on_error,       <span class="cm"># error occurs   → call this</span>
+    on_close=on_close        <span class="cm"># closes         → call this</span>
+)
+
+ws.on_open = on_open         <span class="cm"># opens          → call this</span>
+
+<span class="cm"># Start the WebSocket — this blocks forever, calling handlers as events fire</span>
+ws.<span class="fn">run_forever</span>()</pre>
+  </div>
+
+  <!-- Four handler cards -->
+  <div class="handler-grid">
+    <div class="handler-card hc-green">
+      <div class="handler-icon">📨</div>
+      <div class="handler-name" style="color:var(--green);">on_message(ws, message)</div>
+      <div class="handler-desc">Triggered for every incoming trade. Receives raw JSON string. You parse and process it here.</div>
+    </div>
+    <div class="handler-card hc-red">
+      <div class="handler-icon">⚠️</div>
+      <div class="handler-name" style="color:var(--red);">on_error(ws, error)</div>
+      <div class="handler-desc">Network failures, invalid payloads, connection drops. Log here, handle retries outside.</div>
+    </div>
+    <div class="handler-card hc-gold">
+      <div class="handler-icon">🔌</div>
+      <div class="handler-name" style="color:var(--gold);">on_close(ws, code, msg)</div>
+      <div class="handler-desc">Server disconnect, network failure, manual termination. Cleanup and reconnect logic goes here.</div>
+    </div>
+    <div class="handler-card hc-blue">
+      <div class="handler-icon">🟢</div>
+      <div class="handler-name" style="color:var(--blue);">on_open(ws)</div>
+      <div class="handler-desc">Fires once when connection is ready. Good place to send a subscription message if needed.</div>
+    </div>
+  </div>
+
+  <div class="card c-gold">
+    <h3>Execution flow — Option 1</h3>
+    <div class="flow-v">
+      <div class="flow-step hl3">ws.run_forever() — starts the loop</div>
+      <div class="flow-arr">↓ connection handshake with Binance</div>
+      <div class="flow-step hl3">on_open() fires once</div>
+      <div class="flow-arr">↓ Binance pushes a trade</div>
+      <div class="flow-step hl3">on_message() fires → parse JSON → process</div>
+      <div class="flow-arr">↓ repeats for every trade (could be 100s/sec)</div>
+      <div class="flow-step hl3">on_message() fires again → parse → process</div>
+      <div class="flow-arr">↓ if connection drops</div>
+      <div class="flow-step" style="border-color:var(--red);color:var(--red);">on_error() fires → then on_close() fires</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ══ OPTION 2 - ASYNC ══ -->
+<section id="option2">
+  <div class="sl">Implementation · Option 2</div>
+  <h2>Async Loop — You Control the Flow</h2>
+  <p class="intro">Instead of callbacks, you write an explicit <code style="color:var(--green);">async for</code> loop. You decide what to do with each message, step by step. More readable, more flexible.</p>
+
+  <div class="card c-blue">
+    <h3>Install dependency</h3>
+    <pre>pip install websockets</pre>
+    <div class="explain"><strong>Note:</strong> This is a different library than Option 1. <code style="color:var(--gold);">websocket-client</code> (Option 1) vs <code style="color:var(--gold);">websockets</code> (Option 2 — plural, different package).</div>
+  </div>
+
+  <div class="card c-blue">
+    <h3>Full code — Option 2</h3>
+    <pre><span class="kw">import</span> asyncio
+<span class="kw">import</span> json
+<span class="kw">import</span> websockets
+
+<span class="kw">async def</span> <span class="fn">connect_and_stream</span>():
+    url = <span class="str">"wss://stream.binance.com:9443/ws/btcusdt@trade"</span>
+
+    <span class="fn">print</span>(<span class="str">"Connecting..."</span>)
+
+    <span class="cm"># Opens connection → keeps it open → auto-closes if something crashes</span>
+    <span class="kw">async with</span> websockets.<span class="fn">connect</span>(url) <span class="kw">as</span> ws:
+        <span class="fn">print</span>(<span class="str">"Connection opened"</span>)
+
+        <span class="cm"># Infinite loop — yields each message as Binance pushes it</span>
+        <span class="kw">async for</span> message <span class="kw">in</span> ws:
+            <span class="kw">try</span>:
+                data = json.<span class="fn">loads</span>(message)   <span class="cm"># JSON string → dict</span>
+                <span class="fn">print</span>(<span class="str">"Received:"</span>, data)
+
+            <span class="kw">except</span> json.JSONDecodeError <span class="kw">as</span> e:
+                <span class="fn">print</span>(<span class="str">"JSON error:"</span>, e)
+
+<span class="cm"># Start the async event loop and run the function</span>
+asyncio.<span class="fn">run</span>(<span class="fn">connect_and_stream</span>())</pre>
+  </div>
+
+  <div class="card c-blue">
+    <h3>Step-by-step execution trace</h3>
+    <div class="flow-v">
+      <div class="flow-step hl2">asyncio.run(connect_and_stream())</div>
+      <div class="flow-arr">↓ starts async event loop, enters function</div>
+      <div class="flow-step">print("Connecting...")</div>
+      <div class="flow-arr">↓ TCP + TLS handshake with Binance</div>
+      <div class="flow-step hl2">async with websockets.connect(url) as ws</div>
+      <div class="flow-arr">↓ connection open, auto-cleanup registered</div>
+      <div class="flow-step">print("Connection opened")</div>
+      <div class="flow-arr">↓ enters the infinite message loop</div>
+      <div class="flow-step hl2">async for message in ws: ← waits efficiently</div>
+      <div class="flow-arr">↓ Binance pushes a trade event</div>
+      <div class="flow-step hl2">data = json.loads(message)</div>
+      <div class="flow-arr">↓ loops back, waits for next trade</div>
+      <div class="flow-step hl2">async for message in ws: ← waiting again</div>
+    </div>
+    <div class="tip" style="margin-top:0.8rem;">The <code style="color:var(--gold);">async with</code> context manager is important — if anything crashes, it automatically closes the WebSocket cleanly and releases network resources.</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ══ ASYNC EXPLAINED ══ -->
+<section id="async-explained">
+  <div class="sl">Core Concept</div>
+  <h2>What Does "async" Actually Mean?</h2>
+  <p class="intro">The hardest part for beginners. Once you truly get this, async makes perfect sense everywhere.</p>
+
+  <!-- Blocking vs non-blocking visual -->
+  <div class="diagram-wrap">
+    <div class="diagram-label">Blocking vs Non-Blocking — timeline view</div>
+    <svg viewBox="0 0 820 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:820px;display:block;margin:0 auto;">
+      <!-- BLOCKING side -->
+      <text x="200" y="22" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="10" font-weight="700" letter-spacing="2">BLOCKING (normal Python)</text>
+
+      <!-- timeline line -->
+      <line x1="20" y1="80" x2="385" y2="80" stroke="#1a2530" stroke-width="2"/>
+
+      <!-- time labels -->
+      <text x="20" y="96" fill="#334455" font-family="JetBrains Mono" font-size="8">t=0s</text>
+      <text x="115" y="96" fill="#334455" font-family="JetBrains Mono" font-size="8">t=1s</text>
+      <text x="210" y="96" fill="#334455" font-family="JetBrains Mono" font-size="8">t=2s</text>
+      <text x="305" y="96" fill="#334455" font-family="JetBrains Mono" font-size="8">t=3s</text>
+
+      <!-- blocking bars -->
+      <rect x="20" y="55" width="90" height="22" rx="4" fill="#1a0808" stroke="#3a1010"/>
+      <text x="65" y="70" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="8">WAITING for data</text>
+
+      <rect x="112" y="55" width="28" height="22" rx="4" fill="#001a12" stroke="#003825"/>
+      <text x="126" y="70" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">work</text>
+
+      <rect x="142" y="55" width="90" height="22" rx="4" fill="#1a0808" stroke="#3a1010"/>
+      <text x="187" y="70" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="8">WAITING for data</text>
+
+      <rect x="234" y="55" width="28" height="22" rx="4" fill="#001a12" stroke="#003825"/>
+      <text x="248" y="70" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">work</text>
+
+      <rect x="264" y="55" width="90" height="22" rx="4" fill="#1a0808" stroke="#3a1010"/>
+      <text x="309" y="70" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="8">WAITING for data</text>
+
+      <rect x="356" y="55" width="28" height="22" rx="4" fill="#001a12" stroke="#003825"/>
+      <text x="370" y="70" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">work</text>
+
+      <rect x="60" y="110" width="280" height="20" rx="4" fill="#1a0808" stroke="#3a1010"/>
+      <text x="200" y="124" text-anchor="middle" fill="#ff6b6b" font-family="JetBrains Mono" font-size="9">90% of time spent BLOCKED doing nothing</text>
+
+      <!-- Divider -->
+      <line x1="410" y1="20" x2="410" y2="200" stroke="#1a2530" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+      <!-- ASYNC side -->
+      <text x="620" y="22" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="10" font-weight="700" letter-spacing="2">ASYNC (efficient)</text>
+
+      <line x1="430" y1="80" x2="800" y2="80" stroke="#1a2530" stroke-width="2"/>
+
+      <text x="430" y="96" fill="#334455" font-family="JetBrains Mono" font-size="8">t=0s</text>
+      <text x="520" y="96" fill="#334455" font-family="JetBrains Mono" font-size="8">t=1s</text>
+      <text x="615" y="96" fill="#334455" font-family="JetBrains Mono" font-size="8">t=2s</text>
+      <text x="710" y="96" fill="#334455" font-family="JetBrains Mono" font-size="8">t=3s</text>
+
+      <!-- async: sleep bar (low opacity, efficient) -->
+      <rect x="430" y="55" width="90" height="22" rx="4" fill="#001a08" stroke="#002010" opacity="0.7"/>
+      <text x="475" y="70" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="8">sleeping (efficient)</text>
+
+      <rect x="522" y="55" width="28" height="22" rx="4" fill="#001a12" stroke="#003825"/>
+      <text x="536" y="70" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">work</text>
+
+      <rect x="552" y="55" width="90" height="22" rx="4" fill="#001a08" stroke="#002010" opacity="0.7"/>
+      <text x="597" y="70" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="8">sleeping (efficient)</text>
+
+      <rect x="644" y="55" width="28" height="22" rx="4" fill="#001a12" stroke="#003825"/>
+      <text x="658" y="70" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">work</text>
+
+      <rect x="674" y="55" width="90" height="22" rx="4" fill="#001a08" stroke="#002010" opacity="0.7"/>
+      <text x="719" y="70" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="8">sleeping (efficient)</text>
+
+      <rect x="766" y="55" width="28" height="22" rx="4" fill="#001a12" stroke="#003825"/>
+      <text x="780" y="70" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">work</text>
+
+      <rect x="470" y="110" width="300" height="20" rx="4" fill="#001a12" stroke="#003825"/>
+      <text x="620" y="124" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="9">Waiting releases CPU · Other tasks can run</text>
+
+      <!-- legend -->
+      <rect x="430" y="150" width="12" height="12" rx="2" fill="#001a08" stroke="#002010"/>
+      <text x="448" y="160" fill="#5a7a8a" font-family="JetBrains Mono" font-size="9">sleeping = waiting for data (CPU free)</text>
+      <rect x="430" y="168" width="12" height="12" rx="2" fill="#001a12" stroke="#003825"/>
+      <text x="448" y="178" fill="#00e5a0" font-family="JetBrains Mono" font-size="9">work = processing trade message</text>
+    </svg>
+  </div>
+
+  <!-- Phone analogy -->
+  <div class="async-grid">
+    <div class="async-card async-blocking">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);margin-bottom:0.6rem;">📞 Blocking — Old way</p>
+      <p style="font-size:0.88rem;color:var(--text);line-height:1.8;">You call a restaurant 📞<br>You stay on hold doing NOTHING<br>You can't make another call<br>You just wait... and wait...<br><br><span style="color:var(--red);">CPU is stuck, wasting time</span></p>
+    </div>
+    <div class="async-card async-nonblocking">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:0.6rem;">🍕 Async — Smart way</p>
+      <p style="font-size:0.88rem;color:var(--text);line-height:1.8;">You order food online 🍕<br>You go do other work<br>You can handle other tasks<br>Restaurant notifies you when ready<br><br><span style="color:var(--green);">CPU is free to do other things</span></p>
+    </div>
+  </div>
+
+  <div class="card c-green">
+    <h3>The one line that matters</h3>
+    <pre><span class="kw">async for</span> message <span class="kw">in</span> ws:
+    <span class="cm"># This line means:
+    # "Stay idle until Binance sends a trade, then wake up instantly.
+    #  While idle, DON'T block — let other coroutines run if needed."</span></pre>
+    <div class="explain">
+      <strong>async for</strong> is not a normal for loop. It doesn't spin checking "is there data yet?" It registers itself with the event loop and says "wake me when there's data." The event loop can handle other tasks meanwhile. When Binance pushes data → the loop resumes instantly.
+    </div>
+  </div>
+
+  <div class="card c-green">
+    <h3>async keywords demystified</h3>
+    <table class="tbl">
+      <thead><tr><th>Keyword</th><th>What it means</th><th>When to use it</th></tr></thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--purple);">async def</td>
+          <td>This function can be paused and resumed without blocking</td>
+          <td style="color:#5a7a8a;">Any function that uses await inside it</td>
+        </tr>
+        <tr>
+          <td style="color:var(--purple);">await</td>
+          <td>Pause here, let other tasks run, resume when this is done</td>
+          <td style="color:#5a7a8a;">Calling another async function or coroutine</td>
+        </tr>
+        <tr>
+          <td style="color:var(--purple);">async for</td>
+          <td>Iterate over an async stream — each item may require waiting</td>
+          <td style="color:#5a7a8a;">Reading from WebSocket, async file I/O</td>
+        </tr>
+        <tr>
+          <td style="color:var(--purple);">async with</td>
+          <td>Context manager that can pause on entry/exit</td>
+          <td style="color:#5a7a8a;">Opening WebSocket connections, async DB sessions</td>
+        </tr>
+        <tr>
+          <td style="color:var(--purple);">asyncio.run()</td>
+          <td>Create event loop and run one async function until complete</td>
+          <td style="color:#5a7a8a;">Entry point for any async program</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ══ COMPARISON ══ -->
+<section id="comparison">
+  <div class="sl">Decision Guide</div>
+  <h2>Option 1 vs Option 2 — Full Comparison</h2>
+  <p class="intro">Both achieve the same result. The difference is control, readability, and where you'll go next.</p>
+
+  <table class="cmp-tbl">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Option 1 — Callbacks (websocket-client)</th>
+        <th>Option 2 — Async (websockets)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Library</td>
+        <td>websocket-client<br><span style="color:#5a7a8a;font-size:0.78rem;">pip install websocket-client</span></td>
+        <td>websockets<br><span style="color:#5a7a8a;font-size:0.78rem;">pip install websockets</span></td>
+      </tr>
+      <tr>
+        <td>Import</td>
+        <td>import websocket</td>
+        <td>import websockets</td>
+      </tr>
+      <tr>
+        <td>Programming style</td>
+        <td>Event-driven (callbacks)</td>
+        <td>Async/await (coroutines)</td>
+      </tr>
+      <tr>
+        <td>Who controls flow</td>
+        <td>Library controls — calls your functions</td>
+        <td>You control — write explicit loop</td>
+      </tr>
+      <tr>
+        <td>How messages arrive</td>
+        <td>on_message() called automatically</td>
+        <td>async for message in ws:</td>
+      </tr>
+      <tr>
+        <td>Threading model</td>
+        <td>Runs in a background thread internally</td>
+        <td>Single thread, cooperative multitasking</td>
+      </tr>
+      <tr>
+        <td>Readability</td>
+        <td>Code scattered across functions</td>
+        <td>Linear, top-to-bottom flow</td>
+      </tr>
+      <tr>
+        <td>Complexity</td>
+        <td>Low — good for quick scripts</td>
+        <td>Medium — more boilerplate</td>
+      </tr>
+      <tr>
+        <td>Error handling</td>
+        <td>on_error() callback</td>
+        <td>try/except inside the loop</td>
+      </tr>
+      <tr>
+        <td>Multiple streams</td>
+        <td>Complex — needs multiple WS instances</td>
+        <td>Easy — gather() multiple coroutines</td>
+      </tr>
+      <tr>
+        <td>Kafka integration</td>
+        <td>Works — produce inside on_message()</td>
+        <td>Better — await in loop, cleaner flow</td>
+      </tr>
+      <tr>
+        <td>Best for</td>
+        <td>Quick scripts, bots, simple consumers</td>
+        <td>Production pipelines, Kafka producers</td>
+      </tr>
+      <tr>
+        <td>Used at companies</td>
+        <td>Dashboards, alerts, monitoring</td>
+        <td>Trading systems, data pipelines, Kafka</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tip">For your Kafka project: <strong>use Option 2 (async)</strong>. It integrates more cleanly with confluent-kafka's producer and gives you better control over batching, error handling, and flow.</div>
+</section>
+
+<hr class="divider">
+
+<!-- ══ MESSAGE FORMAT ══ -->
+<section id="message">
+  <div class="sl">Data</div>
+  <h2>Trade Message Format — Every Field</h2>
+  <p class="intro">Each message from Binance represents one individual trade — a buyer and seller matched at a price. Here's exactly what arrives.</p>
+
+  <div class="card c-green">
+    <h3>Raw message — what Binance sends</h3>
+    <div class="terminal">
+      <div class="term-header">
+        <div class="term-dot" style="background:#ff5f57;"></div>
+        <div class="term-dot" style="background:#febc2e;"></div>
+        <div class="term-dot" style="background:#28c840;"></div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-left:4px;">Binance → btcusdt@trade</span>
+      </div>
+      <div class="term-body">
+        <span class="t-data">{</span>
+        <span class="t-data">&nbsp;&nbsp;"e": "trade",</span>
+        <span class="t-data">&nbsp;&nbsp;"E": 1718000000001,</span>
+        <span class="t-data">&nbsp;&nbsp;"s": "BTCUSDT",</span>
+        <span class="t-data">&nbsp;&nbsp;"t": 3854291201,</span>
+        <span class="t-data">&nbsp;&nbsp;"p": "67432.50",</span>
+        <span class="t-data">&nbsp;&nbsp;"q": "0.00150",</span>
+        <span class="t-data">&nbsp;&nbsp;"b": 28471000001,</span>
+        <span class="t-data">&nbsp;&nbsp;"a": 28470999998,</span>
+        <span class="t-data">&nbsp;&nbsp;"T": 1718000000000,</span>
+        <span class="t-data">&nbsp;&nbsp;"m": false,</span>
+        <span class="t-data">&nbsp;&nbsp;"M": true</span>
+        <span class="t-data">}</span>
+      </div>
+    </div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr><th>Field</th><th>Full Name</th><th>Description</th><th>Example Value</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>e</td>
+        <td>Event type</td>
+        <td class="field-desc">Always "trade" for this stream</td>
+        <td class="field-ex">"trade"</td>
+      </tr>
+      <tr>
+        <td>E</td>
+        <td>Event time</td>
+        <td class="field-desc">Unix timestamp (ms) when Binance created this event</td>
+        <td class="field-ex">1718000000001</td>
+      </tr>
+      <tr>
+        <td>s</td>
+        <td>Symbol</td>
+        <td class="field-desc">Trading pair — always uppercase</td>
+        <td class="field-ex">"BTCUSDT"</td>
+      </tr>
+      <tr>
+        <td>t</td>
+        <td>Trade ID</td>
+        <td class="field-desc">Unique ID per trade — strictly increasing</td>
+        <td class="field-ex">3854291201</td>
+      </tr>
+      <tr>
+        <td style="color:var(--gold);">p</td>
+        <td style="color:var(--gold);font-weight:700;">Price</td>
+        <td class="field-desc" style="color:var(--gold);">⭐ The price this trade executed at (USD string)</td>
+        <td class="field-ex" style="color:var(--gold);">"67432.50"</td>
+      </tr>
+      <tr>
+        <td style="color:var(--green);">q</td>
+        <td style="color:var(--green);font-weight:700;">Quantity</td>
+        <td class="field-desc" style="color:var(--green);">⭐ How much BTC changed hands (BTC string)</td>
+        <td class="field-ex" style="color:var(--green);">"0.00150"</td>
+      </tr>
+      <tr>
+        <td>b</td>
+        <td>Buyer order ID</td>
+        <td class="field-desc">Order ID of the buyer side</td>
+        <td class="field-ex">28471000001</td>
+      </tr>
+      <tr>
+        <td>a</td>
+        <td>Seller order ID</td>
+        <td class="field-desc">Order ID of the seller side</td>
+        <td class="field-ex">28470999998</td>
+      </tr>
+      <tr>
+        <td>T</td>
+        <td>Trade time</td>
+        <td class="field-desc">Unix timestamp (ms) when trade actually executed</td>
+        <td class="field-ex">1718000000000</td>
+      </tr>
+      <tr>
+        <td>m</td>
+        <td>Is buyer market maker?</td>
+        <td class="field-desc">true = seller initiated (sell order); false = buyer initiated (buy order)</td>
+        <td class="field-ex">false</td>
+      </tr>
+      <tr>
+        <td>M</td>
+        <td>Ignore</td>
+        <td class="field-desc">Legacy field, always true. Ignore it.</td>
+        <td class="field-ex">true</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card c-green">
+    <h3>Accessing the useful fields in Python</h3>
+    <pre><span class="kw">def</span> <span class="fn">on_message</span>(ws, message):
+    data = json.<span class="fn">loads</span>(message)
+
+    price    = <span class="fn">float</span>(data[<span class="str">"p"</span>])    <span class="cm"># "67432.50" → 67432.5  ← most important</span>
+    quantity = <span class="fn">float</span>(data[<span class="str">"q"</span>])    <span class="cm"># "0.00150"  → 0.0015</span>
+    symbol   = data[<span class="str">"s"</span>]            <span class="cm"># "BTCUSDT"</span>
+    trade_id = data[<span class="str">"t"</span>]            <span class="cm"># 3854291201</span>
+    trade_ts = data[<span class="str">"T"</span>]            <span class="cm"># unix ms — convert: ts/1000</span>
+    is_sell  = data[<span class="str">"m"</span>]            <span class="cm"># True = sell order, False = buy order</span>
+
+    usd_volume = price * quantity    <span class="cm"># notional value traded in USD</span>
+
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"{symbol}: ${price:,.2f} × {quantity} BTC = ${usd_volume:,.2f}"</span>)</pre>
+  </div>
+
+  <div class="warn">⚠ Price and quantity come as <strong>strings</strong>, not numbers. Always <code style="color:var(--gold);">float(data["p"])</code> before doing math. This is a Binance design choice for decimal precision.</div>
+</section>
+
+<hr class="divider">
+
+<!-- ══ EXECUTION FLOW ══ -->
+<section id="execution">
+  <div class="sl">Under The Hood</div>
+  <h2>Complete Execution Flow</h2>
+  <p class="intro">What actually happens from the moment your script starts to when you see a trade in your terminal.</p>
+
+  <div class="diagram-wrap">
+    <div class="diagram-label">Full Lifecycle — WebSocket to Terminal</div>
+    <svg viewBox="0 0 820 380" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:820px;display:block;margin:0 auto;">
+      <defs>
+        <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#00e5a0"/>
+        </marker>
+        <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#38bdf8"/>
+        </marker>
+        <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#f0b429"/>
+        </marker>
+      </defs>
+
+      <!-- Column: Your Script -->
+      <rect x="20" y="30" width="130" height="44" rx="8" fill="#001a12" stroke="#003825" stroke-width="1.5"/>
+      <text x="85" y="55" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="10" font-weight="700">YOUR SCRIPT</text>
+      <text x="85" y="68" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="8">run_forever()</text>
+
+      <!-- Column: Network -->
+      <rect x="330" y="30" width="160" height="44" rx="8" fill="#001018" stroke="#003850" stroke-width="1.5"/>
+      <text x="410" y="55" text-anchor="middle" fill="#38bdf8" font-family="JetBrains Mono" font-size="10" font-weight="700">NETWORK</text>
+      <text x="410" y="68" text-anchor="middle" fill="#1a4060" font-family="JetBrains Mono" font-size="8">TCP + TLS WebSocket</text>
+
+      <!-- Column: Binance -->
+      <rect x="660" y="30" width="140" height="44" rx="8" fill="#1a1000" stroke="#3a2800" stroke-width="1.5"/>
+      <text x="730" y="55" text-anchor="middle" fill="#f0b429" font-family="JetBrains Mono" font-size="10" font-weight="700">BINANCE</text>
+      <text x="730" y="68" text-anchor="middle" fill="#604020" font-family="JetBrains Mono" font-size="8">stream.binance.com</text>
+
+      <!-- Step 1: Handshake -->
+      <line x1="150" y1="52" x2="328" y2="52" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#ab)"/>
+      <text x="239" y="46" text-anchor="middle" fill="#38bdf8" font-family="JetBrains Mono" font-size="8">① TCP connect + WebSocket upgrade</text>
+
+      <line x1="490" y1="65" x2="658" y2="65" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#ab)"/>
+      <text x="574" y="59" text-anchor="middle" fill="#38bdf8" font-family="JetBrains Mono" font-size="8">② route to stream server</text>
+
+      <!-- Step 2: Confirmation -->
+      <line x1="658" y1="100" x2="492" y2="100" stroke="#00e5a0" stroke-width="1.5" marker-end="url(#ag)"/>
+      <text x="575" y="94" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">③ 101 Switching Protocols ✓</text>
+
+      <line x1="328" y1="112" x2="152" y2="112" stroke="#00e5a0" stroke-width="1.5" marker-end="url(#ag)"/>
+      <text x="240" y="106" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">③ connection confirmed</text>
+
+      <!-- on_open -->
+      <rect x="20" y="126" width="130" height="30" rx="6" fill="#001a12" stroke="#003825" stroke-width="1"/>
+      <text x="85" y="145" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="9" font-weight="700">on_open() fires</text>
+
+      <!-- Line down -->
+      <line x1="85" y1="156" x2="85" y2="175" stroke="#003825" stroke-width="1" stroke-dasharray="3,2"/>
+
+      <!-- Step 3: Trade happens on Binance -->
+      <rect x="660" y="170" width="140" height="36" rx="6" fill="#1a1000" stroke="#3a2800" stroke-width="1"/>
+      <text x="730" y="187" text-anchor="middle" fill="#f0b429" font-family="JetBrains Mono" font-size="9" font-weight="700">Trade Executed</text>
+      <text x="730" y="200" text-anchor="middle" fill="#604020" font-family="JetBrains Mono" font-size="8">buyer ↔ seller matched</text>
+
+      <!-- Pushed to network -->
+      <line x1="658" y1="188" x2="492" y2="188" stroke="#f0b429" stroke-width="2" marker-end="url(#ao)"/>
+      <text x="575" y="182" text-anchor="middle" fill="#f0b429" font-family="JetBrains Mono" font-size="8">④ push JSON frame</text>
+
+      <!-- Through network to script -->
+      <line x1="328" y1="188" x2="152" y2="188" stroke="#f0b429" stroke-width="2" marker-end="url(#ao)"/>
+      <text x="240" y="182" text-anchor="middle" fill="#f0b429" font-family="JetBrains Mono" font-size="8">④ WebSocket frame</text>
+
+      <!-- on_message -->
+      <rect x="20" y="200" width="130" height="30" rx="6" fill="#001a12" stroke="#003825" stroke-width="1"/>
+      <text x="85" y="219" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="9" font-weight="700">on_message() fires</text>
+
+      <!-- Parse -->
+      <line x1="85" y1="230" x2="85" y2="248" stroke="#003825" stroke-width="1.5"/>
+      <rect x="20" y="248" width="130" height="30" rx="6" fill="#0d1318" stroke="#1a2530" stroke-width="1"/>
+      <text x="85" y="267" text-anchor="middle" fill="#c8d8e8" font-family="JetBrains Mono" font-size="9">json.loads(msg)</text>
+
+      <!-- Process -->
+      <line x1="85" y1="278" x2="85" y2="296" stroke="#003825" stroke-width="1.5"/>
+      <rect x="20" y="296" width="130" height="30" rx="6" fill="#0d1318" stroke="#1a2530" stroke-width="1"/>
+      <text x="85" y="315" text-anchor="middle" fill="#c8d8e8" font-family="JetBrains Mono" font-size="9">→ Kafka produce()</text>
+
+      <!-- Loop back -->
+      <line x1="20" y1="311" x2="0" y2="311" stroke="#003825" stroke-width="1"/>
+      <line x1="0" y1="311" x2="0" y2="188" stroke="#003825" stroke-width="1" stroke-dasharray="3,2"/>
+      <line x1="0" y1="188" x2="20" y2="188" stroke="#003825" stroke-width="1"/>
+      <text x="-18" y="252" fill="#336650" font-family="JetBrains Mono" font-size="8" transform="rotate(-90,-18,252)">loop</text>
+
+      <!-- Legend -->
+      <line x1="310" y1="270" x2="340" y2="270" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="348" y="274" fill="#38bdf8" font-family="JetBrains Mono" font-size="8">connection setup</text>
+      <line x1="310" y1="288" x2="340" y2="288" stroke="#00e5a0" stroke-width="1.5"/>
+      <text x="348" y="292" fill="#00e5a0" font-family="JetBrains Mono" font-size="8">confirmation</text>
+      <line x1="310" y1="306" x2="340" y2="306" stroke="#f0b429" stroke-width="2"/>
+      <text x="348" y="310" fill="#f0b429" font-family="JetBrains Mono" font-size="8">data push (trade)</text>
+    </svg>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ══ WEBSOCKET → KAFKA ══ -->
+<section id="to-kafka">
+  <div class="sl">Pipeline Integration</div>
+  <h2>WebSocket → Kafka Producer</h2>
+  <p class="intro">The WebSocket gives you live data. The Kafka producer forwards it into your pipeline. Here's how they connect — and why confluent-kafka makes this clean.</p>
+
+  <div class="card c-green">
+    <h3>Why confluent-kafka fits here</h3>
+    <div class="note">
+      <strong>confluent-kafka has built-in internal buffering.</strong> When you call <code style="color:var(--gold);">producer.produce()</code>, messages go into an internal buffer (backed by librdkafka). The buffer batches them and sends to Kafka with configurable latency (<code style="color:var(--gold);">linger.ms</code>). This means you do <strong>not need to build your own buffer</strong> — just produce() and it handles the rest. Call <code style="color:var(--gold);">producer.flush()</code> when you want to force-send everything now.
+    </div>
+    <div class="explain"><strong>For kafka-python users:</strong> This behavior is why confluent-kafka is preferred for high-frequency streams like this. kafka-python buffers too, but confluent-kafka's C-backed librdkafka is significantly faster and more production-proven at high message rates.</div>
+  </div>
+
+  <!-- Full pipeline diagram -->
+  <div class="diagram-wrap">
+    <div class="diagram-label">Full Pipeline — Binance WebSocket → confluent-kafka → Kafka Broker</div>
+    <svg viewBox="0 0 820 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:820px;display:block;margin:0 auto;">
+      <defs>
+        <marker id="apipe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 Z" fill="#00e5a0"/>
+        </marker>
+      </defs>
+
+      <!-- Binance -->
+      <rect x="10" y="55" width="120" height="50" rx="10" fill="#1a1000" stroke="#3a2800" stroke-width="1.5"/>
+      <text x="70" y="77" text-anchor="middle" fill="#f0b429" font-family="JetBrains Mono" font-size="10" font-weight="700">BINANCE</text>
+      <text x="70" y="90" text-anchor="middle" fill="#604020" font-family="JetBrains Mono" font-size="8">btcusdt@trade</text>
+      <text x="70" y="101" text-anchor="middle" fill="#604020" font-family="JetBrains Mono" font-size="8">WebSocket push</text>
+
+      <!-- Arrow -->
+      <line x1="130" y1="80" x2="163" y2="80" stroke="#00e5a0" stroke-width="2" marker-end="url(#apipe)"/>
+      <text x="146" y="74" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="7">JSON</text>
+
+      <!-- on_message / async loop -->
+      <rect x="165" y="45" width="145" height="70" rx="10" fill="#001a12" stroke="#003825" stroke-width="1.5"/>
+      <text x="237" y="67" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="9" font-weight="700">WebSocket Handler</text>
+      <text x="237" y="81" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="8">json.loads(message)</text>
+      <text x="237" y="93" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="8">extract p, q, s, T</text>
+      <text x="237" y="105" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="8">build Kafka message</text>
+
+      <!-- Arrow -->
+      <line x1="310" y1="80" x2="343" y2="80" stroke="#00e5a0" stroke-width="2" marker-end="url(#apipe)"/>
+      <text x="326" y="74" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="7">dict</text>
+
+      <!-- confluent-kafka producer -->
+      <rect x="345" y="45" width="165" height="70" rx="10" fill="#001012" stroke="#002030" stroke-width="1.5"/>
+      <text x="427" y="67" text-anchor="middle" fill="#38bdf8" font-family="JetBrains Mono" font-size="9" font-weight="700">confluent-kafka</text>
+      <text x="427" y="81" text-anchor="middle" fill="#1a4060" font-family="JetBrains Mono" font-size="8">producer.produce()</text>
+      <text x="427" y="93" text-anchor="middle" fill="#1a4060" font-family="JetBrains Mono" font-size="8">internal buffer ← librdkafka</text>
+      <text x="427" y="105" text-anchor="middle" fill="#1a4060" font-family="JetBrains Mono" font-size="8">auto-batches + retries</text>
+
+      <!-- Arrow -->
+      <line x1="510" y1="80" x2="543" y2="80" stroke="#00e5a0" stroke-width="2" marker-end="url(#apipe)"/>
+      <text x="526" y="74" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="7">bytes</text>
+
+      <!-- Kafka broker -->
+      <rect x="545" y="35" width="140" height="90" rx="10" fill="#0a0015" stroke="#1e0040" stroke-width="1.5"/>
+      <text x="615" y="60" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="9" font-weight="700">KAFKA BROKER</text>
+      <text x="615" y="74" text-anchor="middle" fill="#4a2080" font-family="JetBrains Mono" font-size="8">topic: crypto-prices</text>
+      <rect x="565" y="80" width="35" height="16" rx="4" fill="#1a0a30" stroke="#2e1065"/>
+      <text x="582" y="91" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="7">P0 BTC</text>
+      <rect x="605" y="80" width="35" height="16" rx="4" fill="#1a0a30" stroke="#2e1065"/>
+      <text x="622" y="91" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="7">P1 ETH</text>
+      <rect x="645" y="80" width="35" height="16" rx="4" fill="#1a0a30" stroke="#2e1065"/>
+      <text x="662" y="91" text-anchor="middle" fill="#a855f7" font-family="JetBrains Mono" font-size="7">P2 SOL</text>
+      <text x="615" y="116" text-anchor="middle" fill="#2a1050" font-family="JetBrains Mono" font-size="7">7 day retention</text>
+
+      <!-- Arrow -->
+      <line x1="685" y1="80" x2="718" y2="80" stroke="#00e5a0" stroke-width="2" marker-end="url(#apipe)"/>
+
+      <!-- Consumers -->
+      <rect x="720" y="45" width="95" height="70" rx="10" fill="#0d1318" stroke="#1a2530" stroke-width="1.5"/>
+      <text x="767" y="67" text-anchor="middle" fill="#c8d8e8" font-family="JetBrains Mono" font-size="9" font-weight="700">Consumers</text>
+      <text x="767" y="81" text-anchor="middle" fill="#5a7a8a" font-family="JetBrains Mono" font-size="7">Spark</text>
+      <text x="767" y="93" text-anchor="middle" fill="#5a7a8a" font-family="JetBrains Mono" font-size="7">Database</text>
+      <text x="767" y="105" text-anchor="middle" fill="#5a7a8a" font-family="JetBrains Mono" font-size="7">Dashboard</text>
+
+      <!-- Labels below -->
+      <text x="70" y="140" text-anchor="middle" fill="#3a2800" font-family="JetBrains Mono" font-size="7">data source</text>
+      <text x="237" y="140" text-anchor="middle" fill="#003825" font-family="JetBrains Mono" font-size="7">your code</text>
+      <text x="427" y="140" text-anchor="middle" fill="#002030" font-family="JetBrains Mono" font-size="7">client library</text>
+      <text x="615" y="140" text-anchor="middle" fill="#1e0040" font-family="JetBrains Mono" font-size="7">message store</text>
+      <text x="767" y="140" text-anchor="middle" fill="#1a2530" font-family="JetBrains Mono" font-size="7">downstream</text>
+    </svg>
+  </div>
+
+  <!-- Code: Option 1 → Kafka -->
+  <div class="card c-gold">
+    <div class="step-hd"><span class="step-n sn-gold">1</span><span class="step-t">Option 1 (callbacks) → Kafka producer</span></div>
+    <pre><span class="kw">import</span> websocket
+<span class="kw">import</span> json
+<span class="kw">from</span> confluent_kafka <span class="kw">import</span> Producer
+
+<span class="cm"># Setup confluent-kafka producer</span>
+producer = <span class="cls">Producer</span>({
+    <span class="str">'bootstrap.servers'</span>: <span class="str">'localhost:9092'</span>
+})
+
+<span class="kw">def</span> <span class="fn">delivery_report</span>(err, msg):
+    <span class="kw">if</span> err:
+        <span class="fn">print</span>(<span class="fn">f</span><span class="str">"❌ Delivery failed: {err}"</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="fn">f</span><span class="str">"✓ Sent to partition {msg.partition()} @ offset {msg.offset()}"</span>)
+
+<span class="kw">def</span> <span class="fn">on_message</span>(ws, message):
+    data = json.<span class="fn">loads</span>(message)
+
+    <span class="cm"># Build the Kafka message payload</span>
+    kafka_msg = {
+        <span class="str">"symbol"</span>:    data[<span class="str">"s"</span>],
+        <span class="str">"price"</span>:     <span class="fn">float</span>(data[<span class="str">"p"</span>]),
+        <span class="str">"quantity"</span>:  <span class="fn">float</span>(data[<span class="str">"q"</span>]),
+        <span class="str">"trade_id"</span>:  data[<span class="str">"t"</span>],
+        <span class="str">"timestamp"</span>: data[<span class="str">"T"</span>]
+    }
+
+    <span class="cm"># produce() is non-blocking — goes to confluent-kafka's internal buffer
+    # No need for a manual buffer — confluent-kafka handles batching for you</span>
+    producer.<span class="fn">produce</span>(
+        topic=<span class="str">'crypto-prices'</span>,
+        key=<span class="str">'BTC'</span>,
+        value=json.<span class="fn">dumps</span>(kafka_msg).<span class="fn">encode</span>(<span class="str">'utf-8'</span>),
+        on_delivery=delivery_report
+    )
+    <span class="cm"># poll() processes callbacks — call regularly to avoid buffer buildup</span>
+    producer.<span class="fn">poll</span>(<span class="num">0</span>)
+
+<span class="kw">def</span> <span class="fn">on_error</span>(ws, error):   <span class="fn">print</span>(<span class="str">"Error:"</span>, error)
+<span class="kw">def</span> <span class="fn">on_close</span>(ws, c, m):
+    producer.<span class="fn">flush</span>()   <span class="cm"># flush remaining messages before closing</span>
+    <span class="fn">print</span>(<span class="str">"Closed"</span>)
+<span class="kw">def</span> <span class="fn">on_open</span>(ws):         <span class="fn">print</span>(<span class="str">"Connected"</span>)
+
+ws = websocket.<span class="cls">WebSocketApp</span>(
+    <span class="str">"wss://stream.binance.com:9443/ws/btcusdt@trade"</span>,
+    on_message=on_message, on_error=on_error, on_close=on_close
+)
+ws.on_open = on_open
+ws.<span class="fn">run_forever</span>()</pre>
+  </div>
+
+  <!-- Code: Option 2 → Kafka -->
+  <div class="card c-blue">
+    <div class="step-hd"><span class="step-n sn-blue">2</span><span class="step-t">Option 2 (async loop) → Kafka producer — Recommended</span></div>
+    <pre><span class="kw">import</span> asyncio
+<span class="kw">import</span> json
+<span class="kw">import</span> websockets
+<span class="kw">from</span> confluent_kafka <span class="kw">import</span> Producer
+
+<span class="cm"># confluent-kafka has its own internal buffer — no manual buffering needed</span>
+producer = <span class="cls">Producer</span>({
+    <span class="str">'bootstrap.servers'</span>: <span class="str">'localhost:9092'</span>,
+    <span class="str">'linger.ms'</span>: <span class="num">5</span>,          <span class="cm"># wait up to 5ms to batch messages</span>
+    <span class="str">'batch.num.messages'</span>: <span class="num">100</span> <span class="cm"># or until 100 messages — whichever first</span>
+})
+
+<span class="kw">async def</span> <span class="fn">stream_to_kafka</span>():
+    url = <span class="str">"wss://stream.binance.com:9443/ws/btcusdt@trade"</span>
+
+    <span class="fn">print</span>(<span class="str">"Connecting to Binance WebSocket..."</span>)
+
+    <span class="kw">async with</span> websockets.<span class="fn">connect</span>(url) <span class="kw">as</span> ws:
+        <span class="fn">print</span>(<span class="str">"Connected. Streaming to Kafka..."</span>)
+
+        <span class="kw">async for</span> message <span class="kw">in</span> ws:
+            <span class="kw">try</span>:
+                data = json.<span class="fn">loads</span>(message)
+
+                kafka_msg = {
+                    <span class="str">"symbol"</span>:    data[<span class="str">"s"</span>],
+                    <span class="str">"price"</span>:     <span class="fn">float</span>(data[<span class="str">"p"</span>]),
+                    <span class="str">"quantity"</span>:  <span class="fn">float</span>(data[<span class="str">"q"</span>]),
+                    <span class="str">"trade_id"</span>:  data[<span class="str">"t"</span>],
+                    <span class="str">"timestamp"</span>: data[<span class="str">"T"</span>]
+                }
+
+                <span class="cm"># produce() — non-blocking, goes to confluent-kafka internal buffer
+                # librdkafka batches and sends to Kafka automatically
+                # No manual buffer needed — this is confluent-kafka's advantage</span>
+                producer.<span class="fn">produce</span>(
+                    topic=<span class="str">'crypto-prices'</span>,
+                    key=<span class="str">'BTC'</span>,
+                    value=json.<span class="fn">dumps</span>(kafka_msg).<span class="fn">encode</span>(<span class="str">'utf-8'</span>)
+                )
+
+                <span class="cm"># poll() handles delivery callbacks — pass 0 for non-blocking check</span>
+                producer.<span class="fn">poll</span>(<span class="num">0</span>)
+
+            <span class="kw">except</span> json.JSONDecodeError <span class="kw">as</span> e:
+                <span class="fn">print</span>(<span class="str">f"JSON parse error: {e}"</span>)
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    <span class="kw">try</span>:
+        <span class="kw">await</span> <span class="fn">stream_to_kafka</span>()
+    <span class="kw">finally</span>:
+        <span class="cm"># Always flush before exit — sends remaining buffered messages</span>
+        producer.<span class="fn">flush</span>()
+        <span class="fn">print</span>(<span class="str">"Flushed and closed."</span>)
+
+asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
+    <div class="tip"><strong>Why produce() then poll(0)?</strong> <code style="color:var(--gold);">produce()</code> puts the message in the internal buffer. <code style="color:var(--gold);">poll(0)</code> lets confluent-kafka process delivery callback events without blocking. Calling <code style="color:var(--gold);">poll(0)</code> after each produce() prevents the callback queue from growing unbounded in high-throughput scenarios.</div>
+  </div>
+
+  <!-- confluent-kafka buffer explained -->
+  <div class="card c-green">
+    <h3>confluent-kafka internal buffer — visualised</h3>
+    <div class="diagram-wrap" style="background:var(--bg);border-color:var(--border);">
+      <svg viewBox="0 0 740 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:740px;display:block;margin:0 auto;">
+        <defs>
+          <marker id="abuf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="#00e5a0"/>
+          </marker>
+        </defs>
+
+        <!-- WebSocket -->
+        <rect x="10" y="45" width="110" height="40" rx="8" fill="#001a12" stroke="#003825" stroke-width="1.5"/>
+        <text x="65" y="63" text-anchor="middle" fill="#00e5a0" font-family="JetBrains Mono" font-size="9" font-weight="700">WebSocket</text>
+        <text x="65" y="76" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="7">on_message()</text>
+
+        <line x1="120" y1="65" x2="150" y2="65" stroke="#00e5a0" stroke-width="1.5" marker-end="url(#abuf)"/>
+        <text x="135" y="59" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="7">produce()</text>
+
+        <!-- Buffer -->
+        <rect x="152" y="30" width="240" height="70" rx="8" fill="#001018" stroke="#003850" stroke-width="1.5"/>
+        <text x="272" y="49" text-anchor="middle" fill="#38bdf8" font-family="JetBrains Mono" font-size="9" font-weight="700">confluent-kafka internal buffer</text>
+        <text x="272" y="62" text-anchor="middle" fill="#1a4060" font-family="JetBrains Mono" font-size="7">(librdkafka — C library)</text>
+
+        <!-- buffer slots -->
+        <rect x="162" y="68" width="28" height="18" rx="3" fill="#00e5a0" opacity="0.8"/>
+        <rect x="195" y="68" width="28" height="18" rx="3" fill="#00e5a0" opacity="0.8"/>
+        <rect x="228" y="68" width="28" height="18" rx="3" fill="#00e5a0" opacity="0.6"/>
+        <rect x="261" y="68" width="28" height="18" rx="3" fill="#00e5a0" opacity="0.4"/>
+        <rect x="294" y="68" width="28" height="18" rx="3" fill="#1a2530" stroke="#2a3a4a"/>
+        <rect x="327" y="68" width="28" height="18" rx="3" fill="#1a2530" stroke="#2a3a4a"/>
+        <rect x="360" y="68" width="28" height="18" rx="3" fill="#1a2530" stroke="#2a3a4a"/>
+
+        <text x="272" y="105" text-anchor="middle" fill="#1a4060" font-family="JetBrains Mono" font-size="7">batches until linger.ms OR batch.num.messages</text>
+
+        <!-- arrows from buffer to Kafka -->
+        <line x1="392" y1="65" x2="422" y2="65" stroke="#00e5a0" stroke-width="2" marker-end="url(#abuf)"/>
+        <text x="407" y="59" text-anchor="middle" fill="#336650" font-family="JetBrains Mono" font-size="7">auto-sends</text>
+
+        <!-- Kafka -->
+        <rect x="424" y="30" width="130" height="70" rx="8" fill="#0a0015" stroke="#1e0040" stroke-width="1.5"/>
+        <text x="489" y="53" text-anchor="middle" fill="#c084fc" font-family="JetBrains Mono" font-size="9" font-weight="700">Kafka Broker</text>
+        <text x="489" y="66" text-anchor="middle" fill="#4a2080" font-family="JetBrains Mono" font-size="7">crypto-prices topic</text>
+        <text x="489" y="79" text-anchor="middle" fill="#4a2080" font-family="JetBrains Mono" font-size="7">P0 / P1 / P2</text>
+        <text x="489" y="92" text-anchor="middle" fill="#2a1050" font-family="JetBrains Mono" font-size="7">offset + retention</text>
+
+        <line x1="554" y1="65" x2="584" y2="65" stroke="#00e5a0" stroke-width="1.5" marker-end="url(#abuf)"/>
+
+        <!-- Consumers -->
+        <rect x="586" y="45" width="140" height="40" rx="8" fill="#0d1318" stroke="#1a2530" stroke-width="1.5"/>
+        <text x="656" y="63" text-anchor="middle" fill="#c8d8e8" font-family="JetBrains Mono" font-size="8" font-weight="700">Spark / DB / Dashboard</text>
+        <text x="656" y="76" text-anchor="middle" fill="#5a7a8a" font-family="JetBrains Mono" font-size="7">Consumer Group</text>
+      </svg>
+    </div>
+    <div class="tip"><strong>No manual buffer needed</strong> when using confluent-kafka. The <code style="color:var(--gold);">linger.ms</code> and <code style="color:var(--gold);">batch.num.messages</code> configs control how long to wait before sending a batch. Default is already sensible. Just <code style="color:var(--gold);">produce()</code> and <code style="color:var(--gold);">flush()</code>.</div>
+  </div>
+
+  <!-- Dependencies summary -->
+  <div class="card c-green">
+    <h3>Complete dependency list</h3>
+    <pre><span class="cm"># WebSocket (choose one based on your option):</span>
+pip install websocket-client    <span class="cm"># Option 1 — callback style</span>
+pip install websockets          <span class="cm"># Option 2 — async style (recommended)</span>
+
+<span class="cm"># Kafka client:</span>
+pip install confluent-kafka     <span class="cm"># production-grade, C-backed</span>
+
+<span class="cm"># Mac users — if confluent-kafka fails to build:</span>
+brew install librdkafka
+pip install confluent-kafka
+
+<span class="cm"># Or kafka-python for simpler projects:</span>
+pip install kafka-python</pre>
+  </div>
+
+  <!-- Final summary table -->
+  <div class="card c-purple">
+    <h3>Everything at a glance</h3>
+    <table class="tbl">
+      <thead><tr><th>Layer</th><th>Technology</th><th>Role</th><th>Key point</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Data Source</td>
+          <td style="color:var(--gold);">Binance WebSocket</td>
+          <td style="color:#5a7a8a;">Streams live BTC trades</td>
+          <td style="color:#5a7a8a;">Push-based, not poll-based</td>
+        </tr>
+        <tr>
+          <td>Protocol</td>
+          <td style="color:var(--blue);">WSS (Secure WebSocket)</td>
+          <td style="color:#5a7a8a;">Persistent TCP connection</td>
+          <td style="color:#5a7a8a;">One handshake, infinite messages</td>
+        </tr>
+        <tr>
+          <td>Option 1 Library</td>
+          <td style="color:var(--gold);">websocket-client</td>
+          <td style="color:#5a7a8a;">Event-driven callbacks</td>
+          <td style="color:#5a7a8a;">Library controls flow</td>
+        </tr>
+        <tr>
+          <td>Option 2 Library</td>
+          <td style="color:var(--green);">websockets (async)</td>
+          <td style="color:#5a7a8a;">Async/await loop</td>
+          <td style="color:#5a7a8a;">You control flow — recommended</td>
+        </tr>
+        <tr>
+          <td>Kafka Client</td>
+          <td style="color:var(--purple);">confluent-kafka</td>
+          <td style="color:#5a7a8a;">Forward data to Kafka</td>
+          <td style="color:#5a7a8a;">Built-in buffer — no manual buffering</td>
+        </tr>
+        <tr>
+          <td>Kafka Topic</td>
+          <td style="color:var(--purple);">crypto-prices</td>
+          <td style="color:#5a7a8a;">Store + replay trades</td>
+          <td style="color:#5a7a8a;">3 partitions, keyed by symbol</td>
+        </tr>
+        <tr>
+          <td>Message Format</td>
+          <td style="color:var(--green);">JSON (bytes)</td>
+          <td style="color:#5a7a8a;">Carry trade data</td>
+          <td style="color:#5a7a8a;">p=price, q=quantity, T=timestamp</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>
+
+<div style="text-align:center;margin-top:4rem;padding:2rem;border-top:1px solid var(--border);color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+  Binance WebSocket · btcusdt@trade · wss://stream.binance.com:9443 · confluent-kafka
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const links    = document.querySelectorAll('.toc a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const a = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+      if (a) {
+        a.classList.add('active');
+        a.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
