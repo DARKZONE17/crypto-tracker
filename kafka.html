@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kafka — Complete Beginner's Reference</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.7; font-size: 15px; scroll-behavior: smooth; }
+
+/* ── NAV ── */
+.toc { position: sticky; top: 0; z-index: 100; background: rgba(15,17,23,0.97); border-bottom: 1px solid #1e2433; padding: 0 1.5rem; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.toc::-webkit-scrollbar { display: none; }
+.toc-inner { display: inline-flex; min-width: max-content; }
+.toc a { display: inline-block; padding: 0.65rem 0.85rem; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; color: #64748b; text-decoration: none; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; white-space: nowrap; }
+.toc a:hover { color: #e2e8f0; border-bottom-color: #a855f7; }
+.toc a.active { color: #a855f7; border-bottom-color: #a855f7; }
+.toc-sep { display: inline-block; width: 1px; background: #1e2433; margin: 0.5rem 0; align-self: stretch; }
+
+/* ── HERO ── */
+.hero { background: linear-gradient(135deg,#1a1f2e 0%,#0f1117 60%); border-bottom: 1px solid #2d3748; padding: 4rem 2rem 3rem; text-align: center; }
+.hero-badge { display: inline-block; background: #e84393; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 1.5rem; }
+.hero h1 { font-size: 3.8rem; font-weight: 800; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 0.75rem; background: linear-gradient(90deg,#e84393,#a855f7,#3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-sub { font-size: 1.05rem; color: #94a3b8; max-width: 560px; margin: 0 auto 0.4rem; }
+.hero-tagline { font-size: 0.9rem; color: #64748b; font-style: italic; }
+
+/* ── LAYOUT ── */
+.wrap { max-width: 900px; margin: 0 auto; padding: 3rem 2rem; }
+.sl { font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #e84393; margin-bottom: 0.35rem; }
+h2 { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.4rem; }
+.intro { font-size: 0.93rem; color: #94a3b8; margin-bottom: 1.4rem; max-width: 720px; line-height: 1.85; }
+h3 { font-size: 0.88rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #a855f7; margin-bottom: 0.65rem; padding-bottom: 0.35rem; border-bottom: 1px solid #2d3748; }
+.divider { border: none; border-top: 1px solid #1e2433; margin: 2.75rem 0; }
+
+/* ── CARDS ── */
+.card { background: #161b27; border: 1px solid #2d3748; border-radius: 12px; padding: 1.4rem; margin-bottom: 1.1rem; }
+.c-blue   { border-left: 3px solid #60a5fa; }
+.c-purple { border-left: 3px solid #a855f7; }
+.c-pink   { border-left: 3px solid #e84393; }
+.c-green  { border-left: 3px solid #86efac; }
+.c-amber  { border-left: 3px solid #fbbf24; }
+.c-red    { border-left: 3px solid #f87171; }
+.c-teal   { border-left: 3px solid #5eead4; }
+.c-indigo { border-left: 3px solid #818cf8; }
+
+/* ── CALLOUTS ── */
+.explain { background: #1a2035; border-left: 3px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 0.8rem 1rem; margin: 0.7rem 0; font-size: 0.9rem; color: #93c5fd; line-height: 1.85; }
+.explain strong { color: #bfdbfe; }
+.analogy { background: #1f1635; border: 1px solid #4c1d95; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.7rem 0; font-size: 0.9rem; color: #c4b5fd; line-height: 1.85; }
+.alabel { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #7c3aed; margin-bottom: 0.2rem; }
+.warn { background: #1f1205; border: 1px solid #92400e; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.7rem 0; font-size: 0.86rem; color: #fcd34d; line-height: 1.85; }
+.tip  { background: #0d1f13; border: 1px solid #14532d; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.7rem 0; font-size: 0.86rem; color: #86efac; line-height: 1.85; }
+.error-box { background: #1a0808; border: 1px solid #7f1d1d; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.7rem 0; font-size: 0.86rem; color: #fca5a5; line-height: 1.85; }
+.fix-box  { background: #0a1f10; border: 1px solid #14532d; border-radius: 8px; padding: 0.8rem 1rem; margin: 0.7rem 0; font-size: 0.86rem; color: #86efac; line-height: 1.85; }
+
+/* ── CODE ── */
+pre { background: #0d111a; border: 1px solid #2d3748; border-radius: 8px; padding: 1rem 1.2rem; font-family: 'Courier New', Courier, monospace; font-size: 0.79rem; color: #7dd3fc; overflow-x: auto; margin: 0.7rem 0; line-height: 1.8; }
+.kw  { color: #c084fc; }
+.str { color: #86efac; }
+.cm  { color: #475569; font-style: italic; }
+.fn  { color: #fbbf24; }
+.out { color: #4b5563; }
+.hl  { color: #f9a8d4; }
+.yaml-k { color: #60a5fa; }
+.yaml-v { color: #86efac; }
+
+/* ── STEP HEADERS ── */
+.step-hd { display: flex; align-items: center; margin-bottom: 0.7rem; gap: 10px; }
+.step-n  { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; background: #a855f7; color: #fff; border-radius: 50%; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.step-n.red   { background: #ef4444; }
+.step-n.green { background: #22c55e; }
+.step-n.blue  { background: #3b82f6; }
+.step-n.amber { background: #f59e0b; }
+.step-n.indigo { background: #818cf8; }
+.step-t { font-size: 0.97rem; font-weight: 700; color: #f1f5f9; }
+
+/* ── TABLE ── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.7rem 0; }
+.tbl th { padding: 0.55rem 0.9rem; text-align: left; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #2d3748; background: #1e2433; }
+.tbl td { padding: 0.6rem 0.9rem; border-bottom: 1px solid #1e2433; color: #cbd5e1; vertical-align: top; }
+.tbl td:first-child { color: #a855f7; font-family: monospace; font-size: 0.83rem; }
+.tbl tbody tr:hover { background: #1a1f2e; }
+
+/* ── PARTITION VISUAL ── */
+.pdiag { background: #0d111a; border: 1px solid #2d3748; border-radius: 8px; padding: 0.9rem 1.1rem; font-family: 'Courier New', monospace; font-size: 0.79rem; margin: 0.7rem 0; line-height: 1.9; }
+
+/* ── BADGES ── */
+.badge { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 2px 9px; border-radius: 20px; margin: 2px 2px 0 0; }
+.bg-g { background: #14532d; color: #86efac; }
+.bg-p { background: #2e1065; color: #d8b4fe; }
+.bg-b { background: #1e3a5f; color: #93c5fd; }
+.bg-r { background: #450a0a; color: #fca5a5; }
+
+/* ── FLOW ── */
+.flow { display: flex; flex-direction: column; align-items: center; gap: 0; margin: 1.25rem 0; }
+.fstep { background: #1e2433; border: 1px solid #2d3748; border-radius: 8px; padding: 0.55rem 2rem; font-size: 0.87rem; color: #cbd5e1; min-width: 260px; text-align: center; font-family: 'Courier New', monospace; }
+.fstep.hl { background: #2d1b4e; border-color: #a855f7; color: #e9d5ff; }
+.farrow { color: #475569; font-size: 0.8rem; line-height: 1.6; text-align: center; }
+
+/* ── ARCH ── */
+.arch { background: #161b27; border: 1px solid #2d3748; border-radius: 14px; padding: 1.5rem; margin-bottom: 1.75rem; overflow-x: auto; }
+.arch-row { display: flex; align-items: center; gap: 0; min-width: max-content; }
+.arch-node { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.arch-box { border-radius: 10px; padding: 0.8rem 0.9rem; text-align: center; }
+.arch-lbl { font-size: 10px; color: #475569; font-weight: 600; }
+.arch-arr { display: flex; align-items: center; padding: 0 0.35rem; padding-bottom: 20px; }
+
+/* ── SEMANTICS ── */
+.sem-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(215px,1fr)); gap: 0.9rem; margin: 0.7rem 0; }
+.sem-card { background: #161b27; border: 1px solid #2d3748; border-radius: 10px; padding: 1rem; }
+
+/* ── PROB GRID ── */
+.prob-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(175px,1fr)); gap: 0.9rem; margin: 0.7rem 0; }
+.prob-card { background: #161b27; border: 1px solid #2d3748; border-radius: 10px; padding: 0.9rem; }
+
+/* ── MISTAKE ── */
+.mistake { background: #0d111a; border-radius: 8px; padding: 0.9rem 1.1rem; border-left: 3px solid #f87171; margin-bottom: 0.7rem; }
+
+/* ── INTUITION ── */
+.int-box { background: #0d111a; border: 1px solid #2d3748; border-radius: 12px; padding: 1.75rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+.int-box h4 { font-size: 0.8rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.7rem; }
+.int-box ul { list-style: none; }
+.int-box ul li { font-size: 0.88rem; color: #94a3b8; padding: 2px 0; }
+
+/* ── BEFORE/AFTER ── */
+.ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0.75rem 0; }
+.ba-card { border-radius: 10px; padding: 1rem 1.1rem; }
+.ba-before { background: #1a0808; border: 1px solid #7f1d1d; }
+.ba-after  { background: #0a1a0a; border: 1px solid #14532d; }
+
+/* ── TERMINAL BLOCK ── */
+.terminal { background: #070a0f; border: 1px solid #1e2433; border-radius: 8px; padding: 0.9rem 1.1rem; font-family: 'Courier New', monospace; font-size: 0.79rem; margin: 0.7rem 0; line-height: 1.8; }
+.term-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.t-cmd  { color: #86efac; display: block; }
+.t-out  { color: #4b5563; display: block; }
+.t-err  { color: #f87171; display: block; }
+.t-info { color: #60a5fa; display: block; }
+
+/* ── ADDED BANNER ── */
+.added-banner { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+
+/* cheat val */
+.cv { font-family: monospace; font-size: 0.8rem; color: #86efac; }
+
+@media (max-width: 600px) {
+  .hero h1 { font-size: 2.5rem; }
+  .int-box, .ba-grid { grid-template-columns: 1fr; }
+  .arch-row { flex-direction: column; align-items: flex-start; }
+  .arch-arr { transform: rotate(90deg); padding: 0; margin: 2px auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ STICKY NAV ═══ -->
+<nav class="toc" id="toc">
+  <div class="toc-inner">
+    <a href="#what-is-kafka">What is Kafka</a>
+    <a href="#why-kafka">Before vs After</a>
+    <a href="#analogy">Zomato Analogy</a>
+    <a href="#broker">Broker</a>
+    <a href="#topic">Topic</a>
+    <a href="#partition">Partition</a>
+    <a href="#producer-concept">Producer</a>
+    <a href="#consumer-concept">Consumer</a>
+    <a href="#consumer-group">Consumer Group</a>
+    <a href="#offset">Offset</a>
+    <a href="#replication">Replication</a>
+    <a href="#retention">Retention</a>
+    <a href="#delivery">Delivery Semantics</a>
+    <a href="#zookeeper">ZooKeeper vs KRaft</a>
+    <a href="#e2e-flow">End-to-End Flow</a>
+    <a href="#problems">Problems & Solutions</a>
+    <a href="#when-to-use">When to Use</a>
+    <a href="#docker-setup">Docker Setup</a>
+    <a href="#python-impl">Python — Hello World</a>
+    <a href="#crypto-impl">Python — Crypto Project</a>
+    <a href="#common-errors">Common Errors</a>
+    <a href="#cheatsheet">Cheatsheet</a>
+    <a href="#next-steps">Next Steps</a>
+    <a href="#final">Final Intuition</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-badge">Complete Beginner's Reference</div>
+  <h1>Kafka</h1>
+  <p class="hero-sub">A distributed system that moves data from one system to another in real-time.</p>
+  <p class="hero-tagline">Concepts · Docker Setup · Hello World · Crypto Pipeline · Common Errors · Cheatsheet</p>
+</div>
+
+<div class="wrap">
+
+<!-- ═══════════════════════════════════════════════════════
+     WHAT IS KAFKA
+════════════════════════════════════════════════════════ -->
+<section id="what-is-kafka">
+  <div class="sl">Start Here</div>
+  <h2>What is Kafka?</h2>
+  <p class="intro">Build the mental model first. You need to understand <em>why</em> Kafka was created before you can understand what it does.</p>
+
+  <div class="card c-blue">
+    <h3>The problem Kafka solves</h3>
+    <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.75rem;">You're building a crypto price tracker. Your script fetches prices every minute. Now multiple systems need that data — Spark, PostgreSQL, a live dashboard, an alert system. Without Kafka, you must call all 4 from your script. If Spark is slow, your script waits. If the DB crashes, everything stops.</p>
+    <div class="pdiag">
+      <div style="color:#475569;margin-bottom:5px;">Without Kafka — tight coupling:</div>
+      <div style="color:#f87171;">Your Script → Database    (blocks if slow)
+Your Script → Spark       (crashes, everything stops)
+Your Script → Dashboard   (times out, whole flow fails)
+Your Script → Alerts      (one failure = all fail)</div>
+    </div>
+    <div class="explain">
+      <strong>Kafka's solution:</strong> Your script sends to Kafka <em>once</em> and moves on. Kafka holds the data. Every other system reads from Kafka independently, at its own pace. None of them know or care about each other.
+    </div>
+    <div class="pdiag">
+      <div style="color:#475569;margin-bottom:5px;">With Kafka — decoupled architecture:</div>
+      <div style="color:#86efac;">Your Script → Kafka  ✓  (non-blocking, always fast)</div>
+      <div style="color:#475569;margin-top:5px;">Kafka → Database   (reads when ready, independently)
+Kafka → Spark      (reads when ready, independently)
+Kafka → Dashboard  (reads when ready, independently)
+Kafka → Alerts     (reads when ready, independently)</div>
+      <div style="color:#86efac;margin-top:5px;">One system crashing doesn't affect any other system.</div>
+    </div>
+  </div>
+
+  <div class="card c-purple">
+    <h3>One-line definition</h3>
+    <p style="font-size:1rem;color:#e9d5ff;font-weight:500;line-height:1.85;">Kafka is a <strong style="color:#c084fc;">distributed log system</strong> — it receives data, stores it in order on disk, and lets multiple systems read it independently at their own speed.</p>
+    <div class="analogy">
+      <div class="alabel">Analogy</div>
+      A <strong>newspaper printing press</strong>. The press prints news (producer sends data). Copies stack up (Kafka stores messages). Thousands of people buy and read independently (multiple consumers). Reading one copy doesn't remove it for others.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     BEFORE / AFTER
+════════════════════════════════════════════════════════ -->
+<section id="why-kafka">
+  <div class="sl">Architecture</div>
+  <h2>Before Kafka vs After Kafka</h2>
+  <p class="intro">The core architectural shift Kafka enables:</p>
+
+  <div class="ba-grid">
+    <div class="ba-card ba-before">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;margin-bottom:0.6rem;">❌ Before Kafka</p>
+      <div class="pdiag" style="margin:0 0 0.7rem;border-color:#7f1d1d;">Application → Database</div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:5px;">
+        <li style="font-size:0.85rem;color:#fca5a5;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;">✗</span> Tight coupling — systems depend on each other</li>
+        <li style="font-size:0.85rem;color:#fca5a5;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;">✗</span> No real-time data flow</li>
+        <li style="font-size:0.85rem;color:#fca5a5;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;">✗</span> Poor scalability</li>
+        <li style="font-size:0.85rem;color:#fca5a5;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;">✗</span> Data loss if one system fails</li>
+      </ul>
+    </div>
+    <div class="ba-card ba-after">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#86efac;margin-bottom:0.6rem;">✓ After Kafka</p>
+      <div class="pdiag" style="margin:0 0 0.7rem;border-color:#14532d;">Producer → Kafka → Consumer</div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:5px;">
+        <li style="font-size:0.85rem;color:#86efac;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;">✓</span> Decoupled — systems are independent</li>
+        <li style="font-size:0.85rem;color:#86efac;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;">✓</span> Real-time streaming</li>
+        <li style="font-size:0.85rem;color:#86efac;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;">✓</span> Horizontally scalable</li>
+        <li style="font-size:0.85rem;color:#86efac;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;">✓</span> Fault-tolerant via replication</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     ZOMATO ANALOGY
+════════════════════════════════════════════════════════ -->
+<section id="analogy">
+  <div class="sl">Big Picture</div>
+  <h2>The Zomato Analogy</h2>
+  <p class="intro">Every Kafka concept maps to Zomato. Use this table as a mental shortcut whenever a term confuses you.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Kafka Concept</th><th>Zomato Equivalent</th><th>What it actually does</th></tr></thead>
+    <tbody>
+      <tr><td>Producer</td><td>Customer placing an order</td><td style="color:#94a3b8;">Sends data into Kafka</td></tr>
+      <tr><td>Topic</td><td>Order queue for one restaurant</td><td style="color:#94a3b8;">Named channel data flows through</td></tr>
+      <tr><td>Partition</td><td>Kitchen sections (pizza / drinks / desserts)</td><td style="color:#94a3b8;">Splits topic for parallel processing</td></tr>
+      <tr><td>Broker</td><td>Zomato's backend server</td><td style="color:#94a3b8;">The machine running Kafka</td></tr>
+      <tr><td>Consumer</td><td>Delivery agent</td><td style="color:#94a3b8;">Reads data from Kafka</td></tr>
+      <tr><td>Consumer Group</td><td>Fleet of delivery agents for one restaurant</td><td style="color:#94a3b8;">Multiple consumers sharing work</td></tr>
+      <tr><td>Offset</td><td>Order number (#15, #16…)</td><td style="color:#94a3b8;">Position of a message in a partition</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     CORE CONCEPTS
+════════════════════════════════════════════════════════ -->
+<div class="sl">Core Concepts</div>
+<h2>Every Kafka Building Block</h2>
+<p class="intro">Read these in order. Each concept builds on the last. Don't skip ahead.</p>
+
+<!-- BROKER -->
+<section id="broker">
+<div class="card c-blue">
+  <h3>1 · Broker</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#93c5fd;">In plain English:</strong> A broker is simply a computer running Kafka software. When you run Kafka on your laptop with Docker, your laptop IS the broker. It sits in the middle — receiving data from producers and serving it to consumers.</p>
+  <div class="explain"><strong>Why "broker"?</strong> Like a real-estate broker between buyer and seller, a Kafka broker sits between producers and consumers. It holds everything in the middle so both sides are independent.</div>
+  <div class="analogy"><div class="alabel">Zomato analogy</div>Zomato's backend server. Receives your order, stores it, serves it to the delivery agent. Doesn't place orders, doesn't deliver — just manages the flow.</div>
+  <div class="pdiag">
+    Your laptop running Docker:
+    <span style="color:#60a5fa;">  └── Kafka Broker (port 9092)</span>
+         <span style="color:#94a3b8;">├── receives messages from producers
+         ├── stores them on disk
+         └── serves them to consumers on demand</span>
+  </div>
+  <p style="font-size:0.84rem;color:#94a3b8;">In production: 3+ brokers form a cluster. Locally for learning: 1 is enough.</p>
+</div>
+</section>
+
+<!-- TOPIC -->
+<section id="topic">
+<div class="card c-purple">
+  <h3>2 · Topic</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#c4b5fd;">In plain English:</strong> A topic is a named category — like a folder — for a specific type of message. You name it. You create as many as you need.</p>
+  <div class="explain"><strong>Exact same idea as a database table name.</strong> In SQL: <code style="color:#fbbf24;">users</code> table and <code style="color:#fbbf24;">orders</code> table. In Kafka: <code style="color:#fbbf24;">hello-topic</code> and <code style="color:#fbbf24;">crypto-prices</code> topic. Same type of data → same topic.</div>
+  <div class="analogy"><div class="alabel">Zomato analogy</div>Domino's has its own order queue. McDonald's has its own. You never mix them. In Kafka: <code style="color:#fbbf24;">crypto-prices</code> only ever has crypto price data.</div>
+  <pre><span class="cm"># Both producer and consumer use the same topic name to find each other</span>
+producer.<span class="fn">send</span>(<span class="str">"hello-topic"</span>, value=data)
+consumer = KafkaConsumer(<span class="str">"hello-topic"</span>)</pre>
+  <div class="tip">Key difference from a normal queue: messages are NOT deleted after being read. They stay for 7 days by default. Multiple consumers can all read the same message independently.</div>
+</div>
+</section>
+
+<!-- PARTITION -->
+<section id="partition">
+<div class="card c-pink">
+  <h3>3 · Partition &nbsp;<span style="color:#e84393;font-size:9px;font-weight:400;letter-spacing:1px;">MOST IMPORTANT</span></h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#f9a8d4;">In plain English:</strong> Kafka splits each topic into multiple buckets called partitions. Messages spread across them. Multiple consumers can read different partitions simultaneously — this is how Kafka handles millions of messages.</p>
+  <div class="explain"><strong>Supermarket checkout analogy:</strong> One cashier lane = slow. Five lanes = 5 cashiers simultaneously = fast. Partitions are those lanes. Each is processed independently, in parallel.</div>
+  <div class="pdiag">
+    Topic: <span style="color:#f9a8d4;">"crypto-prices"</span> split into 3 partitions:
+
+    <span style="color:#60a5fa;">Partition 0:</span> <span style="color:#86efac;">[offset 0: BTC] [offset 1: BTC] [offset 2: BTC]</span>  ← BTC only
+    <span style="color:#60a5fa;">Partition 1:</span> <span style="color:#86efac;">[offset 0: ETH] [offset 1: ETH]</span>                  ← ETH only
+    <span style="color:#60a5fa;">Partition 2:</span> <span style="color:#86efac;">[offset 0: SOL] [offset 1: SOL]</span>                  ← SOL only
+
+    Three consumers can read these simultaneously → 3× faster than one consumer alone.
+  </div>
+  <div class="analogy"><div class="alabel">Zomato analogy</div>Pizza section, Drinks section, Dessert section — all cooking simultaneously. Orders routed to the right section. Everything done faster because it's parallel.</div>
+  <pre><span class="cm"># With KEY → same key always → same partition (guaranteed ordering per key)</span>
+producer.<span class="fn">send</span>(<span class="str">"crypto-prices"</span>, key=<span class="str">"BTC"</span>, value=data)
+<span class="cm"># "BTC" → Partition 0 always, "ETH" → Partition 1, "SOL" → Partition 2
+
+# No KEY → Round-robin (msg1→P0, msg2→P1, msg3→P2, msg4→P0 ...)</span>
+producer.<span class="fn">send</span>(<span class="str">"crypto-prices"</span>, value=data)</pre>
+  <div class="warn">⚠ Order is guaranteed ONLY within one partition. All BTC messages are in order in P0. But no ordering guarantee exists across different partitions.</div>
+</div>
+</section>
+
+<!-- PRODUCER -->
+<section id="producer-concept">
+<div class="card c-amber">
+  <h3>4 · Producer</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#fcd34d;">In plain English:</strong> A producer is your Python script that connects to Kafka and sends messages into a topic. It doesn't know who will read the data. Doesn't care. Just sends and moves on.</p>
+  <div class="explain"><strong>The flow:</strong> Fetch prices from CoinGecko → package as JSON → convert to bytes (Kafka only stores bytes) → send to Kafka topic. Done. Your script moves to the next price.</div>
+  <div class="analogy"><div class="alabel">Zomato analogy</div>You (the customer) place an order. You don't know which agent will deliver, which kitchen section cooks it. You just place the order and walk away.</div>
+  <pre><span class="kw">from</span> kafka <span class="kw">import</span> KafkaProducer
+<span class="kw">import</span> json
+
+producer = KafkaProducer(
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,
+    <span class="cm"># Kafka stores bytes — convert dict → JSON string → bytes</span>
+    value_serializer=<span class="kw">lambda</span> v: json.<span class="fn">dumps</span>(v).<span class="fn">encode</span>(<span class="str">'utf-8'</span>)
+)
+producer.<span class="fn">send</span>(<span class="str">'hello-topic'</span>, value={<span class="str">"message"</span>: <span class="str">"Hello World"</span>})</pre>
+  <div class="tip">send() is async — it doesn't wait for confirmation. Messages buffer internally and send in batches. Always call producer.flush() before your script exits or buffered messages are silently discarded.</div>
+  <span class="badge bg-g">Async (non-blocking)</span>
+  <span class="badge bg-p">Batches for speed</span>
+  <span class="badge bg-b">Auto-retries</span>
+</div>
+</section>
+
+<!-- CONSUMER -->
+<section id="consumer-concept">
+<div class="card c-red">
+  <h3>5 · Consumer</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#fca5a5;">In plain English:</strong> A consumer is your Python script that connects to Kafka and reads messages from a topic. It's the other side of the pipeline. It runs forever in a loop, waiting for messages to arrive.</p>
+  <div class="explain"><strong>Critical difference from a normal queue:</strong> Reading a message does NOT delete it. It stays in Kafka for the full retention period (7 days). Five different consumers can all read the same message independently. A traditional queue destroys messages the moment the first consumer reads them.</div>
+  <div class="analogy"><div class="alabel">Zomato analogy</div>The delivery agent. They pick up order details. But unlike a physical order, the Kafka "record" stays — so a second agent (like your Spark pipeline) can also process it independently.</div>
+  <pre><span class="kw">from</span> kafka <span class="kw">import</span> KafkaConsumer
+<span class="kw">import</span> json
+
+consumer = KafkaConsumer(
+    <span class="str">'hello-topic'</span>,
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,
+    auto_offset_reset=<span class="str">'earliest'</span>,
+    group_id=<span class="str">'my-group'</span>,
+    <span class="cm"># Reverse of producer: bytes → string → dict</span>
+    value_deserializer=<span class="kw">lambda</span> x: json.<span class="fn">loads</span>(x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>))
+)
+
+<span class="kw">for</span> message <span class="kw">in</span> consumer:          <span class="cm"># runs forever, waiting for messages</span>
+    <span class="fn">print</span>(<span class="str">"Received:"</span>, message.value)  <span class="cm"># already a dict</span></pre>
+</div>
+</section>
+
+<!-- CONSUMER GROUP -->
+<section id="consumer-group">
+<div class="card c-pink">
+  <h3>6 · Consumer Group</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#f9a8d4;">In plain English:</strong> Multiple consumers that share the same <code style="color:#fbbf24;">group_id</code>. Kafka divides partitions between them automatically. More consumers = faster reading. This is load balancing built into Kafka.</p>
+  <div class="explain"><strong>Golden rule:</strong> Each partition → exactly one consumer per group at a time. With 3 partitions and 3 consumers, each handles 1 partition. Can't have more active consumers than partitions.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:0.7rem 0;">
+    <div class="pdiag">
+      <div style="color:#64748b;margin-bottom:5px;">3 consumers, 3 partitions (ideal)</div>
+      <span style="color:#cbd5e1;">Consumer A → Partition 0
+Consumer B → Partition 1
+Consumer C → Partition 2</span>
+      <div style="color:#86efac;margin-top:5px;font-size:0.79rem;">✓ Perfect balance</div>
+    </div>
+    <div class="pdiag">
+      <div style="color:#64748b;margin-bottom:5px;">2 consumers, 3 partitions</div>
+      <span style="color:#cbd5e1;">Consumer A → Partition 0 + 1
+Consumer B → Partition 2</span>
+      <div style="color:#fbbf24;margin-top:5px;font-size:0.79rem;">~ A does more work</div>
+    </div>
+  </div>
+  <div class="warn">⚠ 4th consumer with 3 partitions = sits idle. Never more active consumers than partitions in a group.</div>
+  <pre><span class="cm"># Different group_ids = fully independent readers, each gets ALL messages</span>
+KafkaConsumer(<span class="str">'hello-topic'</span>, group_id=<span class="str">'my-group'</span>)
+KafkaConsumer(<span class="str">'hello-topic'</span>, group_id=<span class="str">'spark-pipeline'</span>)  <span class="cm"># also reads everything</span></pre>
+</div>
+</section>
+
+<!-- OFFSET -->
+<section id="offset">
+<div class="card c-blue">
+  <h3>7 · Offset</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#93c5fd;">In plain English:</strong> An offset is a number — the position of a message inside a partition. Message 0, 1, 2… Like a page number. Kafka uses offsets to know where each consumer group left off, so restarts resume exactly from where they stopped.</p>
+  <div class="pdiag">
+    Partition 0 — messages stored permanently in order:
+    <span style="color:#fbbf24;">[offset 0]</span> <span style="color:#86efac;">{"message":"Hello World 1"}</span> <span style="color:#475569;">← read ✓</span>
+    <span style="color:#fbbf24;">[offset 1]</span> <span style="color:#86efac;">{"message":"Hello World 2"}</span> <span style="color:#475569;">← read ✓</span>
+    <span style="color:#fbbf24;">[offset 2]</span> <span style="color:#86efac;">{"message":"Hello World 3"}</span> <span style="color:#60a5fa;">← consumer is HERE</span>
+    <span style="color:#fbbf24;">[offset 3]</span> <span style="color:#94a3b8;">{"message":"Hello World 4"}</span> <span style="color:#475569;">← not yet read</span>
+
+    Consumer crashes → restarts → Kafka sees "my-group was at offset 2" → resumes at 3. Zero loss.
+  </div>
+  <div class="analogy"><div class="alabel">Zomato analogy</div>The delivery agent's logbook: "Delivered orders #0, #1, #2. Next is #3." Goes home, comes back, opens logbook, resumes at #3. Never re-delivers old orders, never skips.</div>
+  <pre><span class="cm"># auto_offset_reset: where to start when this group_id has no saved offset yet
+# (only applies the very FIRST time you run with a new group_id)</span>
+auto_offset_reset=<span class="str">'earliest'</span>  <span class="cm"># → start from offset 0, read everything stored</span>
+auto_offset_reset=<span class="str">'latest'</span>    <span class="cm"># → start from NOW, only new messages going forward</span></pre>
+</div>
+</section>
+
+<hr class="divider">
+
+<div class="added-banner">
+  <span style="background:#1e2433;border:1px solid #2d3748;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#60a5fa;padding:2px 10px;">Added topics</span>
+</div>
+
+<!-- REPLICATION -->
+<section id="replication">
+<div class="card c-green">
+  <h3>Replication &amp; Fault Tolerance</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#86efac;">In plain English:</strong> Kafka automatically copies each partition onto multiple brokers. If one server dies, another takes over instantly with zero data loss.</p>
+  <div class="explain"><strong>Leader + Follower:</strong> One broker is the Leader per partition — all reads/writes go through it. Others are Followers — they silently mirror. Leader crashes → Follower auto-promoted → zero downtime.</div>
+  <div class="pdiag">
+    replication-factor = 3 (3 copies of each partition):
+    <span style="color:#e84393;">Broker 1 (Leader)   ← all writes go here</span>
+    <span style="color:#60a5fa;">Broker 2 (Follower) ← silently mirrors Broker 1</span>
+    <span style="color:#60a5fa;">Broker 3 (Follower) ← silently mirrors Broker 1</span>
+    <span style="color:#86efac;">Broker 1 crashes → Broker 2 becomes Leader automatically</span>
+  </div>
+  <div class="warn">⚠ Use replication-factor = 3 in production. On laptop with 1 Docker broker, use 1. replication-factor=1 in production = data loss on server crash.</div>
+</div>
+</section>
+
+<!-- RETENTION -->
+<section id="retention">
+<div class="card c-amber">
+  <h3>Message Retention</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;"><strong style="color:#fcd34d;">In plain English:</strong> Kafka keeps messages for 7 days (default) even after they've been consumed. After that, old messages are deleted. This is what makes Kafka a log, not a queue.</p>
+  <div class="explain"><strong>Why this is powerful:</strong> Add a new Spark pipeline 3 days after the producer started. Set <code style="color:#fbbf24;">auto_offset_reset='earliest'</code> and it replays all 3 days of data. A normal queue would have deleted those messages the moment the first consumer read them.</div>
+  <div class="analogy"><div class="alabel">Analogy</div>A DVR recording a show. Airs live (producer streams). Stored on disk (Kafka holds it). Watch any time within the window (consumers replay). One person watching doesn't delete it for others.</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.9rem;margin:0.7rem 0;">
+    <div class="pdiag" style="text-align:center;"><p style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;">Default</p><p style="font-size:1.4rem;font-weight:700;color:#fbbf24;">7 days</p></div>
+    <div class="pdiag"><p style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Config key</p><p style="font-size:0.79rem;color:#7dd3fc;">retention.ms<br>= 604800000</p></div>
+    <div class="pdiag"><p style="font-size:9px;color:#64748b;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">To replay all</p><p style="font-size:0.79rem;color:#86efac;">auto_offset_reset<br>= 'earliest'</p></div>
+  </div>
+</div>
+</section>
+
+<!-- DELIVERY SEMANTICS -->
+<section id="delivery">
+<div class="card c-purple">
+  <h3>Delivery Semantics — The Big Three</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;">What guarantee does Kafka give about whether a message is actually delivered? Three levels — a classic interview question.</p>
+  <div class="sem-grid">
+    <div class="sem-card" style="border-top:3px solid #f87171;">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;margin-bottom:0.4rem;">At-Most-Once</p>
+      <p style="font-size:0.86rem;color:#cbd5e1;margin-bottom:0.5rem;">Sent once. Fails → gone. No retry.</p>
+      <pre style="margin:0;font-size:0.76rem;">acks = 0</pre>
+      <p style="font-size:0.79rem;color:#64748b;margin-top:0.4rem;">Use: logs, metrics. Risk: data loss.</p>
+    </div>
+    <div class="sem-card" style="border-top:3px solid #fbbf24;">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fbbf24;margin-bottom:0.4rem;">At-Least-Once</p>
+      <p style="font-size:0.86rem;color:#cbd5e1;margin-bottom:0.5rem;">Retried until confirmed. May arrive more than once.</p>
+      <pre style="margin:0;font-size:0.76rem;">acks = 1, retries = 3</pre>
+      <p style="font-size:0.79rem;color:#64748b;margin-top:0.4rem;">Use: most cases. Risk: duplicates.</p>
+    </div>
+    <div class="sem-card" style="border-top:3px solid #86efac;">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#86efac;margin-bottom:0.4rem;">Exactly-Once</p>
+      <p style="font-size:0.86rem;color:#cbd5e1;margin-bottom:0.5rem;">Once exactly. No loss, no duplicates.</p>
+      <pre style="margin:0;font-size:0.76rem;">enable.idempotence = True</pre>
+      <p style="font-size:0.79rem;color:#64748b;margin-top:0.4rem;">Use: payments, finance. Cost: slower.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ZOOKEEPER -->
+<section id="zookeeper">
+<div class="card c-blue">
+  <h3>ZooKeeper vs KRaft</h3>
+  <p style="font-size:0.92rem;color:#cbd5e1;margin-bottom:0.7rem;">Kafka brokers need something to coordinate: who is partition leader? Which brokers are alive? That coordination layer changed.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;">
+    <div class="pdiag" style="border:1px solid #7f1d1d;">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:5px;">ZooKeeper (old)</p>
+      <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:7px;">Separate service. You ran TWO systems. More complexity, more failure points. Your docker-compose.yml includes ZooKeeper — that's this.</p>
+      <pre style="margin:0;font-size:0.75rem;">ZooKeeper + Kafka = 2 systems</pre>
+    </div>
+    <div class="pdiag" style="border:1px solid #14532d;">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#86efac;margin-bottom:5px;">KRaft (new — Kafka 3.3+)</p>
+      <p style="font-size:0.85rem;color:#94a3b8;margin-bottom:7px;">Kafka manages its own metadata internally. No ZooKeeper needed. Simpler, faster, scales better. Future of Kafka.</p>
+      <pre style="margin:0;font-size:0.75rem;">Kafka only = 1 system ✓</pre>
+    </div>
+  </div>
+  <div class="tip" style="margin-top:0.7rem;">Your current docker-compose.yml uses ZooKeeper (the Confluent 7.4.0 image). That's perfectly fine for learning. Just know that in newer setups, ZooKeeper is replaced by KRaft.</div>
+</div>
+</section>
+
+<hr class="divider">
+
+<!-- E2E FLOW -->
+<section id="e2e-flow">
+  <div class="sl">Your Project</div>
+  <h2>End-to-End Flow</h2>
+  <p class="intro">How data flows through a complete Kafka pipeline from source to destination.</p>
+  <div class="flow">
+    <div class="fstep">Data Source (API / Script)</div>
+    <div class="farrow">↓ sends via producer.send()</div>
+    <div class="fstep hl">Kafka Broker — Topic: "your-topic"</div>
+    <div class="farrow">↓ distributed across partitions (by key or round-robin)</div>
+    <div class="fstep hl">Partition 0 &nbsp;|&nbsp; Partition 1 &nbsp;|&nbsp; Partition 2</div>
+    <div class="farrow">↓ stored on disk · offsets assigned · 7 day retention</div>
+    <div class="fstep">Consumer Group reads (Spark / DB / Dashboard)</div>
+    <div class="farrow">↓ each consumer reads one partition in parallel</div>
+    <div class="fstep">Output: Database / Delta Lake / Snowflake</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PROBLEMS -->
+<section id="problems">
+  <div class="sl">Why These Concepts Exist</div>
+  <h2>Problems → Solutions</h2>
+  <p class="intro">Every Kafka concept was invented to solve a specific real problem.</p>
+  <div class="prob-grid">
+    <div class="prob-card"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:0.3rem;">Problem</div><p style="font-size:0.85rem;color:#94a3b8;margin-bottom:0.4rem;">Processing too slow — one consumer can't keep up</p><div style="font-size:0.92rem;font-weight:700;color:#86efac;">→ Partitions</div></div>
+    <div class="prob-card"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:0.3rem;">Problem</div><p style="font-size:0.85rem;color:#94a3b8;margin-bottom:0.4rem;">Multiple services need the same data independently</p><div style="font-size:0.92rem;font-weight:700;color:#86efac;">→ Consumer Groups</div></div>
+    <div class="prob-card"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:0.3rem;">Problem</div><p style="font-size:0.85rem;color:#94a3b8;margin-bottom:0.4rem;">Consumer restarts and re-reads or skips messages</p><div style="font-size:0.92rem;font-weight:700;color:#86efac;">→ Offsets</div></div>
+    <div class="prob-card"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:0.3rem;">Problem</div><p style="font-size:0.85rem;color:#94a3b8;margin-bottom:0.4rem;">Messages for same key arrive out of order</p><div style="font-size:0.92rem;font-weight:700;color:#86efac;">→ Keys + Partitions</div></div>
+    <div class="prob-card"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:0.3rem;">Problem</div><p style="font-size:0.85rem;color:#94a3b8;margin-bottom:0.4rem;">One server crashes — all data for those partitions lost</p><div style="font-size:0.92rem;font-weight:700;color:#86efac;">→ Replication</div></div>
+    <div class="prob-card"><div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:0.3rem;">Problem</div><p style="font-size:0.85rem;color:#94a3b8;margin-bottom:0.4rem;">New pipeline added days late — needs historical data</p><div style="font-size:0.92rem;font-weight:700;color:#86efac;">→ Retention + Replay</div></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- WHEN TO USE -->
+<section id="when-to-use">
+  <div class="sl">Decision Guide</div>
+  <h2>When to Use Kafka — and When NOT To</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
+    <div style="background:#0f1f0f;border:1px solid #14532d;border-radius:10px;padding:1.1rem;">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#86efac;margin-bottom:0.65rem;">✓ Use Kafka When</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:6px;">
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#86efac;">→</span>Real-time data pipelines</li>
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#86efac;">→</span>Multiple services need the same event</li>
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#86efac;">→</span>You need to replay historical data</li>
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#86efac;">→</span>Very high volume: millions of messages/sec</li>
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#86efac;">→</span>Microservices communicating asynchronously</li>
+      </ul>
+    </div>
+    <div style="background:#1f0f0f;border:1px solid #7f1d1d;border-radius:10px;padding:1.1rem;">
+      <p style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#f87171;margin-bottom:0.65rem;">✗ Don't Use Kafka When</p>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:6px;">
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#f87171;">→</span>Simple tasks → use Celery / RabbitMQ</li>
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#f87171;">→</span>Low volume (&lt; 1000 messages/day) — overkill</li>
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#f87171;">→</span>Request-response → use REST or gRPC</li>
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#f87171;">→</span>Small team, tight infra budget</li>
+        <li style="font-size:0.85rem;color:#94a3b8;padding-left:1rem;position:relative;"><span style="position:absolute;left:0;color:#f87171;">→</span>Complex queries needed → use a database</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     DOCKER SETUP
+════════════════════════════════════════════════════════ -->
+<section id="docker-setup">
+  <div class="sl">Infrastructure</div>
+  <h2>Docker Setup — Why Docker &amp; How to Use It</h2>
+  <p class="intro">Before writing any Python, you need Kafka running. Docker is the simplest way to do this on your laptop without a complex manual install.</p>
+
+  <!-- Why Docker -->
+  <div class="card c-teal" style="margin-bottom:1.1rem;">
+    <h3>Why Docker?</h3>
+    <div class="ba-grid">
+      <div class="ba-card ba-before">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:0.5rem;">Without Docker</p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;">
+          <li style="font-size:0.83rem;color:#fca5a5;padding-left:0.8rem;position:relative;"><span style="position:absolute;left:0;">✗</span> Manual Kafka + ZooKeeper installation</li>
+          <li style="font-size:0.83rem;color:#fca5a5;padding-left:0.8rem;position:relative;"><span style="position:absolute;left:0;">✗</span> Complex config files</li>
+          <li style="font-size:0.83rem;color:#fca5a5;padding-left:0.8rem;position:relative;"><span style="position:absolute;left:0;">✗</span> Version conflicts</li>
+          <li style="font-size:0.83rem;color:#fca5a5;padding-left:0.8rem;position:relative;"><span style="position:absolute;left:0;">✗</span> Hard to debug</li>
+        </ul>
+      </div>
+      <div class="ba-card ba-after">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#86efac;margin-bottom:0.5rem;">With Docker</p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;">
+          <li style="font-size:0.83rem;color:#86efac;padding-left:0.8rem;position:relative;"><span style="position:absolute;left:0;">✓</span> One command setup</li>
+          <li style="font-size:0.83rem;color:#86efac;padding-left:0.8rem;position:relative;"><span style="position:absolute;left:0;">✓</span> Clean, isolated environment</li>
+          <li style="font-size:0.83rem;color:#86efac;padding-left:0.8rem;position:relative;"><span style="position:absolute;left:0;">✓</span> Reproducible on any machine</li>
+          <li style="font-size:0.83rem;color:#86efac;padding-left:0.8rem;position:relative;"><span style="position:absolute;left:0;">✓</span> Easy to tear down and restart</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- docker-compose.yml -->
+  <div class="card c-teal">
+    <h3>Step 1 · Create docker-compose.yml</h3>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.7rem;">Create this file in your project folder. It defines two containers: ZooKeeper (metadata coordinator) and Kafka (the broker).</p>
+    <pre><span class="yaml-k">services:</span>
+
+  <span class="yaml-k">zookeeper:</span>
+    <span class="yaml-k">image:</span> <span class="yaml-v">confluentinc/cp-zookeeper:7.4.0</span>
+    <span class="cm"># ZooKeeper manages Kafka metadata — who is leader, which brokers are alive</span>
+    <span class="yaml-k">environment:</span>
+      <span class="yaml-k">ZOOKEEPER_CLIENT_PORT:</span> <span class="yaml-v">2181</span>   <span class="cm"># port ZooKeeper listens on</span>
+
+  <span class="yaml-k">kafka:</span>
+    <span class="yaml-k">image:</span> <span class="yaml-v">confluentinc/cp-kafka:7.4.0</span>
+    <span class="yaml-k">depends_on:</span>
+      <span class="yaml-v">- zookeeper</span>             <span class="cm"># Kafka must start after ZooKeeper</span>
+    <span class="yaml-k">ports:</span>
+      <span class="yaml-v">- "9092:9092"</span>           <span class="cm"># expose port 9092 so your Python scripts can connect</span>
+    <span class="yaml-k">environment:</span>
+      <span class="yaml-k">KAFKA_BROKER_ID:</span> <span class="yaml-v">1</span>
+      <span class="yaml-k">KAFKA_ZOOKEEPER_CONNECT:</span> <span class="yaml-v">zookeeper:2181</span>   <span class="cm"># tell Kafka where ZooKeeper is</span>
+      <span class="yaml-k">KAFKA_LISTENERS:</span> <span class="yaml-v">PLAINTEXT://0.0.0.0:9092</span>
+      <span class="yaml-k">KAFKA_ADVERTISED_LISTENERS:</span> <span class="yaml-v">PLAINTEXT://localhost:9092</span>
+      <span class="yaml-k">KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:</span> <span class="yaml-v">1</span>   <span class="cm"># 1 because we have 1 broker</span></pre>
+  </div>
+
+  <!-- Start / Stop -->
+  <div class="card c-teal">
+    <h3>Step 2 · Start and Stop Kafka</h3>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Terminal — start Kafka (run once, keep running)</div>
+      <span class="t-cmd">docker-compose up -d</span>
+      <span class="t-out"># -d = detached, runs in background so it doesn't block your terminal</span>
+    </div>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Verify both containers are up</div>
+      <span class="t-cmd">docker ps</span>
+      <span class="t-out"># CONTAINER ID   IMAGE                              STATUS
+# abc123         confluentinc/cp-kafka:7.4.0        Up 2 minutes
+# def456         confluentinc/cp-zookeeper:7.4.0    Up 2 minutes</span>
+    </div>
+    <div class="terminal">
+      <div class="term-label" style="color:#f87171;">Stop Kafka when done</div>
+      <span class="t-cmd">docker-compose down</span>
+    </div>
+    <div class="tip">Kafka is now running at <strong>localhost:9092</strong>. That's the address your Python scripts will use to connect.</div>
+  </div>
+
+  <!-- Topic creation via CLI -->
+  <div class="card c-teal">
+    <h3>Step 3 · Create a Topic via CLI</h3>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.7rem;">Use the Kafka CLI tools inside the Docker container to create and verify topics:</p>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Create a topic</div>
+      <span class="t-cmd">docker exec -it kafka-project-1-kafka-1 kafka-topics \
+  --create \
+  --topic hello-topic \
+  --bootstrap-server localhost:9092 \
+  --partitions 1 \
+  --replication-factor 1</span>
+      <span class="t-out"># Created topic hello-topic.</span>
+    </div>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Verify the topic exists</div>
+      <span class="t-cmd">docker exec -it kafka-project-1-kafka-1 kafka-topics \
+  --list \
+  --bootstrap-server localhost:9092</span>
+      <span class="t-out"># hello-topic
+# __consumer_offsets   ← internal Kafka topic, ignore this</span>
+    </div>
+    <div class="explain">
+      <strong>Breaking down the command:</strong><br>
+      <code style="color:#fbbf24;">kafka-project-1-kafka-1</code> = the Docker container name (check yours with <code style="color:#fbbf24;">docker ps</code>)<br>
+      <code style="color:#fbbf24;">kafka-topics --create</code> = the Kafka CLI tool to create a topic<br>
+      <code style="color:#fbbf24;">--partitions 1</code> = start with 1 partition (enough for hello world)<br>
+      <code style="color:#fbbf24;">--replication-factor 1</code> = 1 copy since we have 1 broker locally
+    </div>
+    <div class="tip">You can also create topics from Python code using <code>KafkaAdminClient</code> — shown in the Crypto Project section. For quick experiments, the CLI is faster.</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     PYTHON HELLO WORLD
+════════════════════════════════════════════════════════ -->
+<section id="python-impl">
+  <div class="sl">First Pipeline</div>
+  <h2>Python Setup &amp; Hello World Pipeline</h2>
+  <p class="intro">Your first working Kafka pipeline. Simple as possible — one producer sending "Hello World" messages, one consumer printing them. Once this works, you understand the full flow.</p>
+
+  <!-- Architecture for hello world -->
+  <div class="arch">
+    <p style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#64748b;text-align:center;margin-bottom:1.25rem;">Hello World Pipeline</p>
+    <div class="arch-row">
+      <div class="arch-node">
+        <div class="arch-box" style="background:#2d3748;border:1px solid #475569;min-width:100px;">
+          <p style="font-size:0.85rem;font-weight:700;color:#e2e8f0;">Python dict</p>
+          <p style="font-size:0.72rem;color:#64748b;margin-top:2px;">{"message":"Hello 1"}</p>
+        </div>
+        <p class="arch-lbl">producer.py</p>
+      </div>
+      <div class="arch-arr"><svg width="26" height="12" viewBox="0 0 26 12"><line x1="0" y1="6" x2="20" y2="6" stroke="#475569" stroke-width="1.5"/><polygon points="20,2 26,6 20,10" fill="#475569"/></svg></div>
+      <div class="arch-node">
+        <div class="arch-box" style="background:#3d2600;border:1px solid #92400e;min-width:115px;">
+          <p style="font-size:0.82rem;font-weight:700;color:#fbbf24;">JSON → Bytes</p>
+          <p style="font-size:0.7rem;color:#d97706;margin-top:3px;">value_serializer</p>
+        </div>
+        <p class="arch-lbl">encode</p>
+      </div>
+      <div class="arch-arr"><svg width="26" height="12" viewBox="0 0 26 12"><line x1="0" y1="6" x2="20" y2="6" stroke="#475569" stroke-width="1.5"/><polygon points="20,2 26,6 20,10" fill="#475569"/></svg></div>
+      <div class="arch-node" style="flex:1;">
+        <div class="arch-box" style="background:#0d1f1a;border:1px solid #134e4a;width:100%;min-width:160px;">
+          <p style="font-size:0.8rem;font-weight:700;color:#5eead4;margin-bottom:5px;">Kafka Broker</p>
+          <div style="background:#0f766e;border-radius:5px;padding:3px 8px;font-size:0.72rem;color:#ccfbf1;">topic: "hello-topic"</div>
+          <div style="background:#115e59;border-radius:5px;padding:3px 8px;margin-top:4px;font-size:0.7rem;color:#5eead4;">Partition 0 · 1 partition</div>
+          <p style="font-size:0.68rem;color:#475569;margin-top:4px;">stored on disk · 7 day retention</p>
+        </div>
+        <p class="arch-lbl">docker kafka</p>
+      </div>
+      <div class="arch-arr"><svg width="26" height="12" viewBox="0 0 26 12"><line x1="0" y1="6" x2="20" y2="6" stroke="#475569" stroke-width="1.5"/><polygon points="20,2 26,6 20,10" fill="#475569"/></svg></div>
+      <div class="arch-node">
+        <div class="arch-box" style="background:#1a0d2e;border:1px solid #4c1d95;min-width:115px;">
+          <p style="font-size:0.82rem;font-weight:700;color:#c4b5fd;">Bytes → JSON</p>
+          <p style="font-size:0.7rem;color:#a78bfa;margin-top:3px;">value_deserializer</p>
+        </div>
+        <p class="arch-lbl">decode</p>
+      </div>
+      <div class="arch-arr"><svg width="26" height="12" viewBox="0 0 26 12"><line x1="0" y1="6" x2="20" y2="6" stroke="#475569" stroke-width="1.5"/><polygon points="20,2 26,6 20,10" fill="#475569"/></svg></div>
+      <div class="arch-node">
+        <div class="arch-box" style="background:#2d3748;border:1px solid #475569;min-width:100px;">
+          <p style="font-size:0.85rem;font-weight:700;color:#e2e8f0;">print()</p>
+          <p style="font-size:0.72rem;color:#64748b;margin-top:2px;">Received: {...}</p>
+        </div>
+        <p class="arch-lbl">consumer.py</p>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:0.75rem;color:#475569;margin-top:1.1rem;font-style:italic;">Python dict → JSON → Bytes → Kafka → Bytes → JSON → Python dict</p>
+  </div>
+
+  <!-- Step 1: Install -->
+  <div class="card c-blue">
+    <div class="step-hd"><span class="step-n blue">1</span><span class="step-t">Install the Python Kafka client</span></div>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">This library lets your Python scripts talk to Kafka:</p>
+    <pre>pip install kafka-python</pre>
+    <div class="explain">
+      <strong>Kafka = server. kafka-python = client.</strong> Kafka itself is a Java application running in Docker. <code style="color:#fbbf24;">kafka-python</code> is just the library that lets your Python code connect to it over the network. Like how you install <code style="color:#fbbf24;">requests</code> to call a REST API — you need <code style="color:#fbbf24;">kafka-python</code> to call Kafka.
+    </div>
+    <div class="tip">If you have multiple Python versions installed, use the explicit path to make sure pip and python point to the same environment — this is a real error you may hit (see Common Errors section).</div>
+  </div>
+
+  <!-- Step 2: Setup Docker -->
+  <div class="card c-teal">
+    <div class="step-hd"><span class="step-n" style="background:#5eead4;color:#0f1117;">2</span><span class="step-t">Setup Docker — Start Kafka &amp; Create Topic</span></div>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">Make sure Docker is running, then spin up Kafka and create your topic. Full setup instructions are in the <a href="#docker-setup" style="color:#5eead4;">Docker Setup section</a> — here's the quick version:</p>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Start Kafka (keep this running in the background)</div>
+      <span class="t-cmd">docker-compose up -d</span>
+      <span class="t-out"># Starts ZooKeeper + Kafka broker at localhost:9092</span>
+    </div>
+    <div class="terminal">
+      <div class="term-label" style="color:#5eead4;">Create the hello-topic (run once)</div>
+      <span class="t-cmd">docker exec -it kafka-project-1-kafka-1 kafka-topics \
+  --create \
+  --topic hello-topic \
+  --bootstrap-server localhost:9092 \
+  --partitions 1 \
+  --replication-factor 1</span>
+      <span class="t-out"># Created topic hello-topic.</span>
+    </div>
+    <div class="tip">Check your container name first with <code>docker ps</code> — it may differ from <code>kafka-project-1-kafka-1</code> depending on your folder name.</div>
+  </div>
+
+  <!-- Step 3: producer.py -->
+  <div class="card c-amber">
+    <div class="step-hd"><span class="step-n amber">3</span><span class="step-t">producer.py — Send "Hello World" to Kafka</span></div>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">Create the file, then add this code. It sends a new message every 2 seconds forever:</p>
+    <div class="terminal">
+      <div class="term-label" style="color:#fbbf24;">Create the file</div>
+      <span class="t-cmd">touch producer.py</span>
+    </div>
+    <pre><span class="cm"># producer.py</span>
+<span class="kw">from</span> kafka <span class="kw">import</span> KafkaProducer
+<span class="kw">import</span> json
+<span class="kw">import</span> time
+
+producer = KafkaProducer(
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,  <span class="cm"># WHERE Kafka is running</span>
+    <span class="cm"># Kafka stores raw bytes — we must convert our Python dict to bytes
+    # json.dumps(v) → turns dict into a JSON string
+    # .encode('utf-8') → turns that string into bytes</span>
+    value_serializer=<span class="kw">lambda</span> v: json.<span class="fn">dumps</span>(v).<span class="fn">encode</span>(<span class="str">'utf-8'</span>)
+)
+
+<span class="fn">print</span>(<span class="str">"Starting Producer..."</span>)
+
+i = 1
+<span class="kw">while</span> <span class="kw">True</span>:
+    data = {
+        <span class="str">"message"</span>: <span class="fn">f</span><span class="str">"Hello World {i}"</span>,
+        <span class="str">"number"</span>: i
+    }
+
+    producer.<span class="fn">send</span>(<span class="str">'hello-topic'</span>, value=data)  <span class="cm"># send to Kafka topic</span>
+    <span class="fn">print</span>(<span class="str">"Sent:"</span>, data)
+
+    i += 1
+    time.<span class="fn">sleep</span>(2)  <span class="cm"># wait 2 seconds before sending next message</span></pre>
+
+    <div class="pdiag">
+      <div style="color:#64748b;margin-bottom:5px;">Producer flow:</div>
+      <span style="color:#a855f7;">Python dict</span> → <span style="color:#fbbf24;">JSON string</span> → <span style="color:#86efac;">Bytes</span> → <span style="color:#5eead4;">Kafka Topic "hello-topic"</span>
+    </div>
+
+    <div class="terminal">
+      <div class="term-label" style="color:#fbbf24;">Run it</div>
+      <span class="t-cmd">python producer.py</span>
+      <span class="t-out"># Starting Producer...
+# Sent: {'message': 'Hello World 1', 'number': 1}
+# Sent: {'message': 'Hello World 2', 'number': 2}
+# Sent: {'message': 'Hello World 3', 'number': 3}
+# ... keeps going every 2 seconds</span>
+    </div>
+  </div>
+
+  <!-- Step 4: consumer.py -->
+  <div class="card c-purple">
+    <div class="step-hd"><span class="step-n" style="background:#a855f7;">4</span><span class="step-t">consumer.py — Read messages from Kafka</span></div>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">Create the file, then add this code. It connects to Kafka and waits. Whenever a new message arrives, it prints it:</p>
+    <div class="terminal">
+      <div class="term-label" style="color:#a855f7;">Create the file</div>
+      <span class="t-cmd">touch consumer.py</span>
+    </div>
+    <pre><span class="cm"># consumer.py</span>
+<span class="kw">from</span> kafka <span class="kw">import</span> KafkaConsumer
+<span class="kw">import</span> json
+
+consumer = KafkaConsumer(
+    <span class="str">'hello-topic'</span>,                        <span class="cm"># topic to read from (must match producer)</span>
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,   <span class="cm"># same Kafka address</span>
+    auto_offset_reset=<span class="str">'earliest'</span>,        <span class="cm"># start from the beginning (offset 0)</span>
+    group_id=<span class="str">'my-group'</span>,                  <span class="cm"># bookmark name — Kafka saves your position here</span>
+    <span class="cm"># Reverse of producer: bytes → JSON string → Python dict</span>
+    value_deserializer=<span class="kw">lambda</span> x: json.<span class="fn">loads</span>(x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>))
+)
+
+<span class="fn">print</span>(<span class="str">"Waiting for messages...\n"</span>)
+
+<span class="kw">for</span> message <span class="kw">in</span> consumer:       <span class="cm"># blocks and waits — runs forever</span>
+    <span class="fn">print</span>(<span class="str">"Received:"</span>, message.value)  <span class="cm"># message.value is already a Python dict</span></pre>
+
+    <div class="pdiag">
+      <div style="color:#64748b;margin-bottom:5px;">Consumer flow:</div>
+      <span style="color:#5eead4;">Kafka Topic</span> → <span style="color:#86efac;">Bytes</span> → <span style="color:#fbbf24;">JSON string</span> → <span style="color:#a855f7;">Python dict</span> → <span style="color:#e2e8f0;">print()</span>
+    </div>
+
+    <div class="terminal">
+      <div class="term-label" style="color:#a855f7;">Run it (in a separate terminal, while producer is running)</div>
+      <span class="t-cmd">python consumer.py</span>
+      <span class="t-out"># Waiting for messages...
+#
+# Received: {'message': 'Hello World 1', 'number': 1}
+# Received: {'message': 'Hello World 2', 'number': 2}
+# Received: {'message': 'Hello World 3', 'number': 3}</span>
+    </div>
+  </div>
+
+  <!-- Step 5: Run order -->
+  <div class="card c-green">
+    <div class="step-hd"><span class="step-n green">5</span><span class="step-t">Run order — 4 terminals, in this sequence</span></div>
+    <div style="display:flex;flex-direction:column;gap:0.7rem;">
+      <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #5eead4;">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#5eead4;margin-bottom:0.35rem;">Terminal 1 — Start Kafka (keep running)</p>
+        <div class="terminal" style="margin:0;"><span class="t-cmd">docker-compose up -d</span></div>
+      </div>
+      <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #a855f7;">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#a855f7;margin-bottom:0.35rem;">Terminal 2 — Create topic (run once)</p>
+        <div class="terminal" style="margin:0;"><span class="t-cmd">docker exec -it kafka-project-1-kafka-1 kafka-topics --create --topic hello-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1</span>
+<span class="t-out"># Created topic hello-topic.</span></div>
+      </div>
+      <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #f87171;">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f87171;margin-bottom:0.35rem;">Terminal 3 — Start consumer FIRST</p>
+        <div class="terminal" style="margin:0;"><span class="t-cmd">python consumer.py</span>
+<span class="t-out"># Waiting for messages...</span></div>
+      </div>
+      <div style="background:#0d111a;border-radius:8px;padding:0.9rem;border-left:3px solid #fbbf24;">
+        <p style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fbbf24;margin-bottom:0.35rem;">Terminal 4 — Start producer</p>
+        <div class="terminal" style="margin:0;"><span class="t-cmd">python producer.py</span>
+<span class="t-out"># Starting Producer...
+# Sent: {'message': 'Hello World 1', 'number': 1}
+# Sent: {'message': 'Hello World 2', 'number': 2}</span></div>
+      </div>
+    </div>
+    <div class="tip" style="margin-top:0.7rem;"><strong>Now watch Terminal 3.</strong> You should see messages appearing live as the producer sends them.<br><br><strong>Try the offset experiment:</strong> Stop consumer (Ctrl+C). Wait 30 seconds (let producer send ~15 messages). Restart consumer. It prints all missed messages automatically. This is the power of offsets — Kafka saved your position.</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     CRYPTO PROJECT
+════════════════════════════════════════════════════════ -->
+<section id="crypto-impl">
+  <div class="sl">Advanced Pipeline</div>
+  <h2>Python — Crypto Price Pipeline</h2>
+  <p class="intro">The real project. Fetches BTC, ETH, SOL prices from CoinGecko every 60 seconds using keys and 3 partitions — one per coin. Everything from above, applied to a real API.</p>
+
+  <!-- Architecture -->
+  <div class="arch">
+    <p style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#64748b;text-align:center;margin-bottom:1.25rem;">Crypto Pipeline Architecture</p>
+    <div class="arch-row">
+      <div class="arch-node">
+        <div class="arch-box" style="background:#2d3748;border:1px solid #475569;min-width:105px;">
+          <p style="font-size:0.82rem;font-weight:700;color:#e2e8f0;">CoinGecko</p>
+          <p style="font-size:0.7rem;color:#64748b;margin-top:2px;">free API, no key</p>
+        </div>
+        <p class="arch-lbl">data source</p>
+      </div>
+      <div class="arch-arr"><svg width="26" height="12" viewBox="0 0 26 12"><line x1="0" y1="6" x2="20" y2="6" stroke="#475569" stroke-width="1.5"/><polygon points="20,2 26,6 20,10" fill="#475569"/></svg></div>
+      <div class="arch-node">
+        <div class="arch-box" style="background:#3d2600;border:1px solid #92400e;min-width:140px;">
+          <p style="font-size:0.82rem;font-weight:700;color:#fbbf24;">KafkaProducer</p>
+          <p style="font-size:0.68rem;color:#d97706;margin-top:3px;line-height:1.65;">key=symbol<br>value_serializer<br>acks=1 · retries=3</p>
+        </div>
+        <p class="arch-lbl">producer.py</p>
+      </div>
+      <div class="arch-arr"><svg width="26" height="12" viewBox="0 0 26 12"><line x1="0" y1="6" x2="20" y2="6" stroke="#475569" stroke-width="1.5"/><polygon points="20,2 26,6 20,10" fill="#475569"/></svg></div>
+      <div class="arch-node" style="flex:1;">
+        <div class="arch-box" style="background:#0d1f1a;border:1px solid #134e4a;width:100%;min-width:175px;">
+          <p style="font-size:0.78rem;font-weight:700;color:#5eead4;margin-bottom:5px;">Broker — "crypto-prices"</p>
+          <div style="display:flex;gap:4px;justify-content:center;margin-bottom:4px;">
+            <div style="background:#115e59;border-radius:5px;padding:3px 6px;"><p style="font-size:9px;font-weight:700;color:#5eead4;">P0 BTC</p></div>
+            <div style="background:#115e59;border-radius:5px;padding:3px 6px;"><p style="font-size:9px;font-weight:700;color:#5eead4;">P1 ETH</p></div>
+            <div style="background:#115e59;border-radius:5px;padding:3px 6px;"><p style="font-size:9px;font-weight:700;color:#5eead4;">P2 SOL</p></div>
+          </div>
+          <p style="font-size:0.68rem;color:#475569;">disk · 7 day retention</p>
+        </div>
+        <p class="arch-lbl">docker kafka</p>
+      </div>
+      <div class="arch-arr"><svg width="26" height="12" viewBox="0 0 26 12"><line x1="0" y1="6" x2="20" y2="6" stroke="#475569" stroke-width="1.5"/><polygon points="20,2 26,6 20,10" fill="#475569"/></svg></div>
+      <div class="arch-node">
+        <div class="arch-box" style="background:#3b0f0f;border:1px solid #7f1d1d;min-width:130px;">
+          <p style="font-size:0.82rem;font-weight:700;color:#fca5a5;">KafkaConsumer</p>
+          <p style="font-size:0.68rem;color:#f87171;margin-top:3px;line-height:1.65;">group_id<br>auto_offset_reset<br>deserializer</p>
+        </div>
+        <p class="arch-lbl">consumer.py</p>
+      </div>
+      <div class="arch-arr"><svg width="26" height="12" viewBox="0 0 26 12"><line x1="0" y1="6" x2="20" y2="6" stroke="#475569" stroke-width="1.5"/><polygon points="20,2 26,6 20,10" fill="#475569"/></svg></div>
+      <div class="arch-node">
+        <div class="arch-box" style="background:#2d3748;border:1px solid #475569;min-width:105px;">
+          <p style="font-size:0.82rem;font-weight:700;color:#e2e8f0;">Snowflake</p>
+          <p style="font-size:0.7rem;color:#64748b;margin-top:2px;">/ Delta Lake / DB</p>
+        </div>
+        <p class="arch-lbl">destination</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create topic with 3 partitions -->
+  <div class="card c-teal">
+    <div class="step-hd"><span class="step-n blue">1</span><span class="step-t">Create topic with 3 partitions (run once)</span></div>
+    <p style="font-size:0.92rem;color:#94a3b8;margin-bottom:0.6rem;">For the crypto project we want 3 partitions — one per coin. Two ways to do this:</p>
+
+    <p style="font-size:0.85rem;font-weight:700;color:#5eead4;margin-bottom:0.4rem;">Option A — CLI inside Docker:</p>
+    <div class="terminal">
+      <span class="t-cmd">docker exec -it kafka-project-1-kafka-1 kafka-topics \
+  --create \
+  --topic crypto-prices \
+  --bootstrap-server localhost:9092 \
+  --partitions 3 \
+  --replication-factor 1</span>
+    </div>
+
+    <p style="font-size:0.85rem;font-weight:700;color:#5eead4;margin:0.85rem 0 0.4rem;">Option B — Python (run this file once):</p>
+    <pre><span class="cm"># create_topic.py — run ONCE before producer/consumer</span>
+<span class="kw">from</span> kafka.admin <span class="kw">import</span> KafkaAdminClient, NewTopic
+
+admin = KafkaAdminClient(bootstrap_servers=<span class="str">'localhost:9092'</span>)
+
+topic = NewTopic(
+    name=<span class="str">'crypto-prices'</span>,
+    num_partitions=3,       <span class="cm"># 3 partitions: BTC → P0, ETH → P1, SOL → P2</span>
+    replication_factor=1    <span class="cm"># 1 because we have 1 broker locally</span>
+)
+
+admin.<span class="fn">create_topics</span>([topic])
+<span class="fn">print</span>(<span class="str">"Topic 'crypto-prices' created with 3 partitions!"</span>)
+admin.<span class="fn">close</span>()</pre>
+    <div class="warn">⚠ Run create_topic once only. Running it a second time throws TopicAlreadyExistsException — just ignore that error, the topic is already there.</div>
+  </div>
+
+  <!-- Crypto producer -->
+  <div class="card c-amber">
+    <div class="step-hd"><span class="step-n amber">2</span><span class="step-t">producer.py — Fetch and stream crypto prices</span></div>
+    <pre><span class="cm"># producer.py</span>
+<span class="kw">from</span> kafka <span class="kw">import</span> KafkaProducer
+<span class="kw">import</span> json, time, requests
+
+producer = KafkaProducer(
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,
+    value_serializer=<span class="kw">lambda</span> x: json.<span class="fn">dumps</span>(x).<span class="fn">encode</span>(<span class="str">'utf-8'</span>),
+    key_serializer=<span class="kw">lambda</span> x: x.<span class="fn">encode</span>(<span class="str">'utf-8'</span>),  <span class="cm"># key must also be bytes</span>
+    acks=1,      <span class="cm"># leader must confirm receipt</span>
+    retries=3,   <span class="cm"># retry up to 3 times on failure</span>
+)
+
+<span class="kw">def</span> <span class="fn">fetch_prices</span>():
+    <span class="cm"># CoinGecko free API — no key needed</span>
+    url = <span class="str">"https://api.coingecko.com/api/v3/simple/price"</span>
+    params = {<span class="str">"ids"</span>: <span class="str">"bitcoin,ethereum,solana"</span>, <span class="str">"vs_currencies"</span>: <span class="str">"usd"</span>}
+    <span class="kw">return</span> requests.<span class="fn">get</span>(url, params=params).<span class="fn">json</span>()
+    <span class="cm"># returns: {"bitcoin": {"usd": 67000}, "ethereum": {"usd": 3400}, ...}</span>
+
+<span class="kw">def</span> <span class="fn">send_prices</span>():
+    data = <span class="fn">fetch_prices</span>()
+    coin_map = {<span class="str">"bitcoin"</span>: <span class="str">"BTC"</span>, <span class="str">"ethereum"</span>: <span class="str">"ETH"</span>, <span class="str">"solana"</span>: <span class="str">"SOL"</span>}
+
+    <span class="kw">for</span> coin_id, symbol <span class="kw">in</span> coin_map.<span class="fn">items</span>():
+        message = {
+            <span class="str">"symbol"</span>: symbol,
+            <span class="str">"price_usd"</span>: data[coin_id][<span class="str">"usd"</span>],
+            <span class="str">"timestamp"</span>: time.<span class="fn">strftime</span>(<span class="str">"%Y-%m-%dT%H:%M:%S"</span>)
+        }
+
+        <span class="cm"># key=symbol routes messages:
+        # "BTC" always → Partition 0 (consistent hashing)
+        # "ETH" always → Partition 1
+        # "SOL" always → Partition 2
+        # Guarantees: all BTC messages in order within P0</span>
+        future = producer.<span class="fn">send</span>(topic=<span class="str">'crypto-prices'</span>, key=symbol, value=message)
+
+        <span class="cm"># future.get() waits for broker confirmation (makes send synchronous)
+        # meta.partition → which partition the message landed in
+        # meta.offset    → its position number in that partition</span>
+        meta = future.<span class="fn">get</span>(timeout=10)
+        <span class="fn">print</span>(<span class="fn">f</span><span class="str">"✓ {symbol}: partition={meta.partition}, offset={meta.offset}"</span>)
+
+    producer.<span class="fn">flush</span>()  <span class="cm"># send any remaining buffered messages immediately</span>
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    <span class="fn">send_prices</span>()
+    time.<span class="fn">sleep</span>(60)  <span class="cm"># fetch and send every 60 seconds</span></pre>
+
+    <div class="terminal">
+      <div class="term-label" style="color:#fbbf24;">Expected output</div>
+      <span class="t-out"># ✓ BTC: partition=0, offset=0
+# ✓ ETH: partition=1, offset=0
+# ✓ SOL: partition=2, offset=0
+# ✓ BTC: partition=0, offset=1
+# ✓ ETH: partition=1, offset=1
+# ... repeats every 60 seconds</span>
+    </div>
+  </div>
+
+  <!-- Crypto consumer -->
+  <div class="card c-red">
+    <div class="step-hd"><span class="step-n red">3</span><span class="step-t">consumer.py — Read and process crypto prices</span></div>
+    <pre><span class="cm"># consumer.py</span>
+<span class="kw">from</span> kafka <span class="kw">import</span> KafkaConsumer
+<span class="kw">import</span> json
+
+consumer = KafkaConsumer(
+    <span class="str">'crypto-prices'</span>,
+    bootstrap_servers=<span class="str">'localhost:9092'</span>,
+    group_id=<span class="str">'spark-pipeline'</span>,          <span class="cm"># bookmark name for this consumer</span>
+    auto_offset_reset=<span class="str">'earliest'</span>,        <span class="cm"># start from offset 0 on first run</span>
+    value_deserializer=<span class="kw">lambda</span> x: json.<span class="fn">loads</span>(x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>)),
+    key_deserializer=<span class="kw">lambda</span> x: x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>) <span class="kw">if</span> x <span class="kw">else</span> <span class="kw">None</span>,
+    enable_auto_commit=<span class="kw">True</span>,             <span class="cm"># auto-save offset every second</span>
+    auto_commit_interval_ms=1000,
+)
+
+<span class="fn">print</span>(<span class="str">"Consumer started. Waiting for messages..."</span>)
+
+<span class="kw">for</span> message <span class="kw">in</span> consumer:
+    data = message.value   <span class="cm"># already a Python dict</span>
+
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"[P{message.partition} | offset {message.offset}]"</span>)
+    <span class="fn">print</span>(<span class="fn">f</span><span class="str">"  {data['symbol']}: ${data['price_usd']:,}  @ {data['timestamp']}"</span>)
+
+    <span class="cm"># Next step: hand off to Spark or write to DB:
+    # spark_stream.process(data)
+    # db.execute("INSERT INTO prices ...", data)</span></pre>
+
+    <div class="terminal">
+      <div class="term-label" style="color:#f87171;">Expected output</div>
+      <span class="t-out"># Consumer started. Waiting for messages...
+# [P0 | offset 0]
+#   BTC: $67,000  @ 2024-01-01T10:00:00
+# [P1 | offset 0]
+#   ETH: $3,400   @ 2024-01-01T10:00:00
+# [P2 | offset 0]
+#   SOL: $120     @ 2024-01-01T10:00:00</span>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     COMMON ERRORS
+════════════════════════════════════════════════════════ -->
+<section id="common-errors">
+  <div class="sl">Troubleshooting</div>
+  <h2>Common Errors — What They Mean &amp; How to Fix Them</h2>
+  <p class="intro">Errors you will hit. Know the root cause so you fix them in seconds instead of spending an hour Googling.</p>
+
+  <!-- Error 1: ModuleNotFoundError -->
+  <div class="card c-red">
+    <h3>Error 1 — ModuleNotFoundError: No module named 'kafka'</h3>
+    <div class="error-box">
+      <strong>Error you see:</strong><br>
+      <code>ModuleNotFoundError: No module named 'kafka'</code>
+    </div>
+    <div class="explain">
+      <strong>Root cause:</strong> This is a Python environment mismatch. You ran <code style="color:#fbbf24;">pip install kafka-python</code> which installed the library into <strong>Python A</strong>. But when you run <code style="color:#fbbf24;">python producer.py</code>, it's using <strong>Python B</strong> — a different installation that doesn't have kafka-python.
+    </div>
+    <div class="pdiag">
+      The problem:
+      <span style="color:#f87171;">pip → /usr/local/bin/python3    (installs here)
+python → /usr/bin/python3         (runs from here — different!)</span>
+      These are two completely different Python environments. Installing in one doesn't affect the other.
+    </div>
+    <div class="fix-box">
+      <strong>Fix — use the same Python explicitly:</strong><br>
+      <code>/usr/bin/python3 -m pip install kafka-python</code><br>
+      <code>/usr/bin/python3 producer.py</code>
+    </div>
+    <pre><span class="cm"># Find out which Python your system uses:</span>
+which python3         <span class="cm"># shows path like /usr/bin/python3</span>
+python3 --version     <span class="cm"># shows version</span>
+
+<span class="cm"># Install using that exact python's pip:</span>
+/usr/bin/python3 -m pip install kafka-python
+
+<span class="cm"># Run using the same python:</span>
+/usr/bin/python3 producer.py
+
+<span class="cm"># OR: use a virtual environment (cleanest solution):</span>
+python3 -m venv venv        <span class="cm"># create isolated environment</span>
+source venv/bin/activate    <span class="cm"># activate it (Mac/Linux)</span>
+pip install kafka-python    <span class="cm"># install into venv — guaranteed same python</span>
+python producer.py          <span class="cm"># run — uses venv python</span></pre>
+    <div class="tip"><strong>The cleanest solution for any project:</strong> Always use a virtual environment (<code>venv</code>). Create it once, activate it, install everything inside. pip and python always refer to the same thing within a venv.</div>
+  </div>
+
+  <!-- Error 2: group_id missing -->
+  <div class="card c-red">
+    <h3>Error 2 — Consumer re-reads from offset 0 every restart</h3>
+    <div class="error-box"><strong>Symptom:</strong> Every time you restart consumer.py, it prints all messages from the beginning instead of resuming where it left off.</div>
+    <div class="explain"><strong>Root cause:</strong> Missing <code style="color:#fbbf24;">group_id</code>. Without it, kafka-python generates a random UUID as the group name on every run. Since this "new" group has never read before, Kafka treats it as a fresh start and applies <code style="color:#fbbf24;">auto_offset_reset</code> — reading from earliest every time.</div>
+    <div class="fix-box"><strong>Fix:</strong> Add a fixed <code>group_id</code> and use the same name every run. Kafka stores your position under that name permanently.</div>
+    <pre><span class="cm"># WRONG — no group_id, random name generated each run:</span>
+consumer = KafkaConsumer(<span class="str">'hello-topic'</span>, bootstrap_servers=<span class="str">'localhost:9092'</span>)
+
+<span class="cm"># CORRECT — fixed name, Kafka bookmarks your position under this name:</span>
+consumer = KafkaConsumer(<span class="str">'hello-topic'</span>, bootstrap_servers=<span class="str">'localhost:9092'</span>,
+                         group_id=<span class="str">'my-group'</span>)</pre>
+  </div>
+
+  <!-- Error 3: value is bytes -->
+  <div class="card c-red">
+    <h3>Error 3 — message.value shows b'{...}' bytes instead of a dict</h3>
+    <div class="error-box"><strong>Symptom:</strong> Consumer prints <code>Received: b'{"message": "Hello World 1"}'</code> — note the <code>b'...'</code> prefix. It's bytes, not a dict.</div>
+    <div class="explain"><strong>Root cause:</strong> Missing <code style="color:#fbbf24;">value_deserializer</code> on the consumer. Kafka delivers raw bytes. Without the deserializer, you get the bytes directly.</div>
+    <div class="fix-box"><strong>Fix:</strong> Add the deserializer. It must be the exact reverse of what the producer's serializer did.</div>
+    <pre><span class="cm"># Producer serialized: dict → JSON string → bytes</span>
+value_serializer=<span class="kw">lambda</span> v: json.<span class="fn">dumps</span>(v).<span class="fn">encode</span>(<span class="str">'utf-8'</span>)
+
+<span class="cm"># Consumer must deserialize in reverse: bytes → JSON string → dict</span>
+value_deserializer=<span class="kw">lambda</span> x: json.<span class="fn">loads</span>(x.<span class="fn">decode</span>(<span class="str">'utf-8'</span>))</pre>
+  </div>
+
+  <!-- Error 4: flush() -->
+  <div class="card c-red">
+    <h3>Error 4 — Producer script exits but consumer received nothing</h3>
+    <div class="error-box"><strong>Symptom:</strong> Producer prints "Sent: ..." but the consumer receives no messages — or only receives some of them.</div>
+    <div class="explain"><strong>Root cause:</strong> Missing <code style="color:#fbbf24;">producer.flush()</code>. The producer batches messages internally for efficiency. If your script exits before the batch is flushed, those buffered messages are silently discarded.</div>
+    <div class="fix-box"><strong>Fix:</strong> Always call <code>producer.flush()</code> before your script exits. Forces all buffered messages to send immediately.</div>
+    <pre><span class="cm"># WRONG — messages may be in buffer when script exits:</span>
+producer.<span class="fn">send</span>(<span class="str">'hello-topic'</span>, value=data)
+<span class="cm"># script ends here — buffer discarded, consumer gets nothing</span>
+
+<span class="cm"># CORRECT — flush() empties the buffer first:</span>
+producer.<span class="fn">send</span>(<span class="str">'hello-topic'</span>, value=data)
+producer.<span class="fn">flush</span>()  <span class="cm"># wait for all messages to actually leave</span></pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     CHEATSHEET
+════════════════════════════════════════════════════════ -->
+<section id="cheatsheet">
+  <div class="sl">Quick Reference</div>
+  <h2>Cheatsheet — Everything in One Place</h2>
+
+  <p style="font-size:0.9rem;font-weight:700;color:#a855f7;margin:0 0 0.5rem;">Key Configs:</p>
+  <table class="tbl">
+    <thead><tr><th>Config</th><th>What it does</th><th>Common value</th></tr></thead>
+    <tbody>
+      <tr><td>bootstrap_servers</td><td style="color:#94a3b8;">Kafka address your script connects to</td><td class="cv">localhost:9092</td></tr>
+      <tr><td>acks</td><td style="color:#94a3b8;">Brokers that must confirm a write</td><td class="cv">0 / 1 / all</td></tr>
+      <tr><td>retries</td><td style="color:#94a3b8;">Auto-retry count on send failure</td><td class="cv">3</td></tr>
+      <tr><td>group_id</td><td style="color:#94a3b8;">Consumer bookmark name — NEVER omit</td><td class="cv">'my-group'</td></tr>
+      <tr><td>auto_offset_reset</td><td style="color:#94a3b8;">Start position when no bookmark exists</td><td class="cv">earliest / latest</td></tr>
+      <tr><td>enable_auto_commit</td><td style="color:#94a3b8;">Auto-save offset so restart resumes correctly</td><td class="cv">True</td></tr>
+      <tr><td>value_serializer</td><td style="color:#94a3b8;">Producer: dict → bytes</td><td class="cv">lambda v: json.dumps(v).encode('utf-8')</td></tr>
+      <tr><td>value_deserializer</td><td style="color:#94a3b8;">Consumer: bytes → dict</td><td class="cv">lambda x: json.loads(x.decode('utf-8'))</td></tr>
+      <tr><td>retention.ms</td><td style="color:#94a3b8;">How long messages stay on disk</td><td class="cv">604800000 (7 days)</td></tr>
+      <tr><td>replication.factor</td><td style="color:#94a3b8;">Copies per partition across brokers</td><td class="cv">3 (prod) / 1 (local)</td></tr>
+      <tr><td>num.partitions</td><td style="color:#94a3b8;">Partitions per topic</td><td class="cv">3 for crypto project</td></tr>
+    </tbody>
+  </table>
+
+  <p style="font-size:0.9rem;font-weight:700;color:#a855f7;margin:1.25rem 0 0.5rem;">message fields (inside for loop):</p>
+  <pre>message.value      <span class="cm"># your data (dict after deserializer)</span>
+message.key        <span class="cm"># the key you sent ("BTC", "ETH", ...)</span>
+message.topic      <span class="cm"># "hello-topic" or "crypto-prices"</span>
+message.partition  <span class="cm"># which partition: 0, 1, or 2</span>
+message.offset     <span class="cm"># position in that partition: 0, 1, 2, ...</span>
+message.timestamp  <span class="cm"># when producer sent it (unix milliseconds)</span></pre>
+
+  <p style="font-size:0.9rem;font-weight:700;color:#a855f7;margin:1.25rem 0 0.5rem;">Useful CLI commands:</p>
+  <pre><span class="cm"># List all topics</span>
+docker exec -it kafka-project-1-kafka-1 kafka-topics --list --bootstrap-server localhost:9092
+
+<span class="cm"># Describe a topic (see partitions, replication)</span>
+docker exec -it kafka-project-1-kafka-1 kafka-topics --describe --topic hello-topic --bootstrap-server localhost:9092
+
+<span class="cm"># Read messages from a topic in the terminal (no Python needed)</span>
+docker exec -it kafka-project-1-kafka-1 kafka-console-consumer --topic hello-topic --from-beginning --bootstrap-server localhost:9092
+
+<span class="cm"># Send a test message from terminal</span>
+docker exec -it kafka-project-1-kafka-1 kafka-console-producer --topic hello-topic --bootstrap-server localhost:9092</pre>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     NEXT STEPS
+════════════════════════════════════════════════════════ -->
+<section id="next-steps">
+  <div class="sl">Roadmap</div>
+  <h2>Next Steps</h2>
+  <p class="intro">What to build after getting Hello World and the crypto pipeline working.</p>
+
+  <div class="prob-grid">
+    <div class="prob-card">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#60a5fa;margin-bottom:0.4rem;">Step 1</div>
+      <p style="font-size:0.87rem;color:#cbd5e1;font-weight:600;margin-bottom:0.3rem;">Multiple Partitions</p>
+      <p style="font-size:0.82rem;color:#94a3b8;">Move hello-topic from 1 to 3 partitions. Add keys. See load balancing in action.</p>
+    </div>
+    <div class="prob-card">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#a855f7;margin-bottom:0.4rem;">Step 2</div>
+      <p style="font-size:0.87rem;color:#cbd5e1;font-weight:600;margin-bottom:0.3rem;">Consumer Groups</p>
+      <p style="font-size:0.82rem;color:#94a3b8;">Run 3 consumers with the same group_id. Watch Kafka assign one partition to each automatically.</p>
+    </div>
+    <div class="prob-card">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e84393;margin-bottom:0.4rem;">Step 3</div>
+      <p style="font-size:0.87rem;color:#cbd5e1;font-weight:600;margin-bottom:0.3rem;">Real API Integration</p>
+      <p style="font-size:0.82rem;color:#94a3b8;">Use CoinGecko API as done in the crypto project. Fetch real prices, produce them every minute.</p>
+    </div>
+    <div class="prob-card">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#86efac;margin-bottom:0.4rem;">Step 4</div>
+      <p style="font-size:0.87rem;color:#cbd5e1;font-weight:600;margin-bottom:0.3rem;">Store to Database</p>
+      <p style="font-size:0.82rem;color:#94a3b8;">In the consumer, write each message to PostgreSQL or SQLite. Real persistence.</p>
+    </div>
+    <div class="prob-card">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fbbf24;margin-bottom:0.4rem;">Step 5</div>
+      <p style="font-size:0.87rem;color:#cbd5e1;font-weight:600;margin-bottom:0.3rem;">Connect Spark</p>
+      <p style="font-size:0.82rem;color:#94a3b8;">Use Spark Structured Streaming to read from Kafka instead of a plain consumer. Real-time processing.</p>
+    </div>
+    <div class="prob-card">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#5eead4;margin-bottom:0.4rem;">Step 6</div>
+      <p style="font-size:0.87rem;color:#cbd5e1;font-weight:600;margin-bottom:0.3rem;">Databricks / Snowflake</p>
+      <p style="font-size:0.82rem;color:#94a3b8;">Route processed data from Spark into Delta Lake or Snowflake. Full production-grade pipeline.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════
+     FINAL
+════════════════════════════════════════════════════════ -->
+<section id="final">
+  <div class="sl">Final Intuition</div>
+  <h2>Remember This</h2>
+
+  <div class="int-box">
+    <div>
+      <h4 style="color:#86efac;">Kafka IS</h4>
+      <ul>
+        <li>✓ A distributed log system</li>
+        <li>✓ A durable event store</li>
+        <li>✓ A real-time data pipeline</li>
+        <li>✓ A distributed streaming platform</li>
+      </ul>
+      <div style="margin-top:1.4rem;">
+        <p style="font-size:0.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748b;margin-bottom:0.5rem;">Mental model:</p>
+        <p style="font-family:monospace;font-size:0.86rem;color:#a855f7;padding:2px 0;">Producer → writes the log</p>
+        <p style="font-family:monospace;font-size:0.86rem;color:#60a5fa;padding:2px 0;">Kafka &nbsp;&nbsp;&nbsp;→ stores the log</p>
+        <p style="font-family:monospace;font-size:0.86rem;color:#86efac;padding:2px 0;">Consumer → reads the log</p>
+      </div>
+    </div>
+    <div>
+      <h4 style="color:#f87171;">Kafka is NOT</h4>
+      <ul>
+        <li>✗ Not a queue (messages survive reads)</li>
+        <li>✗ Not a database (no SQL, no queries)</li>
+        <li>✗ Not a processing engine (no compute)</li>
+        <li>✗ Not a REST API (no request-response)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div style="text-align:center;margin-top:3rem;padding:1.5rem;border-top:1px solid #1e2433;color:#4b5563;font-size:0.79rem;">
+  Original notes by author &nbsp;·&nbsp; Kafka 3.x &nbsp;·&nbsp; Confluent 7.4.0 Docker images
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('.toc a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        if (a) {
+          a.classList.add('active');
+          a.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

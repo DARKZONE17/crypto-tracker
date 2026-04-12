@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docker – Beginner Guide</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem 2.5rem;
+      border-bottom: 1px solid #1e2535;
+      margin-bottom: 2.5rem;
+    }
+    .badge {
+      display: inline-block;
+      background: #1e3a5f;
+      color: #60a5fa;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      font-size: 15px;
+      color: #94a3b8;
+    }
+
+    /* SECTIONS */
+    .section { margin-bottom: 2.5rem; }
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 1rem;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1e2535;
+    }
+
+    /* CARDS */
+    .card {
+      background: #161b27;
+      border: 1px solid #1e2535;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+    .card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+    .card p {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.65;
+      margin: 0;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .card-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    /* HIGHLIGHT CARD */
+    .highlight-card {
+      background: #161b27;
+      border: 1px solid #1e2535;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+    }
+    .highlight-card p { font-size: 14px; color: #94a3b8; margin: 0; }
+    .highlight-card p + p { margin-top: 8px; }
+    .highlight-card strong { color: #f1f5f9; font-weight: 600; }
+
+    /* TWO COLUMN */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* PROBLEM / SOLUTION CARDS */
+    .problem-card, .solution-card {
+      background: #161b27;
+      padding: 1rem 1.25rem;
+      border-radius: 0;
+      margin-bottom: 8px;
+    }
+    .problem-card { border-left: 3px solid #e24b4a; }
+    .solution-card { border-left: 3px solid #22c55e; }
+    .problem-card h4 { font-size: 13px; font-weight: 600; color: #fca5a5; margin-bottom: 5px; }
+    .solution-card h4 { font-size: 13px; font-weight: 600; color: #86efac; margin-bottom: 5px; }
+    .problem-card p, .solution-card p { font-size: 13px; color: #94a3b8; margin: 0; line-height: 1.6; }
+
+    /* QUOTE BLOCK */
+    .quote-block {
+      background: #161b27;
+      border-left: 3px solid #3b82f6;
+      padding: 1rem 1.25rem;
+      margin-bottom: 14px;
+    }
+    .quote-block p {
+      font-size: 16px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin: 0;
+      font-style: italic;
+    }
+
+    /* CONCEPT ROWS */
+    .concept-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid #1e2535;
+    }
+    .concept-row:last-child { border-bottom: none; }
+    .concept-tag {
+      min-width: 96px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .concept-row p { font-size: 13px; color: #94a3b8; margin: 0; line-height: 1.6; padding-top: 2px; }
+
+    /* FLOW */
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin: 14px 0 12px;
+    }
+    .flow-step {
+      background: #1e2535;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 13px;
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+    .flow-arrow { color: #475569; font-size: 14px; }
+
+    /* ANALOGY GRID */
+    .analogy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 500px) { .analogy-grid { grid-template-columns: 1fr; } }
+    .analogy-item {
+      background: #161b27;
+      border: 1px solid #1e2535;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+    .analogy-item .a-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .analogy-item .a-docker { font-size: 14px; font-weight: 600; color: #f1f5f9; margin-bottom: 6px; }
+    .analogy-item .a-real { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+    /* WHO GRID */
+    .who-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .who-card {
+      background: #161b27;
+      border: 1px solid #1e2535;
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+    .who-card .role { font-size: 13px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; }
+    .who-card .use { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+
+    /* PILL ROW */
+    .pill-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .pill {
+      background: #1e2535;
+      border: 1px solid #2d3748;
+      border-radius: 20px;
+      padding: 3px 11px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    code {
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 12px;
+      background: #1e2535;
+      color: #7dd3fc;
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
+
+    /* COMMANDS TABLE */
+    .cmd-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    .cmd-table th {
+      text-align: left;
+      padding: 8px 12px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid #1e2535;
+    }
+    .cmd-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #1a2030;
+      vertical-align: top;
+    }
+    .cmd-table tr:last-child td { border-bottom: none; }
+    .cmd-table td:first-child { color: #7dd3fc; font-family: 'Fira Code', monospace; font-size: 12px; white-space: nowrap; }
+    .cmd-table td:last-child { color: #94a3b8; }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #1e2535;
+      font-size: 12px;
+      color: #475569;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="badge">Beginner Guide</div>
+    <h1>Docker — From Zero to Understanding</h1>
+    <p>What it is, why it exists, and what problems it actually solves</p>
+  </div>
+
+  <!-- WHAT IS DOCKER -->
+  <div class="section">
+    <div class="section-label">What is Docker?</div>
+    <div class="highlight-card">
+      <p>Docker is a platform that <strong>packages your application + everything it needs</strong> into a single portable unit called a <strong>container</strong>.</p>
+      <p>This container runs the same way on your laptop, a teammate's machine, a server, or the cloud — without any extra setup or configuration.</p>
+      <p style="margin-top:10px;font-size:13px;color:#64748b;">Simple idea: instead of installing things manually on every system, you carry your whole environment with you.</p>
+    </div>
+  </div>
+
+  <!-- THE CORE PROBLEM -->
+  <div class="section">
+    <div class="section-label">The core problem it solves</div>
+    <div class="quote-block">
+      <p>"It works on my machine, but not on yours."</p>
+    </div>
+    <p style="font-size:13px;color:#94a3b8;margin-bottom:14px;">This is the #1 frustration in software development. Docker eliminates it entirely.</p>
+    <div class="two-col">
+      <div>
+        <div class="problem-card"><h4>Without Docker</h4><p>Code runs differently on every machine because each has a different OS, libraries, and software versions installed.</p></div>
+        <div class="problem-card"><h4>Dependency hell</h4><p>Your app needs Python 3.9, the server has Python 3.6 — things break silently and debugging takes hours.</p></div>
+        <div class="problem-card"><h4>Manual setup nightmare</h4><p>Every new developer spends a full day installing tools, fixing conflicts, and just trying to get the app to start.</p></div>
+      </div>
+      <div>
+        <div class="solution-card"><h4>With Docker</h4><p>Container carries the exact environment — same OS layer, same libraries, same versions — everywhere it runs.</p></div>
+        <div class="solution-card"><h4>Zero conflicts</h4><p>Python, Node, Java, all dependencies are bundled inside the container. Nothing leaks into the host machine.</p></div>
+        <div class="solution-card"><h4>One command setup</h4><p>New developer runs <code>docker compose up</code> and the entire app is running in minutes. No docs needed.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BEFORE vs AFTER -->
+  <div class="section">
+    <div class="section-label">Before Docker vs after Docker</div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-icon" style="background:#2d1515;">❌</div>
+        <h3>Old way — manual deployment</h3>
+        <p>Install OS dependencies → install language runtime → install libraries → fix version conflicts → pray it works → repeat on every single server.</p>
+        <p style="margin-top:10px;font-size:12px;color:#fca5a5;font-weight:600;">Result: hours of work, inconsistent systems, errors everywhere.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background:#14291e;">✓</div>
+        <h3>Docker way — containerised</h3>
+        <p>Write a Dockerfile once → build an image → run it anywhere. The same image works in dev, staging, and production without any changes.</p>
+        <p style="margin-top:10px;font-size:12px;color:#86efac;font-weight:600;">Result: build once, run anywhere, always consistent.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY CONCEPTS -->
+  <div class="section">
+    <div class="section-label">Key concepts — must know</div>
+    <div class="card">
+      <div class="concept-row">
+        <span class="concept-tag" style="background:#1e3a5f;color:#60a5fa;">Dockerfile</span>
+        <p>A text file with step-by-step instructions to build your app's environment. Like a recipe — tells Docker exactly what to install and configure.</p>
+      </div>
+      <div class="concept-row">
+        <span class="concept-tag" style="background:#14291e;color:#86efac;">Image</span>
+        <p>The blueprint built from your Dockerfile. A frozen snapshot of your app + environment. Shareable, reusable, and versioned.</p>
+      </div>
+      <div class="concept-row">
+        <span class="concept-tag" style="background:#241e3f;color:#a78bfa;">Container</span>
+        <p>A running instance of an image. You can spin up many containers from one image — each is isolated and completely independent.</p>
+      </div>
+      <div class="concept-row">
+        <span class="concept-tag" style="background:#2a1f0e;color:#fbbf24;">Docker Hub</span>
+        <p>A public registry of pre-built images. Need MySQL, Redis, or Nginx? Pull a ready-made image in seconds — zero setup required.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS FLOW -->
+  <div class="section">
+    <div class="section-label">How it works — the flow</div>
+    <div class="highlight-card">
+      <div class="flow">
+        <div class="flow-step">Write Dockerfile</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Build image</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Push to registry</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Pull anywhere</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-step">Run container</div>
+      </div>
+      <p style="font-size:13px;color:#64748b;">Once an image is built and pushed to Docker Hub, anyone on your team — or any server in the world — can pull and run it instantly with no environment setup.</p>
+    </div>
+  </div>
+
+  <!-- DOCKER vs VM -->
+  <div class="section">
+    <div class="section-label">Docker vs virtual machines (VMs)</div>
+    <div class="two-col">
+      <div class="card">
+        <h3>Virtual machine</h3>
+        <p>Runs a full separate operating system. Heavy, slow to start, and uses gigabytes of RAM. Complete isolation but very resource-intensive.</p>
+        <div class="pill-row">
+          <span class="pill">Full OS copy</span>
+          <span class="pill">Minutes to start</span>
+          <span class="pill">GBs of RAM</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Docker container</h3>
+        <p>Shares the host OS kernel. Lightweight, starts in seconds, uses megabytes. Near-identical isolation at a fraction of the cost.</p>
+        <div class="pill-row">
+          <span class="pill">Shared OS kernel</span>
+          <span class="pill">Seconds to start</span>
+          <span class="pill">MBs of RAM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REAL WORLD ANALOGY -->
+  <div class="section">
+    <div class="section-label">Real-world analogy — shipping containers</div>
+    <div class="analogy-grid">
+      <div class="analogy-item">
+        <div class="a-label">Docker concept</div>
+        <div class="a-docker">Container</div>
+        <div class="a-real">Shipping container with all goods packed inside</div>
+      </div>
+      <div class="analogy-item">
+        <div class="a-label">Docker concept</div>
+        <div class="a-docker">Image</div>
+        <div class="a-real">The packing list / blueprint for what goes inside</div>
+      </div>
+      <div class="analogy-item">
+        <div class="a-label">Docker concept</div>
+        <div class="a-docker">Docker Host</div>
+        <div class="a-real">The ship, truck, or train — any transport system</div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:#64748b;margin-top:12px;">Just like a shipping container works the same on a ship, truck, or train — a Docker container works the same on your laptop, a server, or the cloud.</p>
+  </div>
+
+  <!-- WHO USES DOCKER -->
+  <div class="section">
+    <div class="section-label">Who uses Docker?</div>
+    <div class="who-grid">
+      <div class="who-card"><div class="role">Developers</div><div class="use">Consistent local dev environments, no "works on my machine" issues</div></div>
+      <div class="who-card"><div class="role">Data Engineers</div><div class="use">Running Kafka, Spark, Airflow pipelines reliably</div></div>
+      <div class="who-card"><div class="role">DevOps / SRE</div><div class="use">CI/CD pipelines, automated deployments, Kubernetes</div></div>
+      <div class="who-card"><div class="role">Teams & Startups</div><div class="use">Ship faster, scale easily, onboard devs in minutes</div></div>
+    </div>
+  </div>
+
+  <!-- WHEN TO USE -->
+  <div class="section">
+    <div class="section-label">When should you use Docker?</div>
+    <div class="card-grid">
+      <div class="card"><h3>Building microservices</h3><p>Each service runs in its own container — isolated, independently deployable, and scalable on demand.</p></div>
+      <div class="card"><h3>Team collaboration</h3><p>Share an image instead of a 20-step setup doc. Everyone runs the exact same environment instantly.</p></div>
+      <div class="card"><h3>Cloud deployments</h3><p>AWS, GCP, and Azure all support containers natively — deploy the same image everywhere with confidence.</p></div>
+      <div class="card"><h3>Data pipelines</h3><p>Run Postgres, Redis, Kafka, or Spark locally without installing anything on your actual machine.</p></div>
+    </div>
+  </div>
+
+  <!-- BASIC COMMANDS -->
+  <div class="section">
+    <div class="section-label">Basic commands — cheatsheet</div>
+    <div class="card">
+      <table class="cmd-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>docker pull &lt;image&gt;</td><td>Download an image from Docker Hub</td></tr>
+          <tr><td>docker build -t myapp .</td><td>Build an image from your Dockerfile</td></tr>
+          <tr><td>docker run myapp</td><td>Run a container from an image</td></tr>
+          <tr><td>docker ps</td><td>List all running containers</td></tr>
+          <tr><td>docker stop &lt;id&gt;</td><td>Stop a running container</td></tr>
+          <tr><td>docker images</td><td>List all downloaded images</td></tr>
+          <tr><td>docker rm &lt;id&gt;</td><td>Delete a container</td></tr>
+          <tr><td>docker compose up</td><td>Start all services defined in docker-compose.yml</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Docker Beginner Guide &nbsp;·&nbsp; Build once, run anywhere
+  </footer>
+
+</div>
+</body>
+</html>
