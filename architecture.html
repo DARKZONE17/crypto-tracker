@@ -224,11 +224,11 @@ pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);p
   <!-- OVERVIEW GRID -->
   <div id="overview" class="section visible" style="margin-bottom:32px">
     <div class="section-number">The Big Picture</div>
-    <h2 class="section-title">5 Components, 1 Pipeline</h2>
-    <p class="section-sub">Data flows left to right. Each component does exactly one job.</p>
+    <h2 class="section-title">6 Components, 1 Pipeline</h2>
+    <p class="section-sub">Data flows left to right. Each component does exactly one job. The buffer inside the producer is where batching happens before Kafka sees anything.</p>
   </div>
 
-  <div class="overview-grid" style="margin-bottom:60px">
+  <div class="overview-grid" style="margin-bottom:16px;grid-template-columns:repeat(6,1fr)">
     <div class="ov-cell">
       <div class="ov-num">01</div>
       <div class="ov-icon-wrap" style="background:var(--ws-dim)">🔌</div>
@@ -236,32 +236,80 @@ pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);p
       <div class="ov-tech">Binance wss://</div>
       <div class="ov-arrow">▶</div>
     </div>
-    <div class="ov-cell">
+    <div class="ov-cell" style="background:rgba(255,107,53,0.04)">
       <div class="ov-num">02</div>
-      <div class="ov-icon-wrap" style="background:var(--kafka-dim)">📨</div>
-      <div class="ov-name" style="color:var(--kafka)">Kafka</div>
-      <div class="ov-tech">confluent-kafka</div>
+      <div class="ov-icon-wrap" style="background:rgba(255,107,53,0.12)">🐍</div>
+      <div class="ov-name" style="color:var(--kafka)">Python Producer</div>
+      <div class="ov-tech">ws_producer.py</div>
+      <div class="ov-arrow">▶</div>
+    </div>
+    <div class="ov-cell" style="background:rgba(255,107,53,0.02);border-left:2px dashed rgba(255,107,53,0.3)">
+      <div class="ov-num" style="color:var(--kafka)">02b</div>
+      <div class="ov-icon-wrap" style="background:rgba(255,107,53,0.08)">📦</div>
+      <div class="ov-name" style="color:var(--kafka);font-size:12px">librdkafka Buffer</div>
+      <div class="ov-tech">linger.ms + batch.size</div>
       <div class="ov-arrow">▶</div>
     </div>
     <div class="ov-cell">
       <div class="ov-num">03</div>
+      <div class="ov-icon-wrap" style="background:var(--kafka-dim)">📨</div>
+      <div class="ov-name" style="color:var(--kafka)">Kafka</div>
+      <div class="ov-tech">crypto-trades topic</div>
+      <div class="ov-arrow">▶</div>
+    </div>
+    <div class="ov-cell">
+      <div class="ov-num">04</div>
       <div class="ov-icon-wrap" style="background:var(--spark-dim)">⚡</div>
       <div class="ov-name" style="color:var(--spark)">Spark</div>
       <div class="ov-tech">Databricks Streaming</div>
       <div class="ov-arrow">▶</div>
     </div>
     <div class="ov-cell">
-      <div class="ov-num">04</div>
+      <div class="ov-num">05</div>
       <div class="ov-icon-wrap" style="background:var(--delta-dim)">🗄</div>
       <div class="ov-name" style="color:var(--delta)">Delta Lake</div>
       <div class="ov-tech">Bronze→Silver→Gold</div>
       <div class="ov-arrow">▶</div>
     </div>
-    <div class="ov-cell">
-      <div class="ov-num">05</div>
-      <div class="ov-icon-wrap" style="background:var(--grafana-dim)">📊</div>
-      <div class="ov-name" style="color:var(--grafana)">Grafana</div>
-      <div class="ov-tech">Live Dashboard</div>
+  </div>
+  <!-- Grafana sits below as the final consumer -->
+  <div style="display:flex;justify-content:center;margin-bottom:60px">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 32px;text-align:center;min-width:160px">
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-bottom:6px">06</div>
+      <div style="font-size:22px;margin-bottom:6px">📊</div>
+      <div style="font-size:13px;font-weight:700;color:var(--grafana)">Grafana</div>
+      <div style="font-family:var(--font-mono);font-size:10px;color:var(--text3)">Live Dashboard</div>
+    </div>
+  </div>
+
+  <!-- BUFFER CALLOUT -->
+  <div style="background:rgba(255,107,53,0.05);border:1px solid rgba(255,107,53,0.25);border-radius:var(--r2);padding:20px 24px;margin-bottom:60px">
+    <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--kafka);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px">📦 What is the buffer (02b) and why does it exist?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">What it is</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7">When you call <code>producer.produce()</code>, the message does NOT go to Kafka immediately. It lands in librdkafka's <strong>in-memory buffer</strong> first — inside your Python process.</div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">When it flushes</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7">The buffer flushes to Kafka when either: <strong>linger.ms=5</strong> elapses (5ms wait), OR <strong>batch.size=16384</strong> is reached (16KB). Whichever comes first wins.</div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">The two critical calls</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7"><code>producer.poll(0)</code> — call in your loop to trigger delivery callbacks and nudge the buffer. <code>producer.flush()</code> — call on shutdown to force everything out. Skip either and messages silently vanish.</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-family:var(--font-mono);font-size:12px;color:var(--text2);line-height:2">
+      <span style="color:var(--ws)">WS message arrives</span>
+      <span style="color:var(--text3)"> → </span>
+      <span style="color:var(--kafka)">producer.produce()</span>
+      <span style="color:var(--text3)"> → </span>
+      <span style="color:var(--kafka)">[librdkafka buffer]</span>
+      <span style="color:var(--text3)"> — wait linger.ms=5 OR batch full → </span>
+      <span style="color:var(--kafka)">Kafka broker</span>
+      <span style="color:var(--text3)"> ← confirmed with </span>
+      <span style="color:var(--green)">delivery callback</span><br>
+      <span style="color:var(--text3)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↑ producer.poll(0) triggers this · producer.flush() drains on exit</span>
     </div>
   </div>
 
@@ -369,6 +417,61 @@ pre{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);p
       <div class="alert alert-tip" style="margin-top:0">
         <span class="alert-icon">💡</span>
         <span><strong>Critical:</strong> Always use field <code>"T"</code> (trade time) as your event_time — NOT <code>time.time()</code> on your machine. If your server is slow or restarts, <code>time.time()</code> would be wrong. <code>"T"</code> is when the trade actually happened on Binance.</span>
+      </div>
+
+      <!-- BUFFER SECTION -->
+      <div style="padding:24px;border-top:1px solid var(--border);background:rgba(255,107,53,0.03)">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--kafka);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px">📦 The Internal Buffer — what happens between produce() and Kafka</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div style="background:var(--bg3);border:1px solid rgba(255,107,53,0.2);border-radius:var(--r);padding:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--kafka);margin-bottom:8px">Step 1 — produce() → buffer</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7">
+              When your code calls <code>producer.produce()</code>, the message goes into librdkafka's <strong>in-memory queue</strong> inside your Python process — NOT to Kafka yet. This is intentional. Sending one message per network call is wasteful.
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid rgba(255,107,53,0.2);border-radius:var(--r);padding:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--kafka);margin-bottom:8px">Step 2 — buffer → Kafka (two triggers)</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7">
+              The buffer flushes when <strong>either</strong> condition is met:<br>
+              • <code>linger.ms=5</code> — 5 milliseconds have passed<br>
+              • <code>batch.size=16384</code> — buffer hit 16KB<br>
+              Whichever comes first. Then the whole batch goes to Kafka in one network call.
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid rgba(255,107,53,0.2);border-radius:var(--r);padding:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--kafka);margin-bottom:8px">Step 3 — poll(0) — the trigger you must call</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7">
+              <code>producer.poll(0)</code> tells librdkafka: "process any pending events right now." This includes delivery callbacks (success/failure confirmations from Kafka). Without this in your loop, the buffer stalls and callbacks are never fired.
+            </div>
+          </div>
+          <div style="background:var(--bg3);border:1px solid rgba(255,107,53,0.2);border-radius:var(--r);padding:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--kafka);margin-bottom:8px">Step 4 — flush() on exit</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.7">
+              When your script shuts down (Ctrl+C, container stop), <code>producer.flush()</code> blocks until every message still in the buffer is delivered to Kafka. Skip this and the last N messages vanish silently. This is the single most common data loss bug in Kafka producers.
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual flow -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:16px;font-family:var(--font-mono);font-size:11px;line-height:2.2">
+          <div style="color:var(--text3);margin-bottom:4px;font-size:10px;letter-spacing:1px;text-transform:uppercase">Buffer lifecycle — inside your Python process</div>
+          <span style="color:var(--ws)">WS event</span>
+          <span style="color:var(--text3)"> ──► </span>
+          <span style="color:var(--kafka)">producer.produce()</span>
+          <span style="color:var(--text3)"> ──► </span>
+          <span style="color:var(--kafka)">[librdkafka buffer  msg1 | msg2 | msg3 | ...]</span><br>
+          <span style="color:var(--text3)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ linger.ms=5 elapsed OR batch.size=16KB hit</span><br>
+          <span style="color:var(--text3)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:var(--kafka)">Kafka broker</span>
+          <span style="color:var(--text3)"> ←── confirms ──► </span>
+          <span style="color:var(--green)">delivery callback</span><br>
+          <span style="color:var(--text3)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↑ triggered by poll(0)</span>
+        </div>
+
+        <div style="margin-top:12px;background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.2);border-radius:var(--r);padding:12px 14px;font-size:12px;color:#fca5a5;line-height:1.6;display:flex;gap:10px">
+          <span>⚠️</span>
+          <span><strong>Interview answer for "what is the buffer in your producer?":</strong> "confluent-kafka uses librdkafka internally, which batches messages in an in-memory buffer before sending to Kafka. The buffer flushes based on linger.ms or batch.size, whichever fires first. I call poll(0) in my message loop to process delivery callbacks, and flush() on shutdown to drain any remaining messages — without these two calls, messages can be silently lost."</span>
+        </div>
       </div>
 
       <!-- Reconnect flow -->
@@ -959,21 +1062,29 @@ gold = windowed.withColumn(
       <div class="flow-step">
         <div class="flow-dot" style="border-color:var(--kafka);color:var(--kafka)">3</div>
         <div class="flow-content">
-          <div class="flow-title" style="color:var(--kafka)">T+55ms — Pushed to Kafka partition 0</div>
-          <div class="flow-desc">confluent-kafka producer sends the message to Kafka with key="BTCUSDT". Kafka routes it to partition 0 (all BTC goes here). <code>acks=all</code> means Kafka waits for both replicas to confirm. Kafka sends back a delivery confirmation.</div>
+          <div class="flow-title" style="color:var(--kafka)">T+52ms — producer.produce() → librdkafka buffer</div>
+          <div class="flow-desc">Your code calls <code>producer.produce()</code>. The message lands in librdkafka's <strong>in-memory buffer</strong> inside your Python process — not in Kafka yet. The buffer waits up to <code>linger.ms=5</code> (5ms) or until it fills to <code>batch.size=16KB</code>, then flushes the whole batch to Kafka in one network call. <code>producer.poll(0)</code> is called immediately after to trigger delivery callbacks.</div>
         </div>
       </div>
 
       <div class="flow-step">
         <div class="flow-dot" style="border-color:var(--kafka);color:var(--kafka)">4</div>
         <div class="flow-content">
-          <div class="flow-title" style="color:var(--kafka)">T+55ms to T+5s — Kafka holds the message</div>
+          <div class="flow-title" style="color:var(--kafka)">T+57ms — Batch delivered to Kafka partition 0</div>
+          <div class="flow-desc">After linger.ms fires, the buffer flushes. confluent-kafka sends the batch to Kafka with key="BTCUSDT". Kafka routes it to partition 0 (all BTC goes here). <code>acks=all</code> means Kafka waits for both replicas to confirm write. Kafka sends back a delivery confirmation — the callback fires and logs success.</div>
+        </div>
+      </div>
+
+      <div class="flow-step">
+        <div class="flow-dot" style="border-color:var(--kafka);color:var(--kafka)">5</div>
+        <div class="flow-content">
+          <div class="flow-title" style="color:var(--kafka)">T+57ms to T+5s — Kafka holds the message</div>
           <div class="flow-desc">The message sits in Kafka partition 0 at offset N. It will stay there for 7 days. Spark reads every 5 seconds (trigger interval), so it'll pick this up in the next batch — up to 5 seconds from now.</div>
         </div>
       </div>
 
       <div class="flow-step">
-        <div class="flow-dot" style="border-color:var(--spark);color:var(--spark)">5</div>
+        <div class="flow-dot" style="border-color:var(--spark);color:var(--spark)">6</div>
         <div class="flow-content">
           <div class="flow-title" style="color:var(--spark)">T+5s — Spark micro-batch fires</div>
           <div class="flow-desc">Spark wakes up, reads all new messages from Kafka since its last checkpoint offset. Parses JSON using your StructType schema. Applies watermark. Drops duplicates on trade_id. Computes 10-minute rolling window — avg price and stddev for BTCUSDT.</div>
@@ -981,7 +1092,7 @@ gold = windowed.withColumn(
       </div>
 
       <div class="flow-step">
-        <div class="flow-dot" style="border-color:var(--spark);color:var(--spark)">6</div>
+        <div class="flow-dot" style="border-color:var(--spark);color:var(--spark)">7</div>
         <div class="flow-content">
           <div class="flow-title" style="color:var(--spark)">T+5s — Anomaly check runs</div>
           <div class="flow-desc">Z-score UDF fires: z = (67432.50 − rolling_avg) / rolling_stddev. If this price is unusual for the last 10 minutes, is_anomaly = true.</div>
@@ -989,7 +1100,7 @@ gold = windowed.withColumn(
       </div>
 
       <div class="flow-step">
-        <div class="flow-dot" style="border-color:var(--delta);color:var(--delta)">7</div>
+        <div class="flow-dot" style="border-color:var(--delta);color:var(--delta)">8</div>
         <div class="flow-content">
           <div class="flow-title" style="color:var(--delta)">T+5s — Written to Delta Lake Gold</div>
           <div class="flow-desc">Spark writes the windowed result to Delta Lake Gold via MERGE. If the 10-min window for BTCUSDT already exists, it updates the row. If not, it inserts. Delta ACID ensures no partial writes. Checkpoint updated — this Kafka offset is now "done."</div>
@@ -997,7 +1108,7 @@ gold = windowed.withColumn(
       </div>
 
       <div class="flow-step">
-        <div class="flow-dot" style="border-color:var(--grafana);color:var(--grafana)">8</div>
+        <div class="flow-dot" style="border-color:var(--grafana);color:var(--grafana)">9</div>
         <div class="flow-content" style="padding-bottom:0">
           <div class="flow-title" style="color:var(--grafana)">T+10s — Grafana refreshes dashboard</div>
           <div class="flow-desc">Grafana auto-queries Delta Lake Gold every 5 seconds. Panel 1 updates with new price point. If is_anomaly = true, Panel 3 alert table shows a new red row. Total end-to-end latency: <strong>~10 seconds from trade to dashboard update.</strong></div>
@@ -1015,6 +1126,11 @@ gold = windowed.withColumn(
   </div>
 
   <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:80px">
+
+    <div style="background:var(--bg2);border:1px solid rgba(255,107,53,0.3);border-radius:var(--r);padding:20px 24px">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--kafka);margin-bottom:8px;letter-spacing:1px">Q: What is the buffer inside your producer and why does it exist?</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">"confluent-kafka uses librdkafka internally, which batches messages in an in-memory buffer before sending to Kafka. When I call <code>producer.produce()</code>, the message goes into this buffer — not directly to Kafka. The buffer flushes when either linger.ms (5ms) elapses or batch.size (16KB) is hit, whichever comes first. This batching reduces network calls and increases throughput significantly. I call <code>producer.poll(0)</code> in my message loop to process delivery callbacks, and <code>producer.flush()</code> on shutdown to drain any remaining messages — without these two calls, messages can be silently lost."</div>
+    </div>
 
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px">
       <div style="font-family:var(--font-mono);font-size:11px;color:var(--yellow);margin-bottom:8px;letter-spacing:1px">Q: Why WebSocket instead of REST?</div>
@@ -1081,7 +1197,7 @@ function scrollTo(id) {
   if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
-// ── SCROLL REVEAL ──>
+// ── SCROLL REVEAL ──
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.1 });
