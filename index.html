@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Learning Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0e14;
+      --surface: #111520;
+      --border: #1e2535;
+      --accent: #00d4ff;
+      --accent3: #10b981;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --card: #151b28;
+    }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      padding: 48px 0 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo-area { display: flex; flex-direction: column; gap: 6px; }
+
+    .logo-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 7px; height: 7px;
+      background: var(--accent3);
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .nav-section { padding: 32px 0 0; }
+
+    .nav-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,212,255,0.1);
+    }
+
+    .tab-icon { font-size: 16px; line-height: 1; }
+
+    .cards-section { padding: 36px 0 64px; }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .quick-card {
+      padding: 24px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .quick-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,212,255,0.08);
+    }
+
+    .quick-card-icon { font-size: 28px; flex-shrink: 0; }
+
+    .quick-card-body { display: flex; flex-direction: column; gap: 6px; }
+
+    .quick-card-name { font-size: 15px; font-weight: 700; color: var(--text); }
+
+    .quick-card-desc {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      line-height: 1.5;
+    }
+
+    .quick-card-arrow {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+      margin-top: 4px;
+    }
+
+    .quick-card:hover .quick-card-arrow { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .tabs { gap: 6px; }
+      .tab-btn { padding: 10px 14px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="header-inner">
+      <div class="logo-area">
+        <span class="logo-tag">// learning hub</span>
+        <h1>My Dev Workspace</h1>
+      </div>
+      <div class="header-meta">
+        <span class="status-dot"></span>Active<br/>
+        <span id="current-date"></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="nav-section">
+    <div class="nav-label">// navigate</div>
+    <div class="tabs" id="tabs-container"></div>
+  </div>
+
+  <div class="cards-section">
+    <div class="section-label">// quick launch</div>
+    <div class="quick-grid" id="quick-grid"></div>
+  </div>
+
+</div>
+
+<script>
+  // ── ADD / EDIT YOUR PAGES HERE ──────────────────────────────────────────────
+  const pages = [
+    {
+      id: "kafka",
+      label: "Kafka Learnings",
+      icon: "📡",
+      file: "kafka_learning.html",
+      desc: "Notes, concepts & experiments"
+    },
+    // {
+    //   id: "status",
+    //   label: "My Status",
+    //   icon: "🟢",
+    //   file: "status.html",
+    //   desc: "Current goals & daily check-in"
+    // },
+    {
+      id: "tracker",
+      label: "Tracker",
+      icon: "📊",
+      file: "Tracker.html",
+      desc: "Progress & milestones"
+    },
+    {
+      id: "Docker",
+      label: "Docker",
+      icon: "📝",
+      file: "Docker.html",
+      desc: "Docker notes"
+    },
+  ];
+  // ────────────────────────────────────────────────────────────────────────────
+
+  document.getElementById('current-date').textContent =
+    new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  function go(file) {
+    window.location.href = file;
+  }
+
+  // Build tabs
+  const tabsContainer = document.getElementById('tabs-container');
+  pages.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.innerHTML = `<span class="tab-icon">${p.icon}</span>${p.label}`;
+    btn.addEventListener('click', () => go(p.file));
+    tabsContainer.appendChild(btn);
+  });
+
+  // Build cards
+  const grid = document.getElementById('quick-grid');
+  pages.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'quick-card';
+    card.innerHTML = `
+      <span class="quick-card-icon">${p.icon}</span>
+      <div class="quick-card-body">
+        <span class="quick-card-name">${p.label}</span>
+        <span class="quick-card-desc">${p.desc}</span>
+        <span class="quick-card-arrow">→ ${p.file}</span>
+      </div>`;
+    card.addEventListener('click', () => go(p.file));
+    grid.appendChild(card);
+  });
+</script>
+
+</body>
+</html>
