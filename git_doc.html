@@ -5,413 +5,1553 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Git / GitHub — Crypto Tracker</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0e1117;--surface:#161b22;--surface2:#1c2128;--surface3:#21262d;--border:#30363d;--border2:#3d444d;--text:#e6edf3;--text2:#c9d1d9;--muted:#8b949e;--faint:#484f58;--accent:#2f81f7;--green:#3fb950;--amber:#e3b341;--red:#f85149;--purple:#bc8cff;--font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono','Fira Code',monospace}
-html{scroll-behavior:smooth}body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;font-size:14px}
-.layout{display:flex;min-height:100vh}
-.sidebar{width:256px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column}.sidebar::-webkit-scrollbar{width:3px}.sidebar::-webkit-scrollbar-thumb{background:var(--border2)}
-.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}.sb-logo-name{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;margin-bottom:3px}.sb-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.2)}}.sb-sub{font-family:var(--mono);font-size:10px;color:var(--faint)}.sb-label{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);padding:14px 16px 5px}.sb-link{display:flex;align-items:center;gap:9px;padding:6px 16px;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;transition:all .12s}.sb-link:hover{background:var(--surface2);color:var(--text2)}.sb-link.active{background:rgba(47,129,247,.1);color:var(--accent);border-right:2px solid var(--accent)}.sb-link .ic{font-size:13px;width:16px;text-align:center;flex-shrink:0}.sb-link .tag{margin-left:auto;font-family:var(--mono);font-size:9px;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:3px}.tag-done{background:rgba(63,185,80,.12);color:var(--green)}.sb-div{height:1px;background:var(--border);margin:6px 0}.sb-foot{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--faint);line-height:1.7}
-.main{flex:1;min-width:0}
-.page-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 56px;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:50}.page-nav::-webkit-scrollbar{display:none}.page-nav a{display:inline-block;padding:11px 14px;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;transition:all .12s}.page-nav a:hover{color:var(--accent);border-bottom-color:var(--accent)}
-.hero{background:var(--surface);border-bottom:1px solid var(--border);padding:48px 56px 40px}.eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}.eyebrow::before{content:'';display:inline-block;width:18px;height:1px;background:var(--accent)}.hero h1{font-size:32px;font-weight:700;color:var(--text);letter-spacing:-.5px;line-height:1.2;margin-bottom:10px}.hero p{font-size:14px;color:var(--muted);line-height:1.75}
-.content{padding:0 56px 60px}
-.sec{padding:40px 0 0;border-top:1px solid var(--border);margin-top:40px}.sec:first-child{border-top:none;margin-top:0;padding-top:40px}.sec-eyebrow{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}.sec h2{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.3px;margin-bottom:10px}.sec .lead{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:24px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:22px 24px;margin-bottom:14px}.card h3{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}.card p{font-size:13px;color:var(--text2);line-height:1.75;margin-bottom:10px}.card p:last-child{margin-bottom:0}
-.callout{border-radius:6px;padding:14px 16px;margin:14px 0;font-size:13px;line-height:1.75;display:flex;gap:12px}.callout .icon{flex-shrink:0;font-size:14px;margin-top:1px}.callout .body{flex:1}.callout .body strong{font-weight:600;display:block;margin-bottom:2px}
-.info-box{background:rgba(47,129,247,.07);border:1px solid rgba(47,129,247,.2);color:#79b8ff}.tip-box{background:rgba(63,185,80,.07);border:1px solid rgba(63,185,80,.2);color:#7ee787}.warn-box{background:rgba(227,179,65,.07);border:1px solid rgba(227,179,65,.2);color:#d4a72c}.danger-box{background:rgba(248,81,73,.07);border:1px solid rgba(248,81,73,.2);color:#ff7b72}
-pre{background:#010409;border:1px solid var(--border);border-radius:6px;padding:18px 22px;font-family:var(--mono);font-size:12px;line-height:1.85;overflow-x:auto;margin:14px 0;color:#c9d1d9}
-code{font-family:var(--mono);font-size:12px;background:var(--surface3);border:1px solid var(--border);padding:1px 6px;border-radius:3px;color:#c9d1d9}
-.cm{color:#484f58;font-style:italic}.str{color:#a5d6ff}.kw{color:#ff7b72}
-.t-cmd{color:#7ee787;display:block}.t-out{color:#484f58;display:block}.t-err{color:#ff7b72;display:block}
-.terminal{background:#010409;border:1px solid var(--border);border-radius:6px;padding:16px 20px;font-family:var(--mono);font-size:12px;line-height:1.85;margin:14px 0}.term-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}th{text-align:left;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);padding:8px 14px;border-bottom:1px solid var(--border);background:var(--surface)}td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.6}td:first-child{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:500}tr:hover td{background:var(--surface2)}.tbl-wrap{border:1px solid var(--border);border-radius:6px;overflow:hidden;margin:14px 0}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
-.diagram{background:#010409;border:1px solid var(--border);border-radius:6px;padding:22px 26px;font-family:var(--mono);font-size:12px;line-height:2;margin:14px 0;overflow-x:auto}
-.footer{padding:18px 56px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;justify-content:space-between}
-@media(max-width:900px){.sidebar{display:none}.page-nav,.hero,.content,.footer{padding-left:20px;padding-right:20px}.g2{grid-template-columns:1fr}}
+:root{
+  --bg:#050709;--bg2:#090c10;--bg3:#0d1117;--surface:#141924;--surface2:#1a2030;
+  --border:#1e2a3a;--border2:#253040;--text:#e8edf5;--text2:#b0bac8;--muted:#6b7a8d;--dim:#4a5568;
+  --neon-cyan:#00f5ff;--neon-green:#39ff14;--neon-pink:#ff2d78;--neon-purple:#bf5fff;
+  --neon-amber:#ffb800;--neon-blue:#4d9fff;--neon-orange:#ff6b35;--neon-teal:#00ffcc;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:15px;line-height:1.7}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(57,255,20,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(57,255,20,.015) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+
+/* TOP NAV */
+.topnav{position:sticky;top:0;z-index:200;background:rgba(5,7,9,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);padding:0 0 0 1.5rem;width:100%}
+.topnav-inner{display:flex;align-items:center;height:52px}
+.nav-back{font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-decoration:none;padding-right:1.5rem;border-right:1px solid var(--border);margin-right:1.5rem;transition:color .15s;white-space:nowrap}
+.nav-back:hover{color:var(--text)}
+.nav-title-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nav-dot{width:6px;height:6px;border-radius:50%;animation:pd 2s infinite}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+.nav-title{font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.nav-tabs{margin-left:auto;display:flex;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nt{font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:0 .85rem;height:52px;display:flex;align-items:center;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+.nt:hover{color:var(--text)}.nt.active{color:var(--neon-green);border-bottom-color:var(--neon-green)}
+
+/* LAYOUT */
+.layout{display:flex;width:100%;min-height:calc(100vh - 52px);position:relative;z-index:1}
+
+/* SIDEBAR */
+.sidebar{width:230px;min-width:230px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border);padding:1.5rem 0;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.sidebar::-webkit-scrollbar{width:3px}.sidebar::-webkit-scrollbar-thumb{background:var(--border2)}
+.sb-sec{margin-bottom:1.5rem}
+.sb-lbl{font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);padding:0 1.25rem;margin-bottom:.4rem;display:block}
+.sb-a{display:block;padding:.38rem 1.25rem;font-size:.82rem;color:var(--text2);text-decoration:none;border-left:2px solid transparent;transition:all .15s}
+.sb-a:hover{color:var(--text);background:var(--surface)}
+.sb-a.active{color:var(--neon-green);border-left-color:var(--neon-green);background:rgba(57,255,20,.05)}
+
+/* MAIN */
+.main{flex:1;min-width:0;padding:0 0 6rem 0}
+
+/* HERO */
+.page-hero{background:linear-gradient(135deg,rgba(57,255,20,.07) 0%,var(--bg2) 60%);border-bottom:1px solid var(--border);padding:3rem 4rem 3rem 3rem;position:relative;overflow:hidden}
+.page-hero::after{content:'GIT';position:absolute;right:-1rem;top:50%;transform:translateY(-50%);font-size:12rem;font-weight:900;color:rgba(57,255,20,.04);line-height:1;pointer-events:none;font-family:'Outfit',sans-serif;letter-spacing:-4px}
+.hero-ey{font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--neon-green);margin-bottom:.75rem}
+.hero-title{font-size:clamp(2rem,4vw,3.5rem);font-weight:900;letter-spacing:-1px;line-height:1.05;margin-bottom:.75rem}
+.hero-title span{color:var(--neon-green)}
+.hero-desc{font-size:.92rem;color:var(--text2);max-width:720px;line-height:1.9}
+
+/* CONTENT */
+.content{padding:3rem 4rem 3rem 3rem}
+
+/* SECTION */
+.sec{padding:0 0 2.5rem 0;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.sec:last-child{border-bottom:none}
+.sec-ey{font-family:'Space Mono',monospace;font-size:.6rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:.4rem}
+.sec-title{font-size:1.75rem;font-weight:800;letter-spacing:-.5px;margin-bottom:.75rem}
+.sec-desc{font-size:.92rem;color:var(--text2);max-width:820px;line-height:1.9;margin-bottom:1.5rem}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:1.25rem}
+.card-cy{border-left:3px solid var(--neon-cyan)}.card-pk{border-left:3px solid var(--neon-pink)}
+.card-gr{border-left:3px solid var(--neon-green)}.card-am{border-left:3px solid var(--neon-amber)}
+.card-pu{border-left:3px solid var(--neon-purple)}.card-bl{border-left:3px solid var(--neon-blue)}
+.card-or{border-left:3px solid var(--neon-orange)}.card-te{border-left:3px solid var(--neon-teal)}
+.card-h{font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:.9rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.card p{font-size:.9rem;color:var(--text2);line-height:1.85;margin-bottom:.75rem}
+.card p:last-child{margin-bottom:0}
+.card strong{color:var(--text);font-weight:600}
+.card ul,.card ol{padding-left:1.2rem;margin:.5rem 0;display:flex;flex-direction:column;gap:5px}
+.card li{font-size:.88rem;color:var(--text2);line-height:1.75}
+
+/* CODE */
+pre,code{font-family:'Space Mono',monospace}
+pre{background:#040608;border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.25rem;font-size:.77rem;color:var(--neon-cyan);overflow-x:auto;margin:.75rem 0;line-height:1.9}
+pre .cm{color:#2a3a4a;font-style:italic}.pre .kw{color:var(--neon-purple)}.pre .str{color:var(--neon-green)}
+.t-cmd{color:#7ee787;display:block}.t-out{color:#2a3a4a;display:block}.t-err{color:var(--neon-pink);display:block}
+.t-cmt{color:#2a3a4a;display:block;font-style:italic}
+code{font-family:'Space Mono',monospace;font-size:.78rem;background:rgba(57,255,20,.07);border:1px solid var(--border2);padding:1px 6px;border-radius:4px;color:var(--neon-green)}
+.ph{font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);background:#040608;border:1px solid var(--border);border-bottom:none;padding:.4rem .75rem;border-radius:8px 8px 0 0;display:block}
+.ph+pre{border-radius:0 8px 8px 8px;margin-top:0}
+
+/* TERMINAL */
+.terminal{background:#040608;border:1px solid var(--border);border-radius:8px;margin:.75rem 0;overflow:hidden}
+.term-bar{background:#1a2030;padding:.45rem 1rem;display:flex;align-items:center;gap:6px}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-title{font-family:'Space Mono',monospace;font-size:.6rem;color:var(--muted);margin-left:6px;letter-spacing:1px;text-transform:uppercase}
+.term-body{padding:1rem 1.25rem;font-family:'Space Mono',monospace;font-size:.77rem;line-height:1.9}
+
+/* CALLOUTS */
+.info{background:rgba(77,159,255,.07);border:1px solid rgba(77,159,255,.25);color:#93c8ff;border-radius:8px;padding:.9rem 1.1rem;margin:.75rem 0;font-size:.88rem;line-height:1.85}
+.warn{background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.25);color:#ffd060;border-radius:8px;padding:.9rem 1.1rem;margin:.75rem 0;font-size:.88rem;line-height:1.85}
+.tip{background:rgba(57,255,20,.07);border:1px solid rgba(57,255,20,.25);color:#80ff55;border-radius:8px;padding:.9rem 1.1rem;margin:.75rem 0;font-size:.88rem;line-height:1.85}
+.danger{background:rgba(255,45,120,.07);border:1px solid rgba(255,45,120,.25);color:#ff7eaa;border-radius:8px;padding:.9rem 1.1rem;margin:.75rem 0;font-size:.88rem;line-height:1.85}
+.cl{font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:.35rem;display:block}
+.analogy-box{background:rgba(191,95,255,.07);border:1px solid rgba(191,95,255,.25);border-radius:8px;padding:.9rem 1.1rem;margin:.75rem 0;font-size:.88rem;line-height:1.85;color:#d4abff}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;margin:.75rem 0;font-size:.88rem}
+.tbl th{background:var(--bg3);padding:.6rem 1rem;text-align:left;font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border2)}
+.tbl td{padding:.65rem 1rem;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;line-height:1.7;font-size:.88rem}
+.tbl td:first-child{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--neon-green)}
+.tbl tr:hover td{background:var(--surface2)}
+.tbl-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:.75rem 0}
+
+/* ARCH FLOW */
+.flow-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:.75rem 0}
+.flow-box{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:.5rem 1rem;font-family:'Space Mono',monospace;font-size:.72rem;white-space:nowrap}
+.flow-arr{color:var(--muted);font-size:1rem;padding:0 2px}
+
+/* STEP LIST */
+.steps{display:flex;flex-direction:column;gap:0;margin:.75rem 0}
+.step{display:flex;gap:0}
+.step-line{display:flex;flex-direction:column;align-items:center;width:38px;flex-shrink:0}
+.step-n{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:.72rem;font-weight:700;flex-shrink:0;z-index:1;margin-top:3px}
+.step-conn{flex:1;width:1px;background:var(--border);margin:4px 0}
+.step-body{flex:1;padding:0 0 26px 16px}
+.step-title{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:4px;padding-top:4px}
+.step-desc{font-size:.88rem;color:var(--text2);line-height:1.8}
+.step:last-child .step-conn{display:none}
+.step:last-child .step-body{padding-bottom:0}
+
+/* DIAGRAM */
+.diagram{background:#040608;border:1px solid var(--border2);border-radius:10px;padding:1.5rem 1.75rem;font-family:'Space Mono',monospace;font-size:.77rem;line-height:2;margin:.75rem 0;overflow-x:auto}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.75rem 0}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin:.75rem 0}
+
+/* BADGES */
+.badge{display:inline-block;font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:20px;border:1px solid;margin:2px}
+.b-gr{color:var(--neon-green);border-color:rgba(57,255,20,.4);background:rgba(57,255,20,.08)}
+.b-am{color:var(--neon-amber);border-color:rgba(255,184,0,.4);background:rgba(255,184,0,.08)}
+.b-pk{color:var(--neon-pink);border-color:rgba(255,45,120,.4);background:rgba(255,45,120,.08)}
+.b-bl{color:var(--neon-blue);border-color:rgba(77,159,255,.4);background:rgba(77,159,255,.08)}
+.b-cy{color:var(--neon-cyan);border-color:rgba(0,245,255,.4);background:rgba(0,245,255,.08)}
+.b-pu{color:var(--neon-purple);border-color:rgba(191,95,255,.4);background:rgba(191,95,255,.08)}
+.b-or{color:var(--neon-orange);border-color:rgba(255,107,53,.4);background:rgba(255,107,53,.08)}
+
+/* HIGHLIGHT NUMBER */
+.num-hl{font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;background:rgba(57,255,20,.12);color:var(--neon-green);border:1px solid rgba(57,255,20,.3);border-radius:4px;padding:1px 7px;margin-right:6px}
+
+/* FOOTER */
+.page-footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:1.5rem 3rem;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+.page-footer a{color:var(--text2);text-decoration:none}
+
+@media(max-width:900px){
+  .sidebar{display:none}
+  .content{padding:2rem 1.5rem 4rem}
+  .g2,.g3{grid-template-columns:1fr}
+  .page-hero{padding:2rem 1.5rem}
+  .page-footer{padding:1.5rem;flex-direction:column;gap:4px}
+}
 </style>
 </head>
 <body>
-<div class="layout">
-<aside class="sidebar">
-  <div class="sb-logo"><div class="sb-logo-name"><span class="sb-dot"></span>Crypto Tracker Docs</div><div class="sb-sub">DARKZONE17 / crypto-tracker</div></div>
-  <div class="sb-label">Main</div><a href="index.html" class="sb-link"><span class="ic">🏠</span>Home — Hub</a>
-  <div class="sb-div"></div><div class="sb-label">Documentation</div>
-  <a href="kafka.html" class="sb-link"><span class="ic">⚡</span>Kafka Docs<span class="tag tag-done">Full</span></a>
-  <a href="architecture.html" class="sb-link"><span class="ic">🏗️</span>Architecture</a>
-  <a href="Docker.html" class="sb-link"><span class="ic">🐳</span>Docker</a>
-  <a href="Websocket.html" class="sb-link"><span class="ic">🔌</span>WebSocket</a>
-  <a href="git.html" class="sb-link active"><span class="ic">🌿</span>Git / GitHub</a>
-  <a href="Tracker.html" class="sb-link"><span class="ic">📋</span>Progress Tracker</a>
-  <div class="sb-div"></div><div class="sb-label">Guides</div>
-  <a href="hello-world-guide.html" class="sb-link"><span class="ic">🚀</span>Hello World Guide</a>
-  <div class="sb-foot">Kafka · Spark · Delta Lake<br>Databricks · Docker · Python</div>
-</aside>
-<main class="main">
-<nav class="page-nav">
-  <a href="#what-is-git">What is Git</a>
-  <a href="#git-vs-github">Git vs GitHub</a>
-  <a href="#why-branches">Why Branches</a>
-  <a href="#setup">Setup</a>
-  <a href="#daily-flow">Daily Flow</a>
-  <a href="#branching">Branching</a>
-  <a href="#merge">Merge</a>
-  <a href="#conflicts">Conflicts</a>
-  <a href="#github">GitHub / PRs</a>
-  <a href="#scenarios">Scenarios</a>
-  <a href="#gitignore">.gitignore</a>
-  <a href="#cheatsheet">Cheatsheet</a>
-</nav>
-<div class="hero">
-  <div class="eyebrow">Version Control</div>
-  <h1>Git / GitHub</h1>
-  <p>Everything about version control from scratch — what Git is, why branches exist and why they matter for real projects, every command you'll actually use with plain-English explanations, branching strategy for this project, handling merge conflicts, and how GitHub pull requests work.</p>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="topnav-inner">
+    <a href="index.html" class="nav-back">← Hub</a>
+    <div class="nav-title-wrap">
+      <div class="nav-dot" style="background:var(--neon-green);box-shadow:0 0 8px var(--neon-green)"></div>
+      <div class="nav-title" style="color:var(--neon-green)">Git / GitHub</div>
+    </div>
+    <nav class="nav-tabs">
+      <a href="#problem"     class="nt active">The Problem</a>
+      <a href="#concepts"    class="nt">Key Concepts</a>
+      <a href="#architecture" class="nt">Architecture</a>
+      <a href="#basic-flow"  class="nt">Basic Flow</a>
+      <a href="#branches"    class="nt">Branches</a>
+      <a href="#conflicts"   class="nt">Conflicts</a>
+      <a href="#remote"      class="nt">Remote / GitHub</a>
+      <a href="#undo"        class="nt">Undo Mistakes</a>
+      <a href="#advanced"    class="nt">Advanced</a>
+      <a href="#team-flow"   class="nt">Team Workflow</a>
+      <a href="#cheatsheet"  class="nt">Cheatsheet</a>
+    </nav>
+  </div>
 </div>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="hero-ey">// From Zero to Advanced — Developer Training Guide</div>
+  <h1 class="hero-title">Git &amp; <span>GitHub</span></h1>
+  <p class="hero-desc">
+    Complete Git guide for first-time learners. Not just commands — the <em>thinking</em> behind Git.
+    Why it exists, how it works internally, branching strategy, undoing mistakes, team workflows,
+    rebase vs merge, stash, cherry-pick, and everything you need to work like a professional developer.
+  </p>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-sec">
+    <span class="sb-lbl">Foundation</span>
+    <a href="#problem"       class="sb-a active">1. The Problem Git Solves</a>
+    <a href="#concepts"      class="sb-a">2. Key Concepts</a>
+    <a href="#architecture"  class="sb-a">3. Git Architecture</a>
+  </div>
+  <div class="sb-sec">
+    <span class="sb-lbl">Core Skills</span>
+    <a href="#basic-flow"    class="sb-a">4. Basic Workflow</a>
+    <a href="#changes"       class="sb-a">5. Understanding Changes</a>
+    <a href="#branches"      class="sb-a">6. Branching</a>
+    <a href="#conflicts"     class="sb-a">7. Merge Conflicts</a>
+  </div>
+  <div class="sb-sec">
+    <span class="sb-lbl">GitHub & Teams</span>
+    <a href="#remote"        class="sb-a">8. Remote / GitHub</a>
+    <a href="#pull-vs-fetch" class="sb-a">9. Pull vs Fetch</a>
+    <a href="#undo"          class="sb-a">10. Undo Mistakes</a>
+  </div>
+  <div class="sb-sec">
+    <span class="sb-lbl">Advanced</span>
+    <a href="#internals"     class="sb-a">11. Git Internals</a>
+    <a href="#rebase"        class="sb-a">12. Rebase vs Merge</a>
+    <a href="#stash"         class="sb-a">13. Stash</a>
+    <a href="#tags"          class="sb-a">14. Tags</a>
+    <a href="#team-flow"     class="sb-a">15. Team Workflow</a>
+    <a href="#advanced"      class="sb-a">16. Advanced Commands</a>
+  </div>
+  <div class="sb-sec">
+    <span class="sb-lbl">Reference</span>
+    <a href="#mistakes"      class="sb-a">17. Beginner Mistakes</a>
+    <a href="#practice"      class="sb-a">18. Practice Plan</a>
+    <a href="#cheatsheet"    class="sb-a">19. Cheatsheet</a>
+  </div>
+</aside>
+
+<main class="main">
 <div class="content">
 
-<div class="sec" id="what-is-git">
-  <div class="sec-eyebrow">Foundation</div>
-  <h2>What is Git?</h2>
-  <p class="lead">Git is a version control system. It tracks every change ever made to your code, stores a complete history, and lets you go back to any previous state. Think of it as unlimited undo with a detailed history of who changed what, when, and why.</p>
 
-  <div class="card">
-    <h3>The Problem Git Solves</h3>
-    <p>Without Git, most developers end up with folders like: <code>project_v1</code>, <code>project_v2</code>, <code>project_final</code>, <code>project_final_REAL</code>, <code>project_DONT_DELETE</code>. This is manual version control — it's messy, error-prone, and makes collaboration impossible.</p>
-    <p>With Git, every saved state (called a commit) is tracked automatically with a timestamp, a message describing the change, and the exact lines that changed. You can jump back to any commit instantly. You can see the complete history of your project in one command.</p>
+<!-- ══════════════════════════════════════════ 1. THE PROBLEM -->
+<section class="sec" id="problem">
+  <div class="sec-ey" style="color:var(--neon-green)">// Chapter 1 — Why Does Git Exist?</div>
+  <h2 class="sec-title">The Problem Git Solves</h2>
+  <p class="sec-desc">
+    Before learning any commands, you need to understand the <em>pain</em> that Git was built to fix.
+    If you've ever done any of the following things, you've already felt the problem.
+  </p>
+
+  <div class="card card-pk">
+    <div class="card-h" style="color:var(--neon-pink)">THE REPORT.DOC NIGHTMARE — WHAT DEVELOPERS DID BEFORE GIT</div>
+    <p>Imagine you're writing a project and managing it like this:</p>
+    <div class="diagram">
+project_folder/
+  ├── report_v1.doc
+  ├── report_v2.doc
+  ├── report_final.doc
+  ├── report_final_FINAL.doc
+  ├── report_final_real.doc
+  └── report_DONT_DELETE_THIS_ONE.doc   ← 😅 we've all been here</div>
+    <p>Now ask yourself these questions — and notice you can't answer any of them confidently:</p>
+    <ul>
+      <li>What actually changed between v2 and final?</li>
+      <li>If final_real.doc is broken, how do you get the last working version back?</li>
+      <li>If two people edited different versions — how do you combine them?</li>
+      <li>Which is the "real" current version?</li>
+    </ul>
+    <p>This is exactly the chaos Git eliminates. Instead of messy file copies, Git tracks every change automatically, with timestamps, author names, and descriptions. One folder. Full history. No confusion.</p>
   </div>
 
-  <div class="card">
-    <h3>Key Terms in Plain English</h3>
+  <div class="card card-gr">
+    <div class="card-h" style="color:var(--neon-green)">WHAT GIT IS — THE ACTUAL DEFINITION</div>
+    <p><strong>Git is a Version Control System (VCS)</strong> — software that tracks changes in your code over time.</p>
+    <p>Every time you tell Git to save a snapshot (called a <strong>commit</strong>), it records the exact state of every file at that moment. You can go back to any past snapshot instantly. You can work on experimental features without touching your working code. Multiple people can work on the same project without overwriting each other's work.</p>
+
+    <div class="analogy-box">
+      <span class="cl" style="color:var(--neon-purple)">🧠 Mental Model — Remember This</span>
+      Git is simultaneously three things:<br><br>
+      <strong>🧠 A time machine</strong> — go back to any point in your project's history<br>
+      <strong>📸 A camera</strong> — takes snapshots (commits) of your code at moments you choose<br>
+      <strong>🌳 A multiverse</strong> — lets you create parallel universes (branches) of your code<br>
+      <strong>☁️ A cloud backup system</strong> — when paired with GitHub, your code is safe even if your laptop dies
+    </div>
+  </div>
+
+  <div class="card card-bl">
+    <div class="card-h" style="color:var(--neon-blue)">GIT vs GITHUB — THEY ARE NOT THE SAME THING</div>
+    <div class="g2">
+      <div>
+        <p style="font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;color:var(--neon-green);margin-bottom:.5rem">Git</p>
+        <ul>
+          <li>Software installed on <strong>your laptop</strong></li>
+          <li>Works completely offline — no internet needed</li>
+          <li>A command-line tool you type commands into</li>
+          <li>Free and open source, created by Linus Torvalds (creator of Linux) in 2005</li>
+          <li>Tracks your code history locally</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-family:'Space Mono',monospace;font-size:.68rem;font-weight:700;color:var(--neon-pink);margin-bottom:.5rem">GitHub</p>
+        <ul>
+          <li>A <strong>website</strong> that stores Git repos in the cloud</li>
+          <li>Requires internet and an account</li>
+          <li>Adds a visual interface, collaboration features, PRs</li>
+          <li>Owned by Microsoft</li>
+          <li>Alternatives: GitLab, Bitbucket, Azure DevOps</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="cl">Simple Way to Remember</span>
+      Git = the tool (runs on your laptop). GitHub = cloud storage for that tool (runs on the internet).
+      You can use Git without GitHub. You cannot use GitHub without Git.
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 2. KEY CONCEPTS -->
+<section class="sec" id="concepts">
+  <div class="sec-ey" style="color:var(--neon-cyan)">// Chapter 2 — Learn These Before Commands</div>
+  <h2 class="sec-title">Key Concepts — Understand These Deeply</h2>
+  <p class="sec-desc">
+    Most beginners jump straight to commands and get confused. Don't do that. These five concepts
+    are the mental model behind everything. If you understand these, every command will make intuitive sense.
+  </p>
+
+  <div class="card card-cy">
+    <div class="card-h" style="color:var(--neon-cyan)">CONCEPT 1 — REPOSITORY (REPO)</div>
+    <p>A repository is simply <strong>your project folder — tracked by Git</strong>. When you run <code>git init</code> inside a folder, Git creates a hidden <code>.git</code> subfolder. That hidden folder IS Git's brain — it stores every commit, every branch, the complete history of every file. Never delete the <code>.git</code> folder or you lose all history.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">mkdir crypto-tracker && cd crypto-tracker</span>
+        <span class="t-cmd">git init</span>
+        <span class="t-out">Initialized empty Git repository in /crypto-tracker/.git/</span>
+        <span class="t-cmd">ls -la</span>
+        <span class="t-out">drwxr-xr-x  .git    ← this is Git's brain — don't touch it</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-am">
+    <div class="card-h" style="color:var(--neon-amber)">CONCEPT 2 — COMMIT (THE MOST IMPORTANT CONCEPT)</div>
+    <p>A commit is a <strong>saved snapshot of your entire project at a specific moment in time</strong>. Every commit has a unique ID (a 40-character hash like <code>a3f5d9c...</code>), a timestamp, the author's name, and a message you write describing what changed.</p>
+    <p>Think of commits like <strong>save points in a video game</strong>. You can always go back to any save point. The difference from a regular "save" is that commits are permanent and stackable — you can have thousands of them and jump to any one.</p>
+    <div class="analogy-box">
+      <span class="cl" style="color:var(--neon-purple)">📸 Analogy — Photography</span>
+      A commit is like a photograph of your code. The photo is frozen in time — it never changes.
+      You can take as many photos as you want (commit often!). You can always look at an old photo to see how things looked before.
+      The photos are stored in your repo's history in order.
+    </div>
+  </div>
+
+  <div class="card card-gr">
+    <div class="card-h" style="color:var(--neon-green)">CONCEPT 3 — STAGING AREA (THE MIDDLE STEP)</div>
+    <p>This confuses every beginner. There are <strong>three zones</strong> in Git, not two:</p>
+    <div class="flow-row">
+      <div class="flow-box" style="border-color:rgba(77,159,255,.4);color:var(--neon-blue)">Working Directory<br><span style="font-size:.65rem;color:var(--muted)">files on disk</span></div>
+      <span class="flow-arr">→</span>
+      <div class="flow-box" style="border-color:rgba(255,184,0,.4);color:var(--neon-amber)">Staging Area<br><span style="font-size:.65rem;color:var(--muted)">selected changes</span></div>
+      <span class="flow-arr">→</span>
+      <div class="flow-box" style="border-color:rgba(57,255,20,.4);color:var(--neon-green)">Local Repo<br><span style="font-size:.65rem;color:var(--muted)">saved history</span></div>
+      <span class="flow-arr">→</span>
+      <div class="flow-box" style="border-color:rgba(255,45,120,.4);color:var(--neon-pink)">Remote (GitHub)<br><span style="font-size:.65rem;color:var(--muted)">cloud backup</span></div>
+    </div>
+    <p><strong>Working Directory</strong> — where you actually edit files. Changes here are "unsaved" from Git's perspective.</p>
+    <p><strong>Staging Area</strong> — a holding area. You use <code>git add</code> to move changes here. Think of it as selecting which changes you want to include in your next commit. This is why staging exists: if you changed 5 files but only want to commit 2 of them, you add only those 2 to staging.</p>
+    <p><strong>Local Repo</strong> — the saved history on your laptop. When you run <code>git commit</code>, everything in staging becomes a permanent commit here.</p>
+    <div class="analogy-box">
+      <span class="cl" style="color:var(--neon-purple)">🛒 Analogy — Supermarket Shopping</span>
+      Working = items on shelves (you can look at everything). Staging = your shopping cart (you've decided to buy these). Commit = paying at checkout (the purchase is finalized, permanent). You pick what goes in your cart before you pay — that's staging.
+    </div>
+  </div>
+
+  <div class="card card-pk">
+    <div class="card-h" style="color:var(--neon-pink)">CONCEPT 4 — BRANCH (PARALLEL UNIVERSES)</div>
+    <p>A branch is an <strong>independent line of development</strong>. It's like creating a copy of your project where you can make changes freely without affecting the original. When you're happy with the changes, you merge them back.</p>
+    <p>Every Git repo starts with one branch called <code>main</code> (or <code>master</code> in older repos). This is your "official" code — always working, always stable. When you want to add a new feature or fix a bug, you create a new branch, do your work there, then merge it back into main.</p>
+    <div class="analogy-box">
+      <span class="cl" style="color:var(--neon-purple)">🌳 Analogy — Road Construction</span>
+      main branch = the main highway (always open, always working).<br>
+      feature branch = a detour road being built in parallel.<br>
+      When the detour is ready, it becomes part of the main highway (merge).<br>
+      Traffic on the main highway was never disrupted during construction.
+    </div>
+  </div>
+
+  <div class="card card-pu">
+    <div class="card-h" style="color:var(--neon-purple)">CONCEPT 5 — REMOTE (CLOUD BACKUP)</div>
+    <p>A remote is a <strong>copy of your repo stored somewhere else</strong> — usually GitHub. When you push to a remote, your commits are uploaded to the cloud. This serves two purposes: backup (laptop crashes → code is safe) and collaboration (teammates can download your commits).</p>
+    <p>The most common remote name is <code>origin</code> — that's just the conventional name for the main remote. You can have multiple remotes with different names, but 99% of the time you'll only use <code>origin</code>.</p>
+  </div>
+
+  <div class="card card-te">
+    <div class="card-h" style="color:var(--neon-teal)">QUICK REFERENCE — ALL FIVE CONCEPTS</div>
     <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Term</th><th>What It Is</th><th>Real World Analogy</th></tr></thead>
+      <table class="tbl">
+        <thead><tr><th>Concept</th><th>Plain English</th><th>Command to Know</th><th>Analogy</th></tr></thead>
         <tbody>
-          <tr><td>Repository (repo)</td><td>The folder Git is tracking</td><td>A project binder that records every change</td></tr>
-          <tr><td>Commit</td><td>A saved snapshot of your changes</td><td>A save point in a video game</td></tr>
-          <tr><td>Branch</td><td>An independent line of development</td><td>A parallel universe of your code</td></tr>
-          <tr><td>main</td><td>The primary branch — stable, production code</td><td>The official published version of a document</td></tr>
-          <tr><td>Push</td><td>Upload your commits to GitHub</td><td>Syncing your local files to Google Drive</td></tr>
-          <tr><td>Pull</td><td>Download commits from GitHub to your machine</td><td>Downloading from Google Drive</td></tr>
-          <tr><td>Clone</td><td>Download an entire repo from GitHub</td><td>Getting a full copy of a project to your laptop</td></tr>
-          <tr><td>Merge</td><td>Combine one branch into another</td><td>Accepting edits back into the main document</td></tr>
-          <tr><td>Pull Request (PR)</td><td>Formal request to merge your branch on GitHub</td><td>Submitting your work for review before accepting it</td></tr>
-          <tr><td>Conflict</td><td>Two people changed the same line differently</td><td>Two editors changed the same sentence in a document</td></tr>
-          <tr><td>Staging area</td><td>Selecting which changes to include in the next commit</td><td>Choosing which items to pack in a box before sealing it</td></tr>
-          <tr><td>.gitignore</td><td>File listing what Git should NOT track</td><td>A "do not archive" list</td></tr>
+          <tr><td>Repository</td><td>Your project folder, tracked by Git</td><td>git init</td><td>A project binder with auto-logged history</td></tr>
+          <tr><td>Commit</td><td>A saved snapshot of your code at one moment</td><td>git commit</td><td>Save point in a video game</td></tr>
+          <tr><td>Staging Area</td><td>Holding zone — select what goes into the next commit</td><td>git add</td><td>Shopping cart before checkout</td></tr>
+          <tr><td>Branch</td><td>A parallel copy of your code to work in safely</td><td>git branch</td><td>A parallel universe of your project</td></tr>
+          <tr><td>Remote</td><td>Cloud copy of your repo (usually GitHub)</td><td>git push / pull</td><td>Google Drive for code</td></tr>
         </tbody>
       </table>
     </div>
   </div>
-</div>
+</section>
 
-<div class="sec" id="git-vs-github">
-  <div class="sec-eyebrow">Clarification</div>
-  <h2>Git vs GitHub — They Are Not the Same</h2>
-  <p class="lead">Many beginners confuse Git and GitHub. They are completely different things that happen to work together.</p>
 
-  <div class="g2">
-    <div class="card">
-      <h3>Git</h3>
-      <p>Software that runs on YOUR laptop. Tracks file changes locally. Works with zero internet connection. Free and open source. Created by Linus Torvalds (creator of Linux) in 2005. A command-line tool you install once.</p>
-      <p>When you run <code>git commit</code>, that's Git working locally on your machine — nothing goes to the internet.</p>
-    </div>
-    <div class="card">
-      <h3>GitHub</h3>
-      <p>A website that hosts Git repositories in the cloud. Provides a web UI to browse code, review changes, and manage collaboration. Owned by Microsoft. Requires an account. Not the only option — there's also GitLab, Bitbucket, etc.</p>
-      <p>When you run <code>git push</code>, that's sending your local Git history up to GitHub in the cloud.</p>
-    </div>
+<!-- ══════════════════════════════════════════ 3. ARCHITECTURE -->
+<section class="sec" id="architecture">
+  <div class="sec-ey" style="color:var(--neon-blue)">// Chapter 3 — How Git Is Structured</div>
+  <h2 class="sec-title">Git Architecture — The Four Zones</h2>
+  <p class="sec-desc">This is the most important diagram to memorize. Every Git command moves data between these four zones. Once you know this, you always know what a command is doing.</p>
+
+  <div class="diagram">
+<span style="color:var(--muted)">─────────────────────────────────────────────────────────────────────────────</span>
+<span style="color:var(--neon-blue)">Working Directory</span>  →  <span style="color:var(--neon-amber)">Staging Area</span>  →  <span style="color:var(--neon-green)">Local Repo</span>  →  <span style="color:var(--neon-pink)">Remote (GitHub)</span>
+<span style="color:var(--muted)">─────────────────────────────────────────────────────────────────────────────</span>
+<span style="color:var(--text2)">Files you edit     Files you       Committed        Cloud copy</span>
+<span style="color:var(--text2)">on your disk       selected with   history on       on GitHub</span>
+<span style="color:var(--text2)">(unsaved to Git)   git add         your laptop      (pushed)</span>
+<span style="color:var(--muted)">─────────────────────────────────────────────────────────────────────────────</span>
+<span style="color:var(--text2)">                   git add ──────►</span>
+<span style="color:var(--text2)">                                  git commit ─────►</span>
+<span style="color:var(--text2)">                                                    git push ──────►</span>
+<span style="color:var(--text2)">◄─────────────────────────────────────────────── git pull</span>
+<span style="color:var(--text2)">                                  ◄────────────── git fetch</span>
+<span style="color:var(--text2)">◄───────────────── git checkout</span>
+<span style="color:var(--muted)">─────────────────────────────────────────────────────────────────────────────</span></div>
+
+  <div class="info">
+    <span class="cl">HOW TO USE THIS DIAGRAM</span>
+    Every time you run a Git command and feel confused about what it's doing — come back to this diagram.
+    <code>git add</code> moves changes from Working → Staging.
+    <code>git commit</code> moves from Staging → Local Repo.
+    <code>git push</code> moves from Local Repo → Remote.
+    <code>git pull</code> moves from Remote → Working Directory (it's fetch + merge).
+    That's all Git is — moving snapshots of code between these four zones.
   </div>
+</section>
 
-  <div class="callout info-box">
-    <span class="icon">💡</span>
-    <div class="body">
-      <strong>Key relationship</strong>
-      Git is the tool. GitHub is cloud storage for that tool. You can use Git without GitHub (local only, no backup). You cannot use GitHub without Git. For this project: Git tracks your code locally, GitHub stores a backup and lets you navigate your history on the web.
-    </div>
-  </div>
-</div>
 
-<div class="sec" id="why-branches">
-  <div class="sec-eyebrow">The Most Important Concept</div>
-  <h2>Why Branches? What Goes Wrong Without Them</h2>
-  <p class="lead">Branches are what make Git powerful for real development. Without branches, adding any new feature risks breaking what already works.</p>
+<!-- ══════════════════════════════════════════ 4. BASIC WORKFLOW -->
+<section class="sec" id="basic-flow">
+  <div class="sec-ey" style="color:var(--neon-amber)">// Chapter 4 — Day One Skills</div>
+  <h2 class="sec-title">Basic Workflow — Your First Git Session</h2>
+  <p class="sec-desc">These are the commands you will type every single day. Learn this loop until it's automatic. We'll go through it step by step with full explanations of what each command actually does.</p>
 
-  <div class="card">
-    <h3>Without Branches — What Goes Wrong</h3>
-    <p>Imagine you're adding WebSocket functionality to your crypto tracker. While coding, you break the Kafka producer you already had working. Without branches, your main branch is now broken — and there's no easy way to isolate your broken WebSocket code from your working Kafka code.</p>
-    <p>You can't commit your broken work (breaks the repo), can't deploy (broken), and can't easily go back without losing your WebSocket changes. This is exactly the situation branches solve.</p>
-  </div>
-
-  <div class="card">
-    <h3>With Branches — Complete Isolation</h3>
-    <p>You create a branch called <code>feature/websocket</code> and do all your WebSocket work there. Your <code>main</code> branch still has your working Kafka producer, untouched. You can break things in your feature branch all you want — it doesn't affect main. When the WebSocket code works, you merge it into main.</p>
-
-    <div class="diagram">
-main:      ●───────────────────────────────────────────────●  ← stable at all times
-           │                                               ↑
-           │ branch off here                    merge here │
-           ↓                                               │
-feature:   ●──●──●──●──●──●  ← your work lives here, safely isolated
-           │  │  │  │  │  └── fix: handle connection timeout
-           │  │  │  │  └───── feat: add message parsing
-           │  │  │  └──────── feat: connect to Binance stream
-           │  │  └─────────── feat: install websockets lib
-           │  └────────────── chore: create ws_producer.py
-           └───────────────── branch created from main</div>
-
-    <div class="callout tip-box">
-      <span class="icon">✅</span>
-      <div class="body">
-        <strong>The golden rule of branches</strong>
-        <code>main</code> should always be in a working, deployable state. Never commit broken or experimental code to main. Always work in a feature branch. Merge to main only when the feature is done and tested.
+  <div class="steps">
+    <div class="step">
+      <div class="step-line">
+        <div class="step-n" style="background:var(--neon-green);color:#000">1</div>
+        <div class="step-conn"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Initialize a repo — tell Git to start tracking this folder</div>
+        <div class="step-desc">Run this once, inside your project folder. Creates the hidden <code>.git</code> folder. You never need to run this again for the same project.</div>
+        <div class="terminal">
+          <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+          <div class="term-body">
+            <span class="t-cmd">cd my-project        </span>
+            <span class="t-cmt"># navigate into your project folder first</span>
+            <span class="t-cmd">git init</span>
+            <span class="t-out">Initialized empty Git repository in /my-project/.git/</span>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="card">
-    <h3>Branch Naming Convention</h3>
-    <p>Use the format <code>type/short-description</code>. The type tells you what kind of change it is:</p>
-    <div class="diagram">
-feature/kafka-producer          ← adding new functionality
-feature/websocket-binance       ← adding new functionality
-fix/consumer-offset-bug         ← fixing a bug
-fix/docker-port-conflict        ← fixing a bug
-docs/architecture-update        ← documentation changes
-refactor/config-parametrize     ← restructuring code without changing behavior
-chore/update-dependencies       ← maintenance tasks</div>
-  </div>
-</div>
+    <div class="step">
+      <div class="step-line">
+        <div class="step-n" style="background:var(--neon-blue);color:#fff">2</div>
+        <div class="step-conn"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Check status — what has changed since the last commit?</div>
+        <div class="step-desc">Run this constantly — before adding, before committing, whenever you feel confused. It tells you exactly what state your files are in across all three zones.</div>
+        <div class="terminal">
+          <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+          <div class="term-body">
+            <span class="t-cmd">git status</span>
+            <span class="t-out">On branch main</span>
+            <span class="t-out">Changes not staged for commit:    ← in Working Dir, not staged yet</span>
+            <span class="t-out">        modified:   producer.py</span>
+            <span class="t-out">Untracked files:                   ← brand new file, Git has never seen it</span>
+            <span class="t-out">        consumer.py</span>
+            <span class="t-cmt"># Red = not staged. Green = staged. This command is your best friend.</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-<div class="sec" id="setup">
-  <div class="sec-eyebrow">One-Time Setup</div>
-  <h2>Git Setup</h2>
+    <div class="step">
+      <div class="step-line">
+        <div class="step-n" style="background:var(--neon-amber);color:#000">3</div>
+        <div class="step-conn"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Add files — move changes to the staging area</div>
+        <div class="step-desc">This does NOT save anything yet. It just says "I want to include these changes in the next commit." You're filling the shopping cart before checkout.</div>
+        <div class="terminal">
+          <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+          <div class="term-body">
+            <span class="t-cmd">git add producer.py          </span>
+            <span class="t-cmt"># stage one specific file</span>
+            <span class="t-cmd">git add producer.py consumer.py  </span>
+            <span class="t-cmt"># stage multiple specific files</span>
+            <span class="t-cmd">git add .                    </span>
+            <span class="t-cmt"># stage ALL changed/new files in current folder</span>
+            <span class="t-cmd">git status</span>
+            <span class="t-out">Changes to be committed:      ← these are now staged (green)</span>
+            <span class="t-out">        new file:   consumer.py</span>
+            <span class="t-out">        modified:   producer.py</span>
+          </div>
+        </div>
+        <div class="warn">
+          <span class="cl">IMPORTANT</span>
+          <code>git add .</code> adds everything including files you may not want tracked (like <code>.env</code> secrets, <code>__pycache__</code>, etc.).
+          Always create a <code>.gitignore</code> file first to exclude those. See the cheatsheet section for a ready-made .gitignore.
+        </div>
+      </div>
+    </div>
 
-  <div class="card">
-    <h3>Step 1 — Install Git</h3>
-    <div class="terminal">
-      <span class="t-cmd">git --version</span>
-      <span class="t-out">git version 2.39.0   ← if you see this, Git is already installed</span>
-    </div>
-    <div class="terminal">
-      <div class="term-label">If not installed:</div>
-      <span class="t-cmd">winget install Git.Git       # Windows</span>
-      <span class="t-cmd">brew install git              # Mac</span>
-      <span class="t-cmd">sudo apt install git          # Ubuntu/Linux</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Step 2 — Set Your Identity (required once)</h3>
-    <p>Git attaches your name and email to every commit you make. This is how you know who made each change.</p>
-    <div class="terminal">
-      <span class="t-cmd">git config --global user.name "Your Name"</span>
-      <span class="t-cmd">git config --global user.email "your@email.com"</span>
-      <span class="t-cmd">git config --global init.defaultBranch main</span>
-      <span class="t-out"># The above makes new repos start on 'main' (modern standard)</span>
-    </div>
-    <div class="terminal">
-      <div class="term-label">Verify your config</div>
-      <span class="t-cmd">git config --list</span>
-      <span class="t-out">user.name=Your Name</span>
-      <span class="t-out">user.email=your@email.com</span>
-    </div>
-    <div class="callout warn-box">
-      <span class="icon">⚠️</span>
-      <div class="body">Without setting user.name and user.email, commits won't have an author, and GitHub won't credit them to your account profile.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Step 3 — Clone the crypto-tracker Repo</h3>
-    <div class="terminal">
-      <span class="t-cmd">git clone https://github.com/DARKZONE17/crypto-tracker.git</span>
-      <span class="t-out">Cloning into 'crypto-tracker'...</span>
-      <span class="t-out">remote: Enumerating objects: 41, done.</span>
-      <span class="t-out">remote: Total 41 (delta 0), reused 0, pack-reused 41</span>
-    </div>
-    <div class="terminal">
-      <span class="t-cmd">cd crypto-tracker</span>
-      <span class="t-cmd">git log --oneline</span>
-      <span class="t-out">a1b2c3d docs: add architecture page</span>
-      <span class="t-out">e5f6g7h feat: initial project setup</span>
-    </div>
-  </div>
-</div>
-
-<div class="sec" id="daily-flow">
-  <div class="sec-eyebrow">Every Work Session</div>
-  <h2>Daily Git Workflow — The Loop You Run Every Time</h2>
-  <p class="lead">This is the exact sequence of commands you run every time you sit down to work. Same order, every time. Internalize this loop and Git becomes muscle memory.</p>
-
-  <div class="card">
-    <h3>The Complete Daily Workflow</h3>
-    <div class="terminal">
-      <div class="term-label">STEP 1 — Always start by getting the latest code from GitHub</div>
-      <span class="t-cmd">git pull origin main</span>
-      <span class="t-out">Already up to date.      ← no changes since last time</span>
-      <span class="t-out">   OR</span>
-      <span class="t-out">Fast-forward              ← pulled new commits (someone else pushed, or you pushed from another machine)</span>
-    </div>
-    <div class="terminal">
-      <div class="term-label">STEP 2 — Create or switch to your feature branch</div>
-      <span class="t-cmd">git checkout -b feature/websocket-binance</span>
-      <span class="t-out">Switched to a new branch 'feature/websocket-binance'</span>
-      <span class="t-out"># OR, if the branch already exists:</span>
-      <span class="t-cmd">git checkout feature/websocket-binance</span>
-    </div>
-    <div class="terminal">
-      <div class="term-label">STEP 3 — Write your code... then check what changed</div>
-      <span class="t-cmd">git status</span>
-      <span class="t-out">On branch feature/websocket-binance</span>
-      <span class="t-out">Changes not staged for commit:</span>
-      <span class="t-out">        modified:   Websocket.html</span>
-      <span class="t-out">Untracked files:</span>
-      <span class="t-out">        ws_producer.py</span>
-    </div>
-    <div class="terminal">
-      <div class="term-label">STEP 4 — Stage the changes you want to commit</div>
-      <span class="t-cmd">git add Websocket.html ws_producer.py</span>
-      <span class="t-out"># Adds those two files to the staging area</span>
-      <span class="t-cmd">git add .   # OR add everything at once</span>
-    </div>
-    <div class="terminal">
-      <div class="term-label">STEP 5 — Commit with a descriptive message</div>
-      <span class="t-cmd">git commit -m "feat: add Binance WebSocket producer"</span>
-      <span class="t-out">[feature/websocket-binance 3a4b5c6] feat: add Binance WebSocket producer</span>
-      <span class="t-out"> 2 files changed, 87 insertions(+)</span>
-    </div>
-    <div class="terminal">
-      <div class="term-label">STEP 6 — Push your branch to GitHub</div>
-      <span class="t-cmd">git push origin feature/websocket-binance</span>
-      <span class="t-out">Enumerating objects: 5, done.</span>
-      <span class="t-out">Branch 'feature/websocket-binance' set up to track remote branch.</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <h3>Good vs Bad Commit Messages</h3>
-    <p>Commit messages are the story of your project. Future-you will thank present-you for writing clear messages.</p>
-    <div class="g2">
-      <div>
-        <p style="font-size:12px;color:var(--red);font-weight:600;margin-bottom:8px">❌ Bad — useless</p>
-        <pre style="margin:0;color:var(--red)">git commit -m "stuff"
+    <div class="step">
+      <div class="step-line">
+        <div class="step-n" style="background:var(--neon-pink);color:#fff">4</div>
+        <div class="step-conn"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">Commit — save the snapshot permanently</div>
+        <div class="step-desc">This creates a permanent, timestamped record of everything in the staging area. The <code>-m</code> flag lets you write the message inline. Write messages that explain <em>what</em> changed and <em>why</em> — future you will be grateful.</div>
+        <div class="terminal">
+          <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+          <div class="term-body">
+            <span class="t-cmd">git commit -m "feat: add Kafka producer and consumer"</span>
+            <span class="t-out">[main a3f5d9c] feat: add Kafka producer and consumer</span>
+            <span class="t-out"> 2 files changed, 87 insertions(+)</span>
+            <span class="t-cmt"># a3f5d9c is the unique commit hash — Git's ID for this snapshot</span>
+          </div>
+        </div>
+        <div class="g2" style="margin-top:.75rem">
+          <div class="card" style="margin-bottom:0;border-color:rgba(255,45,120,.3)">
+            <p style="font-size:.78rem;color:var(--neon-pink);font-weight:700;margin-bottom:6px">❌ Bad commit messages</p>
+            <pre style="margin:0;font-size:.72rem;color:var(--neon-pink)">git commit -m "stuff"
 git commit -m "fix"
 git commit -m "asdf"
-git commit -m "changes"
-git commit -m "working now"</pre>
+git commit -m "changes"</pre>
+          </div>
+          <div class="card" style="margin-bottom:0;border-color:rgba(57,255,20,.3)">
+            <p style="font-size:.78rem;color:var(--neon-green);font-weight:700;margin-bottom:6px">✅ Good commit messages</p>
+            <pre style="margin:0;font-size:.72rem;color:var(--neon-green)">feat: add Kafka producer
+fix: resolve offset reset error
+docs: update architecture diagram
+refactor: extract config to utils</pre>
+          </div>
+        </div>
       </div>
-      <div>
-        <p style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:8px">✅ Good — tells a story</p>
-        <pre style="margin:0;color:var(--green)">feat: add Binance WebSocket producer
-fix: resolve NoBrokersAvailable on startup
-docs: update Kafka offset explanation
-refactor: extract config to config.py
-chore: add .env to .gitignore</pre>
+    </div>
+
+    <div class="step">
+      <div class="step-line">
+        <div class="step-n" style="background:var(--neon-purple);color:#fff">5</div>
+      </div>
+      <div class="step-body">
+        <div class="step-title">View history — see all past commits</div>
+        <div class="step-desc">Shows every commit, newest first. Each entry shows the hash, author, date, and message.</div>
+        <div class="terminal">
+          <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+          <div class="term-body">
+            <span class="t-cmd">git log</span>
+            <span class="t-out">commit a3f5d9c7b1e2... (HEAD → main)</span>
+            <span class="t-out">Author: Your Name &lt;you@email.com&gt;</span>
+            <span class="t-out">Date:   Thu Apr 25 10:23:01 2024</span>
+            <span class="t-out">    feat: add Kafka producer and consumer</span>
+            <span class="t-cmd">git log --oneline         </span>
+            <span class="t-cmt"># compact version — much easier to read</span>
+            <span class="t-out">a3f5d9c feat: add Kafka producer and consumer</span>
+            <span class="t-out">e9b2c41 docs: add README</span>
+            <span class="t-out">f1d3a87 Initial commit</span>
+          </div>
+        </div>
       </div>
     </div>
-    <p style="margin-top:14px">Format: <code>type: short description</code> &nbsp;—&nbsp; Types: <code>feat</code> <code>fix</code> <code>docs</code> <code>refactor</code> <code>chore</code> <code>test</code></p>
   </div>
-</div>
+</section>
 
-<div class="sec" id="merge">
-  <div class="sec-eyebrow">Combining Branches</div>
-  <h2>Merging a Branch into Main</h2>
 
-  <div class="card">
-    <h3>Merge via Command Line</h3>
+<!-- ══════════════════════════════════════════ 5. CHANGES -->
+<section class="sec" id="changes">
+  <div class="sec-ey" style="color:var(--neon-cyan)">// Chapter 5 — Inspecting Changes</div>
+  <h2 class="sec-title">Understanding Changes — diff</h2>
+  <p class="sec-desc">Before you commit, you want to review exactly what changed. <code>git diff</code> shows you the exact lines that were added or removed.</p>
+
+  <div class="card card-cy">
+    <div class="card-h" style="color:var(--neon-cyan)">git diff — WHAT CHANGED (NOT YET STAGED)</div>
+    <p>Shows changes in your Working Directory that you have NOT yet staged with <code>git add</code>.</p>
     <div class="terminal">
-      <span class="t-cmd">git checkout main          # switch to main first</span>
-      <span class="t-cmd">git pull origin main       # get latest main from GitHub</span>
-      <span class="t-cmd">git merge feature/websocket-binance   # merge your feature branch in</span>
-      <span class="t-out">Updating e5f6g7h..a1b2c3d</span>
-      <span class="t-out">Fast-forward</span>
-      <span class="t-out"> ws_producer.py | 87 ++++++++++++++++++</span>
-      <span class="t-cmd">git push origin main       # push the merged result to GitHub</span>
-    </div>
-    <div class="callout info-box">
-      <span class="icon">💡</span>
-      <div class="body">In a real workflow, you'd usually merge via a Pull Request on GitHub rather than locally — it creates a record of the merge and allows code review. For a solo project, local merge is perfectly fine.</div>
-    </div>
-  </div>
-</div>
-
-<div class="sec" id="conflicts">
-  <div class="sec-eyebrow">When Two Changes Clash</div>
-  <h2>Merge Conflicts — What They Are and How to Fix Them</h2>
-
-  <div class="card">
-    <h3>What is a Merge Conflict?</h3>
-    <p>A conflict happens when two branches both changed the same line of the same file differently. Git can't decide which version is correct — so it marks the conflict in the file and asks you to decide.</p>
-    <div class="terminal">
-      <span class="t-cmd">git merge feature/websocket-binance</span>
-      <span class="t-err">CONFLICT (content): Merge conflict in producer.py</span>
-      <span class="t-err">Automatic merge failed; fix conflicts and then commit the result.</span>
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">git diff</span>
+        <span class="t-out">diff --git a/producer.py b/producer.py</span>
+        <span class="t-out">--- a/producer.py</span>
+        <span class="t-out">+++ b/producer.py</span>
+        <span class="t-out">@@ -10,7 +10,7 @@</span>
+        <span style="color:var(--neon-pink);display:block">- TOPIC = "hello-topic"     ← removed line (old)</span>
+        <span style="color:var(--neon-green);display:block">+ TOPIC = "crypto-prices"   ← added line (new)</span>
+        <span class="t-cmt"># Red lines (starting with -) = what was removed</span>
+        <span class="t-cmt"># Green lines (starting with +) = what was added</span>
+      </div>
     </div>
   </div>
 
-  <div class="card">
-    <h3>What the Conflicted File Looks Like</h3>
-    <p>Git adds conflict markers to the file. Everything between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code> is your version. Everything between <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> is the incoming branch's version.</p>
-    <pre><span class="cm"># producer.py — after merge conflict</span>
-
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-TOPIC = "crypto-prices"         <span class="cm"># YOUR version (current branch)</span>
-=======
-TOPIC = "crypto-prices-dev"     <span class="cm"># INCOMING version (feature branch)</span>
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/websocket-binance</pre>
-
-    <p>Open the file, decide which version to keep (or write a combination), delete the conflict markers, then:</p>
+  <div class="card card-cy">
+    <div class="card-h" style="color:var(--neon-cyan)">git diff --staged — WHAT'S IN THE STAGING AREA</div>
+    <p>Shows changes that you HAVE staged with <code>git add</code> — what will go into the next commit.</p>
     <div class="terminal">
-      <span class="t-cmd">git add producer.py             # mark conflict as resolved</span>
-      <span class="t-cmd">git commit -m "merge: resolve topic name conflict"</span>
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">git add producer.py</span>
+        <span class="t-cmd">git diff --staged    </span>
+        <span class="t-cmt"># shows what's staged (what the next commit will contain)</span>
+        <span class="t-cmt"># git diff alone would now show nothing (you staged everything)</span>
+      </div>
     </div>
-    <div class="callout tip-box">
-      <span class="icon">✅</span>
-      <div class="body">VS Code has excellent built-in conflict resolution. When you open a conflicted file, it shows "Accept Current Change" / "Accept Incoming Change" / "Accept Both Changes" buttons above each conflict. Click the right one and the markers are handled automatically.</div>
+    <div class="tip">
+      <span class="cl">WORKFLOW TIP</span>
+      Before every commit: run <code>git diff --staged</code> to review exactly what you're about to commit.
+      This prevents accidentally committing debug code, API keys, or half-finished changes.
     </div>
   </div>
-</div>
+</section>
 
-<div class="sec" id="github">
-  <div class="sec-eyebrow">Remote Repository</div>
-  <h2>GitHub — Pull Requests</h2>
 
-  <div class="card">
-    <h3>Pull Request Workflow</h3>
-    <p>A Pull Request (PR) is the formal way to merge code on GitHub. It shows a diff of all your changes, allows code review, and creates a record of what was merged and why.</p>
+<!-- ══════════════════════════════════════════ 6. BRANCHES -->
+<section class="sec" id="branches">
+  <div class="sec-ey" style="color:var(--neon-pink)">// Chapter 6 — The Most Powerful Git Feature</div>
+  <h2 class="sec-title">Branching — Working Safely in Parallel</h2>
+  <p class="sec-desc">
+    Branching is the feature that makes Git truly powerful. Without branches, you'd always be editing
+    the same code — every change risks breaking what already works. With branches, you can experiment
+    freely in isolation and only merge back when things work.
+  </p>
+
+  <div class="card card-pk">
+    <div class="card-h" style="color:var(--neon-pink)">WHY BRANCHES? THE REAL REASON</div>
+    <p>Imagine you have a working crypto tracker. You want to add WebSocket support. Without branches, you start editing the working producer.py directly. Halfway through, it's broken. Now your whole project is broken — there's no "working version" to fall back to easily.</p>
+    <p>With branches: you create <code>feature/websocket</code>, do all your experimental WebSocket work there. Your <code>main</code> branch still has the working producer.py, completely untouched. If the feature works → merge it in. If it's a disaster → delete the branch, main is perfectly fine.</p>
+    <div class="diagram">
+main:        ●─────────────────────────────────────────────────────●  ← always stable
+             │                                                     ↑
+             │ git checkout -b feature/websocket              merge │
+             ↓                                                     │
+feature:     ●──●──●──●──●  ← you work here, safely isolated, main untouched
+             │  │  │  │  └── fix: handle disconnect and reconnect
+             │  │  │  └───── feat: parse Binance tick data format
+             │  │  └──────── feat: connect to wss://stream.binance.com
+             │  └─────────── chore: pip install websockets
+             └────────────── branch created from main</div>
+  </div>
+
+  <div class="card card-pk">
+    <div class="card-h" style="color:var(--neon-pink)">ALL BRANCH COMMANDS</div>
     <div class="terminal">
-      <div class="term-label">1. Push your feature branch to GitHub</div>
-      <span class="t-cmd">git push origin feature/websocket-binance</span>
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmt"># ── See all branches ──────────────────────────────────────</span>
+        <span class="t-cmd">git branch</span>
+        <span class="t-out">* main                   ← the asterisk shows your current branch</span>
+        <span class="t-out">  feature/websocket</span>
+        <span class="t-cmd">git branch -a            </span>
+        <span class="t-cmt"># -a shows remote branches too</span>
+        <span class="t-out">* main</span>
+        <span class="t-out">  remotes/origin/main</span>
+        <span class="t-out">  remotes/origin/feature/websocket</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Create a new branch ───────────────────────────────────</span>
+        <span class="t-cmd">git branch feature/websocket     </span>
+        <span class="t-cmt"># creates branch but stays on current branch</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Switch to a branch ────────────────────────────────────</span>
+        <span class="t-cmd">git checkout feature/websocket   </span>
+        <span class="t-cmt"># classic way to switch</span>
+        <span class="t-cmd">git switch feature/websocket     </span>
+        <span class="t-cmt"># modern alternative (Git 2.23+)</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Create AND switch in one command (use this most often) ─</span>
+        <span class="t-cmd">git checkout -b feature/websocket</span>
+        <span class="t-out">Switched to a new branch 'feature/websocket'</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Merge branch back into main ───────────────────────────</span>
+        <span class="t-cmd">git checkout main                </span>
+        <span class="t-cmt"># switch to main first</span>
+        <span class="t-cmd">git merge feature/websocket      </span>
+        <span class="t-cmt"># merge feature into main</span>
+        <span class="t-out">Updating a3f5d9c..b1e2c3d</span>
+        <span class="t-out">Fast-forward</span>
+        <span class="t-out"> ws_producer.py | 87 +++++++++++++++</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Delete a branch (after merging — clean up) ────────────</span>
+        <span class="t-cmd">git branch -d feature/websocket  </span>
+        <span class="t-cmt"># -d is safe: refuses if unmerged</span>
+        <span class="t-cmd">git branch -D feature/websocket  </span>
+        <span class="t-cmt"># -D forces delete even if unmerged</span>
+      </div>
     </div>
-    <p style="font-size:13px;color:var(--muted);margin:10px 0">2. Go to github.com/DARKZONE17/crypto-tracker — you'll see a yellow banner: <strong>"Compare &amp; pull request"</strong> — click it.</p>
-    <p style="font-size:13px;color:var(--muted);margin:10px 0">3. Fill in: Title (what did you build), Description (why, how to test). Set Base: <code>main</code>, Compare: <code>feature/websocket-binance</code>.</p>
-    <p style="font-size:13px;color:var(--muted);margin:10px 0">4. Review the diff — check your own changes look correct. Then click "Merge pull request".</p>
-    <div class="terminal">
-      <div class="term-label">5. Back in terminal — sync your local main with the merged result</div>
-      <span class="t-cmd">git checkout main</span>
-      <span class="t-cmd">git pull origin main</span>
+    <div class="info">
+      <span class="cl">BRANCH NAMING CONVENTION</span>
+      Use <code>type/description</code> format. Types: <code>feature/</code> (new functionality), <code>fix/</code> (bug fixes), <code>docs/</code> (documentation), <code>refactor/</code> (code restructuring), <code>chore/</code> (maintenance).<br>
+      Examples: <code>feature/kafka-producer</code> · <code>fix/consumer-offset-bug</code> · <code>docs/update-readme</code>
     </div>
   </div>
-</div>
+</section>
 
-<div class="sec" id="gitignore">
-  <div class="sec-eyebrow">What Not to Track</div>
-  <h2>.gitignore — Never Commit These</h2>
 
-  <div class="card">
-    <h3>.gitignore for This Project</h3>
-    <p>The .gitignore file tells Git which files and folders to completely ignore. These are files you never want tracked or backed up to GitHub.</p>
-    <pre><span class="cm"># .gitignore — place in your project root</span>
+<!-- ══════════════════════════════════════════ 7. CONFLICTS -->
+<section class="sec" id="conflicts">
+  <div class="sec-ey" style="color:var(--neon-orange)">// Chapter 7 — The Reality of Collaborative Development</div>
+  <h2 class="sec-title">Merge Conflicts — What They Are and How to Fix Them</h2>
+  <p class="sec-desc">
+    Merge conflicts sound scary but they're completely normal. Every developer hits them.
+    They happen when two branches both changed the same line of the same file — and Git can't decide
+    which version to keep. Your job is to look at both versions and decide.
+  </p>
 
-<span class="cm"># Environment variables and secrets — NEVER commit these</span>
+  <div class="card card-or">
+    <div class="card-h" style="color:var(--neon-orange)">WHEN DO CONFLICTS HAPPEN?</div>
+    <p>You edited line 10 of <code>producer.py</code> on your feature branch. Your teammate also edited line 10 of <code>producer.py</code> on their branch. Both branches were merged into main. Git sees two different versions of line 10 — it doesn't know which one is "right". So it stops and asks you to decide. That's a conflict.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">git merge feature/websocket</span>
+        <span class="t-err">Auto-merging producer.py</span>
+        <span class="t-err">CONFLICT (content): Merge conflict in producer.py</span>
+        <span class="t-err">Automatic merge failed; fix conflicts and then commit the result.</span>
+        <span class="t-cmt"># Git didn't crash — it's asking you to resolve the conflict manually</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-or">
+    <div class="card-h" style="color:var(--neon-orange)">WHAT A CONFLICTED FILE LOOKS LIKE</div>
+    <p>Git modifies the conflicted file and adds <strong>conflict markers</strong>. Open the file and you'll see:</p>
+    <pre><span class="cm"># producer.py — Git has added conflict markers to this file</span>
+
+<span style="color:var(--neon-blue)"><<<<<<< HEAD</span>
+<span style="color:var(--neon-blue)">TOPIC = "crypto-prices"      ← YOUR version (the current branch you're on)</span>
+<span style="color:var(--muted)">=======</span>
+<span style="color:var(--neon-orange)">TOPIC = "crypto-prices-dev"  ← INCOMING version (the branch being merged in)</span>
+<span style="color:var(--neon-orange)">>>>>>>> feature/websocket</span>
+
+<span class="cm"># Everything between <<<<<<< HEAD and ======= is your version</span>
+<span class="cm"># Everything between ======= and >>>>>>> is the incoming version</span></pre>
+
+    <p>To fix it: <strong>edit the file manually</strong>. Delete the conflict markers and keep whichever version is correct (or combine them). The file should look completely normal when you're done — no markers left.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal — after fixing the conflict in the file</span></div>
+      <div class="term-body">
+        <span class="t-cmt"># After editing the file to resolve the conflict:</span>
+        <span class="t-cmd">git add producer.py          </span>
+        <span class="t-cmt"># tell Git: "I've resolved the conflict in this file"</span>
+        <span class="t-cmd">git commit -m "merge: resolve TOPIC conflict — use dev topic name"</span>
+        <span class="t-out">[main d4e5f6g] merge: resolve TOPIC conflict</span>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="cl">VS CODE TIP — EASIEST WAY TO RESOLVE CONFLICTS</span>
+      Open the conflicted file in VS Code. You'll see colour-coded panels and clickable buttons:
+      "Accept Current Change" (keep yours), "Accept Incoming Change" (keep theirs),
+      "Accept Both Changes" (keep both, one after the other). Click the right one and the markers disappear automatically.
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 8. REMOTE -->
+<section class="sec" id="remote">
+  <div class="sec-ey" style="color:var(--neon-purple)">// Chapter 8 — Connecting to GitHub</div>
+  <h2 class="sec-title">Remote Repositories — GitHub Flow</h2>
+  <p class="sec-desc">A remote is a copy of your repo on a server. GitHub is the most popular hosting service. Connecting your local repo to a remote lets you back up your code and collaborate with others.</p>
+
+  <div class="card card-pu">
+    <div class="card-h" style="color:var(--neon-purple)">CONNECTING AND USING A REMOTE</div>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmt"># ── Connect your local repo to GitHub ─────────────────────</span>
+        <span class="t-cmt"># Create the repo on GitHub first, then:</span>
+        <span class="t-cmd">git remote add origin https://github.com/DARKZONE17/crypto-tracker.git</span>
+        <span class="t-cmt"># 'origin' is the standard name for your main remote</span>
+        <span class="t-cmt"># verify it was added:</span>
+        <span class="t-cmd">git remote -v</span>
+        <span class="t-out">origin  https://github.com/DARKZONE17/crypto-tracker.git (fetch)</span>
+        <span class="t-out">origin  https://github.com/DARKZONE17/crypto-tracker.git (push)</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Upload your commits to GitHub (push) ──────────────────</span>
+        <span class="t-cmd">git push origin main</span>
+        <span class="t-out">Enumerating objects: 5, done.</span>
+        <span class="t-out">Branch 'main' set up to track remote branch 'main' from 'origin'.</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Download others' commits from GitHub (pull) ───────────</span>
+        <span class="t-cmd">git pull origin main</span>
+        <span class="t-out">Already up to date.   ← no new commits on GitHub</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Download a repo from GitHub to your machine (clone) ────</span>
+        <span class="t-cmd">git clone https://github.com/DARKZONE17/crypto-tracker.git</span>
+        <span class="t-out">Cloning into 'crypto-tracker'...</span>
+        <span class="t-cmt"># clone = init + remote add + pull — all in one command</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-pu">
+    <div class="card-h" style="color:var(--neon-purple)">PULL REQUEST (PR) — THE PROFESSIONAL WAY TO MERGE</div>
+    <p>In real teams you don't merge branches locally — you open a <strong>Pull Request on GitHub</strong>. A PR shows a visual diff of all your changes and allows teammates to review and comment before the merge happens. This is called code review.</p>
+    <div class="steps" style="margin-top:.75rem">
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-purple);color:#fff;width:24px;height:24px;font-size:.65rem">1</div><div class="step-conn"></div></div>
+        <div class="step-body" style="padding-bottom:16px">
+          <div class="step-title" style="font-size:.88rem">Push your feature branch to GitHub</div>
+          <pre style="margin:4px 0;font-size:.72rem"><span class="t-cmd">git push origin feature/websocket-binance</span></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-purple);color:#fff;width:24px;height:24px;font-size:.65rem">2</div><div class="step-conn"></div></div>
+        <div class="step-body" style="padding-bottom:16px">
+          <div class="step-title" style="font-size:.88rem">Go to GitHub — click "Compare &amp; pull request"</div>
+          <div class="step-desc">GitHub shows a yellow banner automatically after you push a new branch.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-purple);color:#fff;width:24px;height:24px;font-size:.65rem">3</div><div class="step-conn"></div></div>
+        <div class="step-body" style="padding-bottom:16px">
+          <div class="step-title" style="font-size:.88rem">Fill in title + description, then click "Create pull request"</div>
+          <div class="step-desc">Base: main (where you want to merge INTO). Compare: your feature branch.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-purple);color:#fff;width:24px;height:24px;font-size:.65rem">4</div><div class="step-conn"></div></div>
+        <div class="step-body" style="padding-bottom:16px">
+          <div class="step-title" style="font-size:.88rem">Review the diff, then click "Merge pull request"</div>
+          <div class="step-desc">For solo projects, review it yourself. In teams, teammates review first.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-green);color:#000;width:24px;height:24px;font-size:.65rem">5</div></div>
+        <div class="step-body">
+          <div class="step-title" style="font-size:.88rem">Sync your local main with the merged result</div>
+          <pre style="margin:4px 0;font-size:.72rem"><span class="t-cmd">git checkout main && git pull origin main</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 9. PULL VS FETCH -->
+<section class="sec" id="pull-vs-fetch">
+  <div class="sec-ey" style="color:var(--neon-cyan)">// Chapter 9 — Classic Interview Question</div>
+  <h2 class="sec-title">git pull vs git fetch — The Difference</h2>
+  <p class="sec-desc">This is one of the most common Git interview questions. The difference is subtle but important.</p>
+
+  <div class="g2">
+    <div class="card card-cy">
+      <div class="card-h" style="color:var(--neon-cyan)">git fetch</div>
+      <p>Downloads changes from the remote but <strong>does NOT apply them to your working files</strong>. It only updates Git's knowledge of what's on the remote. Your local files are untouched.</p>
+      <p>Use it when you want to <em>see</em> what's new on GitHub before deciding whether to apply it.</p>
+      <pre style="font-size:.72rem"><span class="t-cmd">git fetch origin</span>
+<span class="t-out">From github.com:DARKZONE17/crypto-tracker</span>
+<span class="t-out">   a3f5d9c..b1e2c3d  main → origin/main</span>
+<span class="t-cmt"># GitHub has new commits, but your files haven't changed</span>
+<span class="t-cmt"># To see what changed:</span>
+<span class="t-cmd">git log HEAD..origin/main --oneline</span></pre>
+    </div>
+    <div class="card card-gr">
+      <div class="card-h" style="color:var(--neon-green)">git pull</div>
+      <p>Downloads changes from the remote AND <strong>immediately applies them to your working branch</strong>. It is equivalent to running <code>git fetch</code> followed by <code>git merge</code>.</p>
+      <p>Use this in the normal daily workflow — it's what you run at the start of every session.</p>
+      <pre style="font-size:.72rem"><span class="t-cmd">git pull origin main</span>
+<span class="t-out">From github.com:DARKZONE17/crypto-tracker</span>
+<span class="t-out">Updating a3f5d9c..b1e2c3d</span>
+<span class="t-out">Fast-forward</span>
+<span class="t-out"> kafka.html | 45 +++++</span>
+<span class="t-cmt"># = git fetch + git merge in one command</span>
+<span class="t-cmt"># your local files are now updated</span></pre>
+    </div>
+  </div>
+
+  <div class="info">
+    <span class="cl">SIMPLE WAY TO REMEMBER</span>
+    <code>git fetch</code> = <em>download but don't apply</em> (like downloading a file but not opening it).<br>
+    <code>git pull</code> = <em>download AND apply</em> (like downloading and immediately installing it). Use pull in daily work.
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 10. UNDO -->
+<section class="sec" id="undo">
+  <div class="sec-ey" style="color:var(--neon-amber)">// Chapter 10 — The Most Useful Survival Skills</div>
+  <h2 class="sec-title">Undo Mistakes — Getting Out of Trouble</h2>
+  <p class="sec-desc">This section will save you many times. Every developer makes mistakes — the skill is knowing how to undo them cleanly.</p>
+
+  <div class="card card-am">
+    <div class="card-h" style="color:var(--neon-amber)">SCENARIO 1 — UNDO git add (UNSTAGE A FILE)</div>
+    <p>You ran <code>git add file.py</code> but changed your mind — you don't want that file in the next commit.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">git reset file.py         </span>
+        <span class="t-cmt"># removes file.py from staging — your changes to the file are kept</span>
+        <span class="t-cmd">git reset              </span>
+        <span class="t-cmt"># unstage EVERYTHING — none of it will be committed</span>
+        <span class="t-cmt"># your actual file changes are NOT deleted, just un-staged</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-am">
+    <div class="card-h" style="color:var(--neon-amber)">SCENARIO 2 — UNDO A COMMIT (KEEP CHANGES)</div>
+    <p>You committed too early, or wrote the wrong message, or committed the wrong files. <code>--soft</code> undoes the commit but keeps your changes staged and ready to re-commit.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">git reset --soft HEAD~1</span>
+        <span class="t-cmt"># HEAD~1 means "one commit before current"</span>
+        <span class="t-cmt"># --soft: undo the commit, keep changes STAGED</span>
+        <span class="t-cmt"># Your files are unchanged, staging is unchanged, commit is gone</span>
+        <span class="t-cmt"># Now you can fix the files / message and recommit</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-am">
+    <div class="card-h" style="color:var(--neon-amber)">SCENARIO 3 — UNDO A COMMIT AND DELETE THE CHANGES</div>
+    <p>You committed something you want completely gone — bad code, secrets, whatever. <code>--hard</code> is the nuclear option: the commit AND the changes disappear. <strong>This cannot be undone.</strong></p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">git reset --hard HEAD~1</span>
+        <span class="t-cmt"># --hard: undo the commit AND discard all changes</span>
+        <span class="t-cmt"># Files go back to the state of the previous commit</span>
+        <span class="t-err"># ⚠ WARNING: changes are GONE. Cannot recover them.</span>
+        <span class="t-cmt"># Only use this on commits that have NOT been pushed to GitHub</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-am">
+    <div class="card-h" style="color:var(--neon-amber)">SCENARIO 4 — RESTORE A SINGLE FILE</div>
+    <p>You edited a file and messed it up. You want it back to how it was in the last commit — discarding all your changes to that file.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">git checkout -- producer.py   </span>
+        <span class="t-cmt"># classic: restores file to last committed state</span>
+        <span class="t-cmd">git restore producer.py       </span>
+        <span class="t-cmt"># modern alternative (Git 2.23+)</span>
+        <span class="t-err"># ⚠ Your changes to that file are GONE immediately — no confirmation</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-am">
+    <div class="card-h" style="color:var(--neon-amber)">SCENARIO 5 — UNDO A COMMIT THAT'S ALREADY ON GITHUB</div>
+    <p>You pushed a bad commit to GitHub. You can't just <code>reset --hard</code> because the commit exists on the remote. Instead, use <code>git revert</code> — it creates a new commit that undoes the old one, preserving history.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmd">git log --oneline</span>
+        <span class="t-out">b1e2c3d accidentally committed secrets  ← this one</span>
+        <span class="t-out">a3f5d9c feat: add Kafka producer</span>
+        <span class="t-cmd">git revert b1e2c3d</span>
+        <span class="t-out">Revert "accidentally committed secrets"</span>
+        <span class="t-out">[main d4e5f6g] Revert "accidentally committed secrets"</span>
+        <span class="t-cmd">git push origin main</span>
+        <span class="t-cmt"># Creates a NEW commit that undoes b1e2c3d — safe to push</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tbl-wrap" style="margin-top:.75rem">
+    <table class="tbl">
+      <thead><tr><th>Situation</th><th>Command</th><th>What Happens to Your Changes</th></tr></thead>
+      <tbody>
+        <tr><td>git reset file.py</td><td>Unstage a file</td><td>Changes kept in working dir</td></tr>
+        <tr><td>git reset --soft HEAD~1</td><td>Undo last commit, keep changes staged</td><td>Changes kept and staged</td></tr>
+        <tr><td>git reset HEAD~1</td><td>Undo last commit, keep changes unstaged</td><td>Changes kept but unstaged</td></tr>
+        <tr><td>git reset --hard HEAD~1</td><td>Undo last commit, delete changes</td><td>Changes GONE permanently</td></tr>
+        <tr><td>git checkout -- file.py</td><td>Restore one file to last commit state</td><td>Changes to that file GONE</td></tr>
+        <tr><td>git revert HASH</td><td>Undo a specific commit safely (creates new commit)</td><td>Changes undone but history kept</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 11. INTERNALS -->
+<section class="sec" id="internals">
+  <div class="sec-ey" style="color:var(--neon-blue)">// Chapter 11 — How Git Works Under the Hood</div>
+  <h2 class="sec-title">Git Internals — Snapshots, Not Differences</h2>
+  <p class="sec-desc">Most version control systems store the <em>differences</em> between file versions. Git does something different and more powerful — it stores complete <em>snapshots</em>.</p>
+
+  <div class="card card-bl">
+    <div class="card-h" style="color:var(--neon-blue)">SNAPSHOTS vs DIFFERENCES</div>
+    <p><strong>Other VCS (SVN, CVS):</strong> Store "delta files" — only what changed. To reconstruct version 5, they apply change 1 + change 2 + change 3 + change 4 + change 5. Gets slow as history grows.</p>
+    <p><strong>Git:</strong> Each commit stores a complete snapshot of every file. To see version 5, Git just loads the snapshot for commit 5. Instantly. This is why Git is so fast.</p>
+    <p>To save space, Git is smart: if a file didn't change between commit 4 and commit 5, commit 5's snapshot just stores a reference (pointer) to commit 4's version of that file instead of copying it again.</p>
+  </div>
+
+  <div class="card card-bl">
+    <div class="card-h" style="color:var(--neon-blue)">THE COMMIT HASH — GIT'S UNIQUE ID SYSTEM</div>
+    <p>Every commit has a unique 40-character identifier called a <strong>SHA-1 hash</strong>. It looks like: <code>a3f5d9c7b1e2f4d8c9e0a1b2c3d4e5f6a7b8c9d0</code>. You usually only need the first 7 characters to identify a commit uniquely.</p>
+    <p>The hash is not random — it's calculated from the commit's content, author, timestamp, and the hash of the previous commit. This means if anyone tampers with Git history, all hashes change. Git's integrity is mathematically guaranteed.</p>
+    <pre><span class="cm"># Short hash (7 chars) is enough — used in git log --oneline</span>
+a3f5d9c feat: add Kafka producer
+
+<span class="cm"># Full hash — used for precise operations</span>
+a3f5d9c7b1e2f4d8c9e0a1b2c3d4e5f6a7b8c9d0
+
+<span class="cm"># HEAD is a pointer to your current position in history</span>
+<span class="cm"># HEAD~1 = one commit before HEAD</span>
+<span class="cm"># HEAD~3 = three commits before HEAD</span></pre>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 12. REBASE -->
+<section class="sec" id="rebase">
+  <div class="sec-ey" style="color:var(--neon-teal)">// Chapter 12 — Advanced History Management</div>
+  <h2 class="sec-title">Rebase vs Merge — Clean History vs Full History</h2>
+  <p class="sec-desc">Both merge and rebase combine branches. They produce the same final code — but the commit history looks different. This is a frequent interview topic and a real daily decision in professional teams.</p>
+
+  <div class="g2">
+    <div class="card card-te">
+      <div class="card-h" style="color:var(--neon-teal)">git merge — KEEPS FULL HISTORY</div>
+      <p>Creates a "merge commit" that joins two branches. The history shows exactly what happened — including the branch divergence and when it was merged. History is truthful but can look messy with many branches.</p>
+      <div class="diagram" style="font-size:.72rem">
+Before:
+main:    A → B → C
+feature:         ↓
+                 D → E
+
+After git merge:
+main:    A → B → C → M  ← merge commit
+                 ↑   ↑
+feature:         D → E
+History is preserved exactly.</div>
+      <pre style="font-size:.72rem"><span class="t-cmd">git checkout main</span>
+<span class="t-cmd">git merge feature/websocket</span></pre>
+    </div>
+    <div class="card card-cy">
+      <div class="card-h" style="color:var(--neon-cyan)">git rebase — LINEAR HISTORY</div>
+      <p>Replays your feature branch commits on top of main, as if you had branched off at the latest commit. The history looks like everything happened in a straight line — easier to read, but it rewrites commit hashes.</p>
+      <div class="diagram" style="font-size:.72rem">
+Before:
+main:    A → B → C
+feature:     ↓
+             D → E
+
+After git rebase main (on feature branch):
+main:    A → B → C
+feature:         ↓
+                 D' → E'  ← new hashes (rebased)
+History looks clean and linear.</div>
+      <pre style="font-size:.72rem"><span class="t-cmd">git checkout feature/websocket</span>
+<span class="t-cmd">git rebase main</span>
+<span class="t-cmt"># then merge (will be fast-forward, no merge commit)</span></pre>
+    </div>
+  </div>
+
+  <div class="analogy-box">
+    <span class="cl" style="color:var(--neon-purple)">🧠 Analogy — Merge vs Rebase</span>
+    <strong>Merge</strong> = honest historian. Records every branch, every detour, every decision. The full story is there.<br>
+    <strong>Rebase</strong> = editor who rewrites history to look clean. All commits appear in a straight line. Great for readability, but rewrites the past.
+  </div>
+
+  <div class="danger">
+    <span class="cl">GOLDEN RULE OF REBASE</span>
+    <strong>Never rebase commits that have already been pushed to a shared remote.</strong>
+    Rebase rewrites commit hashes. If teammates have pulled your old commits, rebasing creates conflicting histories for everyone.
+    Rebase is safe on local-only branches. On shared branches — use merge.
+  </div>
+
+  <div class="card card-te">
+    <div class="card-h" style="color:var(--neon-teal)">INTERACTIVE REBASE — SQUASH COMMITS</div>
+    <p>Interactive rebase lets you clean up your commit history before merging — combine multiple small commits into one clean commit. Useful when you've made 10 "fix typo" commits and want to squash them into one meaningful commit.</p>
+    <pre><span class="cm"># Squash the last 3 commits into one</span>
+<span class="t-cmd">git rebase -i HEAD~3</span>
+<span class="cm"># Git opens your text editor with a list like:</span>
+<span style="color:var(--neon-green)">pick a3f5d9c feat: add Kafka producer</span>
+<span style="color:var(--neon-amber)">squash b1e2c3d fix: typo in topic name</span>
+<span style="color:var(--neon-amber)">squash c4d5e6f fix: another typo</span>
+<span class="cm"># Change 'pick' to 'squash' (or 's') on commits to combine</span>
+<span class="cm"># Save → Git squashes them → asks you to write one combined message</span></pre>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 13. STASH -->
+<section class="sec" id="stash">
+  <div class="sec-ey" style="color:var(--neon-orange)">// Chapter 13 — Temporary Saves</div>
+  <h2 class="sec-title">git stash — Save Work Without Committing</h2>
+  <p class="sec-desc">Stash is like a temporary clipboard for uncommitted changes. Use it when you need to switch branches but you're not ready to commit your current work.</p>
+
+  <div class="card card-or">
+    <div class="card-h" style="color:var(--neon-orange)">WHEN AND HOW TO USE STASH</div>
+    <p><strong>The scenario:</strong> You're halfway through adding WebSocket support on your feature branch. Suddenly you need to switch to main to fix an urgent bug. You can't commit your half-finished code (it doesn't even work yet). You can't just switch branches — Git will warn you about unsaved changes.</p>
+    <p><strong>The solution:</strong> Stash your changes, switch branches, fix the bug, come back, pop the stash.</p>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmt"># You're on feature/websocket with uncommitted changes</span>
+        <span class="t-cmd">git stash</span>
+        <span class="t-out">Saved working directory and index state WIP on feature/websocket</span>
+        <span class="t-cmt"># Your changes are gone from the working dir — but saved in the stash</span>
+        <span class="t-cmd">git stash save "half-done websocket reconnect logic"</span>
+        <span class="t-cmt"># Better: give the stash a description so you remember what it is</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># Now switch, do your work, come back</span>
+        <span class="t-cmd">git checkout main</span>
+        <span class="t-cmt"># ... fix the urgent bug, commit it ...</span>
+        <span class="t-cmd">git checkout feature/websocket</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># Restore your stashed changes</span>
+        <span class="t-cmd">git stash pop</span>
+        <span class="t-out">On branch feature/websocket</span>
+        <span class="t-out">Changes not staged for commit:</span>
+        <span class="t-out">        modified:   ws_producer.py</span>
+        <span class="t-cmt"># Your changes are back, stash is deleted</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Other stash commands ───────────────────────────────────</span>
+        <span class="t-cmd">git stash list           </span>
+        <span class="t-cmt"># see all stashes</span>
+        <span class="t-out">stash@{0}: WIP on feature/websocket: half-done websocket reconnect logic</span>
+        <span class="t-cmd">git stash apply stash@{0}</span>
+        <span class="t-cmt"># apply a specific stash (but keep it in stash list)</span>
+        <span class="t-cmd">git stash drop stash@{0} </span>
+        <span class="t-cmt"># delete a specific stash</span>
+        <span class="t-cmd">git stash clear          </span>
+        <span class="t-cmt"># delete ALL stashes</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 14. TAGS -->
+<section class="sec" id="tags">
+  <div class="sec-ey" style="color:var(--neon-purple)">// Chapter 14 — Marking Releases</div>
+  <h2 class="sec-title">Tags — Marking Versions</h2>
+  <p class="sec-desc">Tags are labels you put on specific commits to mark important moments — usually release versions. Unlike branches, tags don't move when you add new commits. They permanently point to one commit.</p>
+
+  <div class="card card-pu">
+    <div class="card-h" style="color:var(--neon-purple)">CREATING AND USING TAGS</div>
+    <div class="terminal">
+      <div class="term-bar"><div class="term-dot" style="background:#ff5f57"></div><div class="term-dot" style="background:#ffbd2e"></div><div class="term-dot" style="background:#28c840"></div><span class="term-title">Terminal</span></div>
+      <div class="term-body">
+        <span class="t-cmt"># ── Lightweight tag — just a name pointing to a commit ────</span>
+        <span class="t-cmd">git tag v1.0</span>
+        <span class="t-cmt"># tags the current (latest) commit as v1.0</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Annotated tag — includes message, author, date ─────────</span>
+        <span class="t-cmd">git tag -a v1.0 -m "First working pipeline — Kafka producer + consumer"</span>
+        <span class="t-cmt"># use annotated tags for real releases (preferred)</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── Tag a past commit ──────────────────────────────────────</span>
+        <span class="t-cmd">git tag -a v0.9 a3f5d9c -m "Beta release"</span>
+        <span class="t-cmt"># tag a specific commit by its hash</span>
+        <span class="t-cmt"></span>
+        <span class="t-cmt"># ── List, view, push tags ──────────────────────────────────</span>
+        <span class="t-cmd">git tag                  </span>
+        <span class="t-cmt"># list all tags</span>
+        <span class="t-out">v0.9</span>
+        <span class="t-out">v1.0</span>
+        <span class="t-cmd">git show v1.0            </span>
+        <span class="t-cmt"># see what the tag points to</span>
+        <span class="t-cmd">git push origin v1.0     </span>
+        <span class="t-cmt"># push a tag to GitHub (tags aren't pushed by default)</span>
+        <span class="t-cmd">git push origin --tags   </span>
+        <span class="t-cmt"># push ALL tags to GitHub</span>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="cl">SEMANTIC VERSIONING</span>
+      Follow the convention: <code>v1.0.0</code> (MAJOR.MINOR.PATCH).<br>
+      MAJOR: breaking change. MINOR: new feature, backward compatible. PATCH: bug fix.<br>
+      So v1.2.3 → v1.2.4 = bug fix, v1.2.3 → v1.3.0 = new feature, v1.2.3 → v2.0.0 = breaking change.
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 15. TEAM WORKFLOW -->
+<section class="sec" id="team-flow">
+  <div class="sec-ey" style="color:var(--neon-pink)">// Chapter 15 — How Real Teams Work</div>
+  <h2 class="sec-title">Team Workflow — Industry Standard</h2>
+  <p class="sec-desc">This is the actual workflow used in professional software teams. Every step has a reason. Follow this pattern and you'll fit into any real team immediately.</p>
+
+  <div class="card card-pk">
+    <div class="card-h" style="color:var(--neon-pink)">THE COMPLETE TEAM WORKFLOW — STEP BY STEP</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-blue);color:#fff">1</div><div class="step-conn"></div></div>
+        <div class="step-body">
+          <div class="step-title">Clone the repo (first time only)</div>
+          <pre style="margin:4px 0;font-size:.72rem"><span class="t-cmd">git clone https://github.com/org/project.git && cd project</span></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-green);color:#000">2</div><div class="step-conn"></div></div>
+        <div class="step-body">
+          <div class="step-title">Pull latest main (every session — always do this first)</div>
+          <pre style="margin:4px 0;font-size:.72rem"><span class="t-cmd">git checkout main && git pull origin main</span></pre>
+          <div class="step-desc">This gets any changes teammates pushed while you were away.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-amber);color:#000">3</div><div class="step-conn"></div></div>
+        <div class="step-body">
+          <div class="step-title">Create a feature branch from the updated main</div>
+          <pre style="margin:4px 0;font-size:.72rem"><span class="t-cmd">git checkout -b feature/your-feature-name</span></pre>
+          <div class="step-desc">Never work directly on main. Always in a branch.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-pink);color:#fff">4</div><div class="step-conn"></div></div>
+        <div class="step-body">
+          <div class="step-title">Write code, commit frequently</div>
+          <pre style="margin:4px 0;font-size:.72rem"><span class="t-cmd">git add .</span>
+<span class="t-cmd">git commit -m "feat: describe what you did"</span>
+<span class="t-cmt"># commit often — small, focused commits are better than one huge commit</span></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-purple);color:#fff">5</div><div class="step-conn"></div></div>
+        <div class="step-body">
+          <div class="step-title">Push your branch to GitHub</div>
+          <pre style="margin:4px 0;font-size:.72rem"><span class="t-cmd">git push origin feature/your-feature-name</span></pre>
+          <div class="step-desc">This backs up your branch and makes it visible to teammates.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-teal);color:#000">6</div><div class="step-conn"></div></div>
+        <div class="step-body">
+          <div class="step-title">Open a Pull Request on GitHub</div>
+          <div class="step-desc">Go to GitHub → your repo → "Compare &amp; pull request". Write a clear description of what you built and why. Assign reviewers if it's a team project.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-orange);color:#fff">7</div><div class="step-conn"></div></div>
+        <div class="step-body">
+          <div class="step-title">Code review (teammates review your PR)</div>
+          <div class="step-desc">Teammates comment on your changes. You respond or make adjustments. This is normal — receiving code review comments is not personal, it's how teams maintain quality.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-line"><div class="step-n" style="background:var(--neon-green);color:#000">8</div><div class="step-conn"></div></div>
+        <div class="step-body">
+          <div class="step-title">Merge the PR and sync local main</div>
+          <pre style="margin:4px 0;font-size:.72rem"><span class="t-cmt"># After merging on GitHub:</span>
+<span class="t-cmd">git checkout main && git pull origin main</span>
+<span class="t-cmd">git branch -d feature/your-feature-name   </span>
+<span class="t-cmt"># clean up merged branch</span></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 16. ADVANCED -->
+<section class="sec" id="advanced">
+  <div class="sec-ey" style="color:var(--neon-cyan)">// Chapter 16 — Power User Commands</div>
+  <h2 class="sec-title">Advanced Commands</h2>
+  <p class="sec-desc">These commands are used less often but are extremely useful when you need them. Learn them once you're comfortable with the basics.</p>
+
+  <div class="card card-cy">
+    <div class="card-h" style="color:var(--neon-cyan)">CHERRY-PICK — COPY A SPECIFIC COMMIT</div>
+    <p>Apply a specific commit from one branch onto another — without merging the entire branch. Useful when you want one specific fix but not everything else in that branch.</p>
+    <pre><span class="cm"># Scenario: feature/websocket has a bug fix you need in main NOW</span>
+<span class="cm"># but the whole feature isn't ready to merge yet</span>
+<span class="t-cmd">git log feature/websocket --oneline</span>
+<span class="t-out">d4e5f6g fix: handle Binance rate limit (you want JUST this one)</span>
+<span class="t-out">c3d4e5f feat: add reconnect logic</span>
+<span class="t-out">b2c3d4e feat: connect to Binance stream</span>
+
+<span class="t-cmd">git checkout main</span>
+<span class="t-cmd">git cherry-pick d4e5f6g</span>
+<span class="t-out">[main e5f6g7h] fix: handle Binance rate limit</span>
+<span class="cm"># Only that one commit is now on main. The rest of the feature stays separate.</span></pre>
+  </div>
+
+  <div class="card card-cy">
+    <div class="card-h" style="color:var(--neon-cyan)">GIT HOOKS — AUTOMATE ACTIONS</div>
+    <p>Hooks are scripts that Git runs automatically before or after specific events. They're stored in <code>.git/hooks/</code>. Use them to enforce code quality rules automatically.</p>
+    <pre><span class="cm"># Common hooks:</span>
+<span class="cm"># pre-commit   → runs before a commit is created</span>
+<span class="cm"># commit-msg   → validates commit message format</span>
+<span class="cm"># pre-push     → runs before pushing to remote</span>
+
+<span class="cm"># Example: .git/hooks/pre-commit (make it executable: chmod +x)</span>
+#!/bin/bash
+python -m pytest tests/           <span class="cm"># run tests before every commit</span>
+if [ $? -ne 0 ]; then
+    echo "❌ Tests failed. Commit aborted."
+    exit 1
+fi</pre>
+  </div>
+
+  <div class="card card-cy">
+    <div class="card-h" style="color:var(--neon-cyan)">SUBMODULES — REPO INSIDE A REPO</div>
+    <p>Submodules let you include one Git repo inside another. Useful when your project depends on a specific version of another project that you don't own.</p>
+    <pre><span class="cm"># Add a submodule</span>
+<span class="t-cmd">git submodule add https://github.com/other/library.git libs/library</span>
+<span class="t-out">Cloning into 'libs/library'...</span>
+
+<span class="cm"># Clone a repo WITH its submodules</span>
+<span class="t-cmd">git clone --recurse-submodules https://github.com/org/project.git</span>
+
+<span class="cm"># Update all submodules to latest</span>
+<span class="t-cmd">git submodule update --remote --merge</span></pre>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 17. MISTAKES -->
+<section class="sec" id="mistakes">
+  <div class="sec-ey" style="color:var(--neon-orange)">// Chapter 17 — Learn from Others' Mistakes</div>
+  <h2 class="sec-title">Common Beginner Mistakes — And How to Avoid Them</h2>
+
+  <div class="g2">
+    <div class="card card-or">
+      <div class="card-h" style="color:var(--neon-orange)">❌ COMMITTING EVERYTHING BLINDLY</div>
+      <p>Running <code>git add .</code> and <code>git commit</code> without checking what you're committing. You might accidentally commit secrets, binary files, debug code, or <code>node_modules/</code>.</p>
+      <p><strong>Fix:</strong> Always run <code>git status</code> and <code>git diff --staged</code> before committing. Create a <code>.gitignore</code> before your first commit.</p>
+    </div>
+    <div class="card card-or">
+      <div class="card-h" style="color:var(--neon-orange)">❌ WORKING DIRECTLY ON MAIN</div>
+      <p>Making all your changes directly on the <code>main</code> branch. If something breaks, your only working codebase is now broken.</p>
+      <p><strong>Fix:</strong> Main should always be stable. Create a branch for every piece of work, no matter how small. It takes 3 seconds and saves hours of pain.</p>
+    </div>
+    <div class="card card-or">
+      <div class="card-h" style="color:var(--neon-orange)">❌ NOT PULLING BEFORE PUSHING</div>
+      <p>You push your commits but GitHub rejects it because a teammate pushed first. Now you have a confusing error about "non-fast-forward updates".</p>
+      <p><strong>Fix:</strong> Always <code>git pull origin main</code> before <code>git push</code>. Pull first, push second. If there are conflicts, resolve them locally before pushing.</p>
+    </div>
+    <div class="card card-or">
+      <div class="card-h" style="color:var(--neon-orange)">❌ FEAR OF CONFLICTS</div>
+      <p>Avoiding branching because "merge conflicts are scary". So you work on main, rush commits to avoid others touching the same files, and create a messier situation.</p>
+      <p><strong>Fix:</strong> Conflicts are normal. They take 2 minutes to resolve. Practice resolving them deliberately — create a conflict intentionally, resolve it, and you'll see they're not scary at all.</p>
+    </div>
+    <div class="card card-or">
+      <div class="card-h" style="color:var(--neon-orange)">❌ COMMITTING SECRETS AND API KEYS</div>
+      <p>Accidentally committing <code>.env</code> files, API keys, database passwords to a public GitHub repo. These get found by bots within minutes and your keys get abused.</p>
+      <p><strong>Fix:</strong> Create <code>.gitignore</code> before the first commit. Never hardcode secrets in code. If you accidentally commit a secret — rotate it immediately, it's already compromised.</p>
+    </div>
+    <div class="card card-or">
+      <div class="card-h" style="color:var(--neon-orange)">❌ WRITING USELESS COMMIT MESSAGES</div>
+      <p>Messages like "fix", "update", "stuff", "asdf". Six months later you can't understand your own history — what changed, what broke, what was the context?</p>
+      <p><strong>Fix:</strong> Write messages like: <code>feat: add Kafka producer for Binance prices</code>. Follow the format: <code>type: short description of what and why</code>.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 18. PRACTICE -->
+<section class="sec" id="practice">
+  <div class="sec-ey" style="color:var(--neon-green)">// Chapter 18 — Your Learning Path</div>
+  <h2 class="sec-title">Practice Plan — 5 Days to Git Fluency</h2>
+  <p class="sec-desc">Git is learned by doing, not reading. Follow this plan and after 5 days you'll be comfortable with Git in real projects.</p>
+
+  <div class="g2">
+    <div class="card card-gr">
+      <div class="card-h" style="color:var(--neon-green)">DAY 1 — The Basic Loop</div>
+      <ul>
+        <li>Create a new folder, run <code>git init</code></li>
+        <li>Create a few text files, stage them with <code>git add</code></li>
+        <li>Make 5 commits with clear messages</li>
+        <li>Run <code>git log --oneline</code> and see your history</li>
+        <li>Change a file, run <code>git diff</code>, stage, commit</li>
+        <li>Goal: the add → commit loop feels automatic</li>
+      </ul>
+    </div>
+    <div class="card card-gr">
+      <div class="card-h" style="color:var(--neon-green)">DAY 2 — Branches</div>
+      <ul>
+        <li>Create a branch with <code>git checkout -b feature/test</code></li>
+        <li>Make 3 commits on that branch</li>
+        <li>Switch back to main — notice those commits are gone</li>
+        <li>Merge the feature branch into main</li>
+        <li>Delete the feature branch</li>
+        <li>Goal: branching feels normal and safe</li>
+      </ul>
+    </div>
+    <div class="card card-gr">
+      <div class="card-h" style="color:var(--neon-green)">DAY 3 — Conflicts</div>
+      <ul>
+        <li>Create two branches from main</li>
+        <li>Edit the SAME line in BOTH branches</li>
+        <li>Merge one into main (succeeds)</li>
+        <li>Merge the other into main (conflict!)</li>
+        <li>Resolve the conflict manually, commit</li>
+        <li>Goal: conflicts are not scary anymore</li>
+      </ul>
+    </div>
+    <div class="card card-gr">
+      <div class="card-h" style="color:var(--neon-green)">DAY 4 — Remote / GitHub</div>
+      <ul>
+        <li>Create a GitHub account and repo</li>
+        <li>Connect your local repo with <code>git remote add origin</code></li>
+        <li>Push with <code>git push origin main</code></li>
+        <li>Edit on GitHub, then <code>git pull</code> locally</li>
+        <li>Push a feature branch, open a PR, merge it</li>
+        <li>Goal: comfortable with push/pull/PR</li>
+      </ul>
+    </div>
+    <div class="card card-gr">
+      <div class="card-h" style="color:var(--neon-green)">DAY 5 — Undo and Rebase</div>
+      <ul>
+        <li>Make a commit, then undo it with <code>reset --soft</code></li>
+        <li>Make a commit, then undo it with <code>reset --hard</code></li>
+        <li>Use <code>git stash</code> to save half-done work, switch, come back</li>
+        <li>Make 3 small commits, squash them with <code>rebase -i</code></li>
+        <li>Tag a commit with <code>git tag v1.0</code></li>
+        <li>Goal: confident undoing mistakes</li>
+      </ul>
+    </div>
+    <div class="card card-gr" style="background:rgba(57,255,20,.05);border-color:rgba(57,255,20,.3)">
+      <div class="card-h" style="color:var(--neon-green)">AFTER DAY 5 — USE GIT DAILY</div>
+      <p>Use Git for every project, even personal ones. The commands become automatic through repetition. After 2–3 weeks of daily use, you'll stop thinking about Git commands and just use them naturally.</p>
+      <p>Apply Git to this crypto-tracker project — use the branch naming conventions in this guide, write good commit messages, push to GitHub daily.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════ 19. CHEATSHEET -->
+<section class="sec" id="cheatsheet">
+  <div class="sec-ey" style="color:var(--neon-blue)">// Chapter 19 — Quick Reference</div>
+  <h2 class="sec-title">Git Cheatsheet — All Commands</h2>
+
+  <div class="card card-bl">
+    <div class="card-h" style="color:var(--neon-blue)">SETUP (ONE TIME)</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Command</th><th>What It Does</th></tr></thead>
+        <tbody>
+          <tr><td>git config --global user.name "Name"</td><td>Set your name (appears in commits)</td></tr>
+          <tr><td>git config --global user.email "email"</td><td>Set your email (links commits to GitHub account)</td></tr>
+          <tr><td>git config --global init.defaultBranch main</td><td>Make new repos start on 'main' not 'master'</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-bl">
+    <div class="card-h" style="color:var(--neon-blue)">DAILY WORKFLOW</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Command</th><th>What It Does</th><th>When to Use</th></tr></thead>
+        <tbody>
+          <tr><td>git init</td><td>Initialize a new repo in current folder</td><td>Starting a brand new project</td></tr>
+          <tr><td>git clone URL</td><td>Download a repo from GitHub</td><td>Getting a project for the first time</td></tr>
+          <tr><td>git status</td><td>Show what changed since last commit</td><td>Before every add/commit — always</td></tr>
+          <tr><td>git add file.py</td><td>Stage one specific file</td><td>When committing partial changes</td></tr>
+          <tr><td>git add .</td><td>Stage ALL changed/new files</td><td>When committing everything</td></tr>
+          <tr><td>git commit -m "message"</td><td>Save staged changes as a snapshot</td><td>After staging, with clear message</td></tr>
+          <tr><td>git push origin branch</td><td>Upload commits to GitHub</td><td>After committing, to back up</td></tr>
+          <tr><td>git pull origin main</td><td>Download + merge GitHub changes</td><td>Start of every work session</td></tr>
+          <tr><td>git diff</td><td>Show unstaged changes</td><td>Before git add, to review changes</td></tr>
+          <tr><td>git diff --staged</td><td>Show staged changes (next commit preview)</td><td>Before git commit, to review</td></tr>
+          <tr><td>git log --oneline</td><td>Show commit history (compact)</td><td>To see recent history</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-bl">
+    <div class="card-h" style="color:var(--neon-blue)">BRANCHES</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Command</th><th>What It Does</th></tr></thead>
+        <tbody>
+          <tr><td>git branch</td><td>List local branches (* = current)</td></tr>
+          <tr><td>git branch -a</td><td>List all branches including remote</td></tr>
+          <tr><td>git checkout -b name</td><td>Create + switch to new branch</td></tr>
+          <tr><td>git checkout name</td><td>Switch to existing branch</td></tr>
+          <tr><td>git switch name</td><td>Modern way to switch branch</td></tr>
+          <tr><td>git merge branch</td><td>Merge branch into current branch</td></tr>
+          <tr><td>git branch -d name</td><td>Delete branch (safe — refuses if unmerged)</td></tr>
+          <tr><td>git branch -D name</td><td>Force delete branch (even if unmerged)</td></tr>
+          <tr><td>git push origin --delete name</td><td>Delete a branch on GitHub</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-bl">
+    <div class="card-h" style="color:var(--neon-blue)">UNDO MISTAKES</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Command</th><th>What It Does</th><th>Safe?</th></tr></thead>
+        <tbody>
+          <tr><td>git reset file.py</td><td>Unstage a file (keep changes)</td><td style="color:var(--neon-green)">✓ Safe</td></tr>
+          <tr><td>git reset --soft HEAD~1</td><td>Undo last commit, keep changes staged</td><td style="color:var(--neon-green)">✓ Safe</td></tr>
+          <tr><td>git reset HEAD~1</td><td>Undo last commit, keep changes unstaged</td><td style="color:var(--neon-amber)">⚠ Local only</td></tr>
+          <tr><td>git reset --hard HEAD~1</td><td>Undo last commit AND delete changes</td><td style="color:var(--neon-pink)">✗ Permanent</td></tr>
+          <tr><td>git checkout -- file.py</td><td>Restore a file to last commit state</td><td style="color:var(--neon-pink)">✗ Permanent</td></tr>
+          <tr><td>git revert HASH</td><td>Undo a commit by creating a new undo commit</td><td style="color:var(--neon-green)">✓ Safe to push</td></tr>
+          <tr><td>git stash</td><td>Temporarily save uncommitted changes</td><td style="color:var(--neon-green)">✓ Safe</td></tr>
+          <tr><td>git stash pop</td><td>Restore stashed changes</td><td style="color:var(--neon-green)">✓ Safe</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-bl">
+    <div class="card-h" style="color:var(--neon-blue)">ADVANCED</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Command</th><th>What It Does</th></tr></thead>
+        <tbody>
+          <tr><td>git rebase main</td><td>Replay current branch commits on top of main (linear history)</td></tr>
+          <tr><td>git rebase -i HEAD~N</td><td>Interactive rebase — squash, reorder, or edit last N commits</td></tr>
+          <tr><td>git cherry-pick HASH</td><td>Copy one specific commit to current branch</td></tr>
+          <tr><td>git tag v1.0</td><td>Tag current commit as a version</td></tr>
+          <tr><td>git push origin --tags</td><td>Push all tags to GitHub</td></tr>
+          <tr><td>git fetch origin</td><td>Download remote changes without applying them</td></tr>
+          <tr><td>git remote -v</td><td>Show configured remote URLs</td></tr>
+          <tr><td>git remote add origin URL</td><td>Connect a local repo to a GitHub remote</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card card-gr">
+    <div class="card-h" style="color:var(--neon-green)">.GITIGNORE — WHAT TO EXCLUDE (READY TO USE)</div>
+    <p>Create this file in your project root before your first commit. Git will completely ignore everything listed here.</p>
+    <pre><span class="cm"># .gitignore for crypto-tracker</span>
+
+<span class="cm"># NEVER commit secrets</span>
 .env
 .env.local
-.env.*.local
 secrets.py
-config_secrets.py
+*_secrets.py
 
-<span class="cm"># Python artifacts — auto-generated, don't need to track</span>
+<span class="cm"># Python artifacts — auto-generated, don't track</span>
 __pycache__/
 *.pyc
 *.pyo
@@ -420,66 +1560,63 @@ venv/
 dist/
 *.egg-info/
 
-<span class="cm"># macOS system files</span>
-.DS_Store
+<span class="cm"># OS files</span>
+.DS_Store          <span class="cm"># macOS</span>
+Thumbs.db          <span class="cm"># Windows</span>
 
-<span class="cm"># Windows system files</span>
-Thumbs.db
-
-<span class="cm"># IDE config (optional — some teams track these)</span>
+<span class="cm"># IDE config</span>
 .vscode/settings.json
-.idea/</pre>
+.idea/
 
-    <div class="callout danger-box">
-      <span class="icon">🚨</span>
-      <div class="body">
-        <strong>If you accidentally commit a secret key or password</strong>
-        Remove the file, commit the removal, AND rotate the exposed secret immediately. The secret is still visible in the Git history even after deletion — anyone who clones the repo can see old commits. You must invalidate the secret from the service that issued it (Binance API key, AWS key, etc.).
-      </div>
-    </div>
+<span class="cm"># Kafka/temp data</span>
+kafka-logs/
+/tmp/checkpoints/</pre>
   </div>
-</div>
 
-<div class="sec" id="cheatsheet">
-  <div class="sec-eyebrow">Quick Reference</div>
-  <h2>Git Command Cheatsheet</h2>
-  <div class="card">
+  <div class="card card-am">
+    <div class="card-h" style="color:var(--neon-amber)">FINAL MENTAL MODEL — REMEMBER THIS</div>
     <div class="tbl-wrap">
-      <table>
-        <thead><tr><th>Command</th><th>What It Does</th><th>When to Use</th></tr></thead>
+      <table class="tbl">
+        <thead><tr><th>Concept</th><th>One-Line Meaning</th><th>Analogy</th></tr></thead>
         <tbody>
-          <tr><td>git init</td><td>Initialize a new Git repo in current folder</td><td>Starting a brand new project</td></tr>
-          <tr><td>git clone URL</td><td>Download repo from GitHub to your machine</td><td>Getting a project for the first time</td></tr>
-          <tr><td>git status</td><td>Show what changed since last commit</td><td>Before every add/commit — run this first</td></tr>
-          <tr><td>git add .</td><td>Stage ALL changed files</td><td>When you want to commit everything</td></tr>
-          <tr><td>git add file.py</td><td>Stage one specific file</td><td>Committing only some of your changes</td></tr>
-          <tr><td>git commit -m "msg"</td><td>Save staged changes as a snapshot</td><td>After staging, always with a clear message</td></tr>
-          <tr><td>git push origin branch</td><td>Upload commits to GitHub</td><td>After committing, to back up and share</td></tr>
-          <tr><td>git pull origin main</td><td>Download + merge GitHub changes</td><td>Start of every work session</td></tr>
-          <tr><td>git checkout -b name</td><td>Create + switch to new branch</td><td>Starting a new feature</td></tr>
-          <tr><td>git checkout name</td><td>Switch to an existing branch</td><td>Resuming work on an existing branch</td></tr>
-          <tr><td>git branch</td><td>List local branches</td><td>See what branches exist</td></tr>
-          <tr><td>git branch -a</td><td>List all branches including GitHub</td><td>See all branches everywhere</td></tr>
-          <tr><td>git merge branch</td><td>Merge a branch into current branch</td><td>Combining completed feature into main</td></tr>
-          <tr><td>git log --oneline</td><td>Show commit history (compact)</td><td>See what was done recently</td></tr>
-          <tr><td>git diff</td><td>Show exact line changes not yet staged</td><td>Review changes before committing</td></tr>
-          <tr><td>git stash</td><td>Temporarily hide uncommitted changes</td><td>Need to switch branch but work is unfinished</td></tr>
-          <tr><td>git stash pop</td><td>Restore stashed changes</td><td>After switching back to your branch</td></tr>
-          <tr><td>git reset HEAD~1</td><td>Undo last commit, keep the changes unstaged</td><td>Committed too early or wrong message</td></tr>
-          <tr><td>git branch -d name</td><td>Delete local branch</td><td>After merging, to clean up</td></tr>
-          <tr><td>git push origin --delete name</td><td>Delete branch on GitHub</td><td>After merging PR, clean up remote</td></tr>
+          <tr><td>Working Directory</td><td>Files you're editing right now</td><td>Open documents on your desk</td></tr>
+          <tr><td>Staging Area</td><td>Changes selected for next commit</td><td>Shopping cart before checkout</td></tr>
+          <tr><td>Commit</td><td>Permanent snapshot of staged changes</td><td>Save point in a video game</td></tr>
+          <tr><td>Branch</td><td>Parallel universe of your code</td><td>Side road being built while main road stays open</td></tr>
+          <tr><td>Merge</td><td>Combine two branches into one</td><td>Two rivers joining into one</td></tr>
+          <tr><td>Rebase</td><td>Replay commits on top of another branch</td><td>Rewriting history to look clean</td></tr>
+          <tr><td>Remote (GitHub)</td><td>Cloud backup of your repo</td><td>Google Drive for code</td></tr>
+          <tr><td>Push</td><td>Upload local commits to remote</td><td>Syncing to cloud drive</td></tr>
+          <tr><td>Pull</td><td>Download remote commits and apply</td><td>Syncing from cloud drive</td></tr>
+          <tr><td>Fetch</td><td>Download without applying</td><td>Downloading but not opening a file</td></tr>
+          <tr><td>Stash</td><td>Temporary clipboard for uncommitted work</td><td>Sticky note to yourself</td></tr>
+          <tr><td>Tag</td><td>Permanent label on a specific commit</td><td>Post-it marking a page in a book</td></tr>
         </tbody>
       </table>
     </div>
   </div>
-</div>
+</section>
 
-</div>
-<div class="footer">
-  <a href="index.html" style="color:var(--accent);text-decoration:none">← Back to Hub</a>
-  <span>Git / GitHub Documentation · crypto-tracker · DARKZONE17</span>
-</div>
+
+</div><!-- /content -->
 </main>
-</div>
+</div><!-- /layout -->
+
+<footer class="page-footer">
+  <div><a href="index.html">← Back to Hub</a> &nbsp;·&nbsp; <span style="color:var(--neon-green)">Git / GitHub</span></div>
+  <div>DARKZONE17 · crypto-tracker · From Zero to Advanced</div>
+</footer>
+
+<script>
+const secs = document.querySelectorAll('section[id]');
+const sbAs = document.querySelectorAll('.sb-a');
+const nts  = document.querySelectorAll('.nt');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 80) cur = s.id; });
+  sbAs.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
+  nts.forEach(l  => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
+}, { passive: true });
+</script>
 </body>
 </html>
